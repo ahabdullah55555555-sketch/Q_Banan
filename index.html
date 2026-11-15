@@ -46,7 +46,7 @@ textarea{min-height:220px;line-height:1.6}
 /* ===== ARK slide template (locked, v5) ===== */
 .slides{display:flex;flex-direction:column;gap:14px}
 .slide{aspect-ratio:16/9;width:100%;max-width:920px;margin:0 auto;border-radius:6px;overflow:hidden;display:flex;flex-direction:column;background:#000;color:#fff;box-shadow:0 4px 18px rgba(0,0,0,.25)}
-.top{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:start;padding:9px 18px}
+.top{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:start;padding:10px 26px}
 .logo{line-height:1;text-align:left}
 .logo .a{font-family:'Work Sans',Arial,sans-serif;font-weight:800;font-size:17px;line-height:.95;color:#ffd700}
 .logo .p{font-size:8px;font-weight:700;color:#fff;line-height:1;margin-top:0}
@@ -54,7 +54,7 @@ textarea{min-height:220px;line-height:1.6}
 .top .mid{text-align:center}
 .top .mid span{display:inline-block;background:#ffd700;color:#000;font-size:15px;font-weight:700;border-radius:20px;padding:3px 18px}
 .top .right{text-align:right;color:#fff;font-size:12px;font-weight:700;padding-top:2px}
-.body{flex:1;padding:6px 20px 8px;display:flex;flex-direction:row;gap:20px;min-height:0}
+.body{flex:1;padding:8px 26px 10px;display:flex;flex-direction:row;gap:20px;min-height:0}
 .qwrap{flex:1.5;min-width:0}
 .q{font-size:16px;line-height:1.35;font-weight:700;color:#ffd700;text-align:left;margin:4px 0}
 .q .tag{font-size:10px;font-weight:400;color:#fff;white-space:nowrap}
@@ -62,8 +62,8 @@ textarea{min-height:220px;line-height:1.6}
 .opts{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;padding-bottom:6px}
 .opt{background:#fff3d6;color:#111;border-radius:8px;padding:5px 10px;font-size:11px;line-height:1.3;text-align:left}
 .opt b{color:#b8860b;margin-right:6px}
-.foot{padding:5px 18px;font-size:10px;color:#cfcfcf;display:flex;justify-content:space-between}
-.titlewrap{flex:1;display:flex;flex-direction:column;justify-content:center;padding:8px 20px}
+.foot{padding:6px 26px;font-size:10px;color:#cfcfcf;display:flex;justify-content:space-between}
+.titlewrap{flex:1;display:flex;flex-direction:column;justify-content:center;padding:10px 26px}
 .title{font-size:28px;line-height:1.25;font-weight:700;color:#ffd700}
 .sub{font-size:15px;margin-top:7px;color:#fff}
 .stim{color:#fff;font-size:10px;line-height:1.4;margin:4px 0 8px}
@@ -99,10 +99,12 @@ textarea{min-height:220px;line-height:1.6}
  .logo .a{font-size:14px}.logo .p{font-size:8px}.logo .c{font-size:5px}
  .top .mid span{font-size:12px;padding:2px 12px}
  .top .right{font-size:10px}
- .body{padding:4px 12px 6px;gap:12px}
+ .top{padding:8px 16px}
+ .body{padding:6px 16px 8px;gap:12px}
+ .titlewrap{padding:8px 16px}
  .q{font-size:11px}.q .tag{font-size:9px}
  .opts{gap:4px}.opt{font-size:10px;padding:4px 8px}
- .foot{padding:4px 12px;font-size:9px}
+ .foot{padding:5px 16px;font-size:9px}
  .title{font-size:20px}.sub{font-size:13px}
  .stim{font-size:9px}.cqrow{font-size:10px}
 }
@@ -327,7 +329,7 @@ function renderAll(){
       var s = document.createElement("div"); s.className="slide";
       var opts = it.opts.map(function(o,idx){ return '<div class="opt"><b>'+["ক","খ","গ","ঘ"][idx]+'</b> '+esc(o)+'</div>'; }).join("");
       s.innerHTML = headerHTML(meta, "বহুনির্বাচনী") +
-        '<div class="body"><div class="qwrap"><div class="q"><span class="arr">'+bn(it.num)+'.</span> <span class="arr">»</span> '+esc(it.q)+tagHTML(it.q)+'</div></div>'+
+        '<div class="body"><div class="qwrap"><div class="q"><span class="arr">'+bn(it.num)+'.</span> '+esc(it.q)+tagHTML(it.q)+'</div></div>'+
         '<div class="opts">'+opts+'</div></div>' + footerHTML(meta);
       box.appendChild(s); count++;
       fitMcq(s);
@@ -434,7 +436,7 @@ $("btnPptx").addEventListener("click", function(){
   } else if (current.type==="MCQ"){
     current.items.forEach(function(it){
       var s = pptx.addSlide(); addHeader(s, "বহুনির্বাচনী");
-      s.addText(bn(it.num)+". » "+it.q + (isBoard(it.q)?"":" [নমুনা প্রশ্ন]"), { x:0.6, y:1.5, w:7.2, h:2.6, fontSize:16, bold:true, color:qCol, valign:"top" });
+      s.addText(bn(it.num)+". "+it.q + (isBoard(it.q)?"":" [নমুনা প্রশ্ন]"), { x:0.6, y:1.5, w:7.2, h:2.6, fontSize:16, bold:true, color:qCol, valign:"top" });
       it.opts.forEach(function(o,idx){
         var y = 1.6 + idx*0.85;
         s.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:8.4, y:y, w:4.3, h:0.65, fill:{color:"FFF3D6"}, line:{color:"D8C27A"} });
