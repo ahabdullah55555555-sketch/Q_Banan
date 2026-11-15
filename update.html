@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Q_Banan — আপডেট চেক</title>
+<style>
+  body{font-family:sans-serif;background:#111;color:#fff;margin:0;padding:24px 16px;text-align:center}
+  h1{font-size:22px;color:#ffd700;margin:8px 0 4px}
+  p{font-size:16px;line-height:1.7;color:#ddd}
+  #st{font-size:18px;font-weight:700;color:#fff;background:#222;border:1px solid #444;border-radius:12px;padding:16px;margin:18px 0;min-height:60px}
+  button{background:#ffd700;color:#000;border:0;border-radius:12px;padding:14px 22px;font-size:17px;font-weight:700;margin:6px}
+  a.app{display:inline-block;background:#222;color:#ffd700;border:1px solid #ffd700;border-radius:12px;padding:14px 22px;font-size:17px;font-weight:700;margin:6px;text-decoration:none}
+  .small{font-size:13px;color:#999}
+</style>
+</head>
+<body>
+<h1>Q_Banan — আপডেট চেক</h1>
+<p>এই পেজটি অ্যাপের নতুন ভার্সন জোর করে চেক করে।<br>তোমার ড্রাফট/প্রজেক্ট কিছু মুছবে না।</p>
+<div id="st">চেক হচ্ছে… একটু অপেক্ষা করো।</div>
+<button id="again" onclick="check()">আবার চেক করো</button><br>
+<a class="app" href="./">অ্যাপ খুলুন</a>
+<p class="small">নতুন ভার্সন পাওয়া গেলে উপরে লেখা আসবে — তারপর "অ্যাপ খুলুন" চাপো।</p>
+<script>
+var st = document.getElementById('st');
+function set(t){ st.textContent = t; }
+function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+function liveVersion(){
+  return fetch('sw.js', { cache: 'no-store' }).then(function(r){ return r.text(); }).then(function(t){
+    var m = t.match(/APP_VERSION\s*=\s*"([^"]+)"/);
+    return m ? m[1] : null;
+  }).catch(function(){ return null; });
+}
+function waitActivated(reg, ms){
+  return new Promise(function(resolve){
+    var t0 = Date.now();
+    function look(){
+      var w = reg.installing || reg.waiting;
+      if (reg.active && (!w || w.state === 'activated')) return resolve(true);
+      if (w) {
+        if (w.state === 'activated') return resolve(true);
+        w.addEventListener('statechange', function(){ if (w.state === 'activated') resolve(true); });
+      }
+      if (Date.now() - t0 > ms) return resolve(false);
+      setTimeout(look, 500);
+    }
+    look();
+  });
+}
+function check(){
+  set('চেক হচ্ছে… একটু অপেক্ষা করো।');
+  if (!('serviceWorker' in navigator)) { set('এই ব্রাউজারে সার্ভিস ওয়ার্কার চলে না। Chrome দিয়ে খুলে আবার চেষ্টা করো।'); return; }
+  navigator.serviceWorker.getRegistration().then(function(reg){
+    if (!reg) {
+      liveVersion().then(function(v){
+        set(v ? ('কোনো পুরনো ভার্সন ইনস্টল নেই। লাইভে v' + v + ' আছে — "অ্যাপ খুলুন" চাপো।') : 'চেক করা গেল না — ইন্টারনেট চেক করে আবার চেষ্টা করো।');
+      });
+      return;
+    }
+    reg.update().then(function(){
+      return waitActivated(reg, 30000);
+    }).then(function(ok){
+      return liveVersion().then(function(v){
+        if (ok && v) set('✅ নতুন ভার্সন (v' + v + ') চলে এসেছে! এখন "অ্যাপ খুলুন" চাপো।');
+        else if (v) set('লাইভে v' + v + ' আছে। আপডেট এখনো চালু হয়নি — ১ মিনিট পর "আবার চেক করো" চাপো, তারপর অ্যাপ খুলুন।');
+        else set('চেক করা গেল না — ইন্টারনেট চেক করে আবার চেষ্টা করো।');
+      });
+    }).catch(function(){
+      set('চেক করা গেল না — ইন্টারনেট চেক করে "আবার চেক করো" চাপো।');
+    });
+  });
+}
+check();
+</script>
+</body>
+</html>
