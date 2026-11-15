@@ -1,7 +1,7 @@
 "use strict";
 /* Q_Banan service worker — offline app shell. No network, no Firebase, no login.
    Drafts live in localStorage on the phone only; the SW only caches app files. */
-var CACHE = "qbanan-v5";
+var CACHE = "qbanan-v7";
 var FILES = [
   "./",
   "index.html",
@@ -9,6 +9,11 @@ var FILES = [
   "pptxgen.bundle.js",
   "html2canvas.min.js",
   "jspdf.umd.min.js",
+  "harfbuzz.js",
+  "hb-wrapper.mjs",
+  "hb-loader.mjs",
+  "hb-wasm.js",
+  "vec-fonts.js",
   "icon.svg"
 ];
 self.addEventListener("install", function (e) {
