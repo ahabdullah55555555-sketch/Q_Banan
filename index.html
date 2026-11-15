@@ -26,6 +26,10 @@ header{background:var(--bg);color:var(--text);padding:16px 16px 8px;display:flex
 .head-acts{display:flex;gap:8px;flex:none}
 button{font-family:inherit;cursor:pointer;border:none;border-radius:var(--radius);padding:12px 16px;font-size:15px;font-weight:700}
 .icon-btn{padding:12px}
+/* Plain icons (v2.5): no button box/border/background — just the icon,
+   tappable as-is (44px+ tap target via padding). */
+.plain-ic{background:none;border:none;color:var(--text);font-size:22px;line-height:1;padding:12px;min-width:44px;min-height:44px;border-radius:8px}
+.plain-ic:disabled{opacity:.45}
 .btn-y{background:var(--acc);color:var(--accOn)}
 .btn-w{background:var(--surface);color:var(--text);border:1px solid var(--border)}
 .btn-d{background:var(--text);color:var(--bg)}
@@ -75,7 +79,7 @@ textarea{min-height:220px;line-height:1.6}
 .opts{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;padding-bottom:6px}
 .opt{background:var(--optBg,#fff3d6);color:#111;border-radius:8px;padding:5px 10px;font-size:calc(var(--szf,.78)*11px);line-height:1.3;text-align:left}
 .opt b{color:var(--accD,#b8860b);margin-right:6px}
-.foot{padding:6px 26px;font-size:calc(var(--szf,.78)*10px);color:#cfcfcf;display:flex;justify-content:space-between}
+.foot{padding:6px 26px;font-size:calc(var(--szf,.78)*5px);color:#8a8a8a;display:flex;justify-content:space-between}
 .titlewrap{flex:1;display:flex;flex-direction:column;justify-content:center;padding:10px 26px}
 .title{font-size:calc(var(--szf,.78)*28px);line-height:1.25;font-weight:700;color:var(--acc,#ffd700)}
 .sub{font-size:calc(var(--szf,.78)*15px);margin-top:7px;color:#fff}
@@ -86,7 +90,7 @@ textarea{min-height:220px;line-height:1.6}
 .cqrow{display:flex;gap:8px;font-size:calc(var(--szf,.78)*11px);line-height:1.35;color:var(--acc,#ffd700);text-align:left}
 .cqrow b{color:var(--acc,#ffd700)}
 .ansrow{font-size:calc(var(--szf,.78)*14px);line-height:1.5;color:#fff;padding:3px 0}
-.ansrow b{color:var(--acc,#ffd700)}
+.ansrow b{color:#fff}
 /* white theme slides */
 .slides.light .slide{background:#fff;color:#111}
 .slides.light .logo .a{color:var(--accD,#b8860b)}
@@ -103,8 +107,8 @@ textarea{min-height:220px;line-height:1.6}
 .slides.light .cqrow{color:#111}
 .slides.light .cqrow b{color:#111}
 .slides.light .ansrow{color:#111}
-.slides.light .ansrow b{color:var(--accD,#b8860b)}
-.slides.light .foot{color:#555}
+.slides.light .ansrow b{color:#111}
+.slides.light .foot{color:#8f8f8f}
 .slides.light .opt{background:var(--optBg,#fff3d6);border:1px solid var(--optBd,#d8c27a)}
 /* ===== Slide layouts (0 = locked template, 1–4 from the proposal) =====
    Layouts are pure CSS on the slide element (.slide.l1 … .l4) — the DOM
@@ -231,7 +235,7 @@ textarea{min-height:220px;line-height:1.6}
  .titlewrap{padding:8px 16px}
  .q{font-size:calc(var(--szf,.78)*11px)}.q .tag{font-size:calc(var(--szf,.78)*9px)}
  .opts{gap:4px}.opt{font-size:calc(var(--szf,.78)*10px);padding:4px 8px}
- .foot{padding:5px 16px;font-size:calc(var(--szf,.78)*9px)}
+ .foot{padding:5px 16px;font-size:calc(var(--szf,.78)*4.5px)}
  .title{font-size:calc(var(--szf,.78)*20px)}.sub{font-size:calc(var(--szf,.78)*13px)}
  .stim{font-size:calc(var(--szf,.78)*9px)}.cqrow{font-size:calc(var(--szf,.78)*10px)}
  .slide.l3 .rail span{font-size:calc(var(--szf,.78)*34px)}
@@ -264,7 +268,7 @@ textarea{min-height:220px;line-height:1.6}
 .set-cat{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-2);margin:20px 0 8px}
 .ws-bar{display:flex;justify-content:space-between;gap:8px;margin-bottom:4px}
 .menu-wrap{position:relative}
-.menu-btn{padding:10px 14px;font-size:17px;line-height:1}
+.menu-btn{padding:12px 14px;font-size:20px;line-height:1}
 .menu{position:absolute;right:0;top:calc(100% + 4px);z-index:30;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.2);min-width:150px;padding:4px}
 .menu-item{display:block;width:100%;text-align:left;background:none;color:var(--text);border:none;border-radius:8px;padding:12px 14px;font-size:14px;font-weight:700}
 .menu-item.danger{color:#c0392b}
@@ -278,7 +282,7 @@ body.app-dark .sw.on{border-color:#fff}
 </style>
 </head>
 <body>
-<header id="appHeader"><div class="brand">Q_Banan <span id="appVer" class="app-ver"></span></div><div class="head-acts"><button class="btn-w icon-btn" id="btnMode" type="button">কালো মোড</button><button class="btn-w icon-btn" id="btnSettings" type="button">⚙ সেটিংস</button></div></header>
+<header id="appHeader"><div class="brand">Q_Banan <span id="appVer" class="app-ver"></span></div><div class="head-acts"><button class="plain-ic" id="btnMode" type="button" aria-label="কালো মোডে যাও">☾</button><button class="plain-ic" id="btnUpdHome" type="button" aria-label="নতুন ভার্সন চেক করো">⟳</button><button class="plain-ic" id="btnSettings" type="button" aria-label="সেটিংস">⚙</button></div></header>
 <div id="updBanner" class="upd-banner hidden"><span style="flex:1">নতুন ভার্সন এসেছে — ট্যাপ করে রিফ্রেশ করো</span><button id="updReload" type="button">রিফ্রেশ করো</button><button id="updDismiss" class="x" type="button" aria-label="বন্ধ করো">✕</button></div>
 <main>
 <!-- HOME -->
@@ -286,6 +290,7 @@ body.app-dark .sw.on{border-color:#fff}
   <button class="btn-y big-new" id="btnNewTop" type="button">+ নতুন প্রজেক্ট</button>
   <div class="search-wrap"><span class="s-ic">🔍</span><input type="text" id="searchProj" class="search" placeholder="প্রজেক্ট খুঁজো…" autocomplete="off"></div>
   <div class="home-head"><h1>আমার প্রজেক্ট</h1><span id="projCount"></span></div>
+  <div id="homeUpdMsg" class="note hidden" style="margin:8px 0"></div>
   <div id="projList"></div>
   <div id="selBar" class="hidden" style="margin:8px 0;display:flex;gap:8px"><button class="btn-danger" id="btnDelSel" type="button">সিলেক্ট করা ডিলিট করো (<span id="selCount">0</span>টি)</button><button class="btn-w" id="btnSelCancel" type="button">✕ বাতিল</button></div>
   <p id="noProj" class="note">এখনো কোনো প্রজেক্ট নেই — উপরের নতুন প্রজেক্ট চাপো। টেক্সট বসিয়ে Run দিলেই ARK টেমপ্লেটে স্লাইড বানাবে — MCQ এক পেজে, সৃজনশীল আলাদা আলাদা স্লাইডে। PDF আর PPTX — দুটোই ফ্রি, অফলাইনে চলে।</p>
@@ -294,7 +299,7 @@ body.app-dark .sw.on{border-color:#fff}
 
 <!-- CREATE -->
 <section id="view-create" class="hidden">
-  <div class="ws-bar"><button class="btn-w" id="btnBackHome" type="button">← ফিরে যাও</button><button class="btn-w icon-btn" id="btnSettingsCreate" type="button">⚙ সেটিংস</button></div>
+  <div class="ws-bar"><button class="plain-ic" id="btnBackHome" type="button" aria-label="ফিরে যাও">←</button><button class="plain-ic" id="btnSettingsCreate" type="button" aria-label="সেটিংস">⚙</button></div>
   <h1>Create New</h1>
   <div class="card">
     <label>ধরন — ঐচ্ছিক (না বাছলে টেক্সট দেখে নিজেই বুঝে নেবে)</label>
@@ -351,19 +356,11 @@ body.app-dark .sw.on{border-color:#fff}
     </div>
     <div id="parseErr" class="err hidden" style="margin-top:10px"></div>
   </div>
-  <div class="card">
-    <h2>ফরম্যাট কেমন হবে?</h2>
-    <p class="note" style="font-size:13px">TYPE: লাইন না দিলেও চলবে — টেক্সট দেখে MCQ / সৃজনশীল / উত্তরপত্র নিজেই বুঝে নেবে। একসাথে সব ধরনও দেওয়া যাবে: <b>TYPE: MCQ</b> দিয়ে MCQ-গুলো, তারপর <b>TYPE: CQ</b> দিয়ে সৃজনশীলগুলো, তারপর <b>TYPE: ANSWER</b> দিয়ে উত্তরগুলো — ক্রম যেমন দেবে, স্লাইডও তেমনই হবে।<br>
-    MCQ: <b>1. প্রশ্ন? | অপশন ১ | অপশন ২ | অপশন ৩ | অপশন ৪</b><br>
-    CQ: <b>1. উদ্দীপক...</b> তারপর <b>ক. ... | খ. ... | গ. ... | ঘ. ...</b> (এক লাইনে বা আলাদা আলাদা লাইনে)<br>
-    উত্তরপত্র: <b>1. ক</b> বা <b>1. অ্যাম্পিয়ার</b><br>
-    ডায়াগ্রাম: প্রশ্নের ঠিক পরের লাইনে <b>SVG: &lt;svg ...&gt;...&lt;/svg&gt;</b> (এক লাইনে) — ডায়াগ্রামটা স্লাইডে ছবি হিসেবে দেখাবে।</p>
-  </div>
 </section>
 
 <!-- SETTINGS -->
 <section id="view-settings" class="hidden">
-  <button class="btn-w" id="btnBackHome2" type="button">← ফিরে যাও</button>
+  <button class="plain-ic" id="btnBackHome2" type="button" aria-label="ফিরে যাও">←</button>
   <h1>সেটিংস</h1>
   <p class="set-cat">অ্যাপের চেহারা</p>
   <div class="card set-group">
@@ -450,11 +447,11 @@ body.app-dark .sw.on{border-color:#fff}
 <!-- RENDER -->
 <section id="view-render" class="hidden">
   <div class="toolbar card" style="display:flex;gap:8px;flex-wrap:wrap">
-    <button class="btn-w" id="btnBackRender" type="button">← ফিরে যাও</button>
+    <button class="plain-ic" id="btnBackRender" type="button" aria-label="ফিরে যাও">←</button>
     <button class="btn-y" id="btnPdf" type="button">PDF এক্সপোর্ট</button>
     <button class="btn-d" id="btnPptx" type="button">PPTX এক্সপোর্ট</button>
     <button class="btn-w" id="btnSaveProj" type="button">প্রজেক্ট সেভ করো</button>
-    <button class="btn-w icon-btn" id="btnSettingsRender" type="button" title="সেটিংস">⚙</button>
+    <button class="plain-ic" id="btnSettingsRender" type="button" title="সেটিংস" aria-label="সেটিংস">⚙</button>
     <span id="slideCount" style="align-self:center;font-size:14px"></span>
     <span id="detectLabel" style="align-self:center;font-size:14px;font-weight:700"></span>
     <label for="selType" style="align-self:center;font-size:14px;margin:0">ধরন বদলাও:</label>
@@ -487,7 +484,7 @@ body.app-dark .sw.on{border-color:#fff}
 /* App version — the ONE version string shown to the user (Home + Settings).
    The service worker cache is "qbanan-" + this version (same literal in
    sw.js) — bump both together on every release. */
-var APP_VERSION = "2.4";
+var APP_VERSION = "2.5";
 /* ---------- helpers ---------- */
 var BN = {"0":"০","1":"১","2":"২","3":"৩","4":"৪","5":"৫","6":"৬","7":"৭","8":"৮","9":"৯"};
 function bn(n){ return String(n).split("").map(function(c){ return BN[c] || c; }).join(""); }
@@ -538,7 +535,7 @@ function applyAppTheme(){
   var m = document.querySelector('meta[name="theme-color"]');
   if (m) m.setAttribute("content", dark ? "#101012" : "#F4F4F1");
   var bm = $("btnMode");
-  if (bm) bm.textContent = dark ? "সাদা মোড" : "কালো মোড";
+  if (bm){ bm.textContent = dark ? "☀" : "☾"; bm.setAttribute("aria-label", dark ? "সাদা মোডে যাও" : "কালো মোডে যাও"); }
 }
 /* ---------- history: one entry per screen, so Android/system back walks
    the screens (render -> create -> home) instead of leaving the app. On
@@ -642,10 +639,15 @@ function normalizeForDraft(kindRadio, qtypeRadio, text){
     qtype: qtypeRadio === "auto" ? (det === "ANS" ? "MCQ" : det) : qtypeRadio
   };
 }
-function saveDraftSilent(){
+/* _noTsBump: openDraft only VIEWS the slides — viewing must not bump
+   last-modified (the sort rule below), so doRun skips the bump then. */
+var _noTsBump = false;
+function saveDraftSilent(bumpTs){
   // Rendered project (Run done): save/update its draft from `current`.
   if (current){
-    var rec = { id: current.draftId || Date.now(), name: current.name, kind: current.kind, qtype: current.qtype,
+    var _prevTs = null;
+    if (current.draftId){ var _ps0 = getProjects(); for (var _k=0; _k<_ps0.length; _k++){ if (_ps0[_k].id===current.draftId && _ps0[_k].ts){ _prevTs = _ps0[_k].ts; break; } } }
+    var rec = { id: current.draftId || Date.now(), ts: (bumpTs || !_prevTs) ? Date.now() : _prevTs, name: current.name, kind: current.kind, qtype: current.qtype,
       subject: current.subject, chapter: current.chapter, teacher: current.teacher, accent: current.accent, theme: current.theme,
       slideSize: current.slideSize || getSettings().slideSize || "normal",
       layout: (current.layout==null?0:current.layout), showTitle: current.showTitle !== false,
@@ -657,7 +659,9 @@ function saveDraftSilent(){
   var text = $("inText").value;
   if (!($("inName").value.trim() || $("inSubject").value.trim() || $("inChapter").value.trim() || text.trim())) return false;
   var _n2 = normalizeForDraft(selected("kind"), selected("qtype"), text);
-  var rec2 = { id: editingId || Date.now(), name: $("inName").value.trim() || "Q_Banan", kind: _n2.kind, qtype: _n2.qtype,
+  var _prevTs2 = null;
+  if (editingId){ var _ps1 = getProjects(); for (var _k2=0; _k2<_ps1.length; _k2++){ if (_ps1[_k2].id===editingId && _ps1[_k2].ts){ _prevTs2 = _ps1[_k2].ts; break; } } }
+  var rec2 = { id: editingId || Date.now(), ts: (bumpTs || !_prevTs2) ? Date.now() : _prevTs2, name: $("inName").value.trim() || "Q_Banan", kind: _n2.kind, qtype: _n2.qtype,
     subject: $("inSubject").value.trim(), chapter: $("inChapter").value.trim(), teacher: $("inTeacher").value.trim() || getSettings().teacher || "Khayrul Sir", accent: $("inAccent").value, theme: selected("theme"),
     slideSize: selected("slideSize") || getSettings().slideSize || "normal",
     layout: parseInt(selected("layout") || "0", 10) || 0,
@@ -852,7 +856,10 @@ function parseSpecialText(text, force){
 var current = null; // {kind,qtype,name,subject,chapter,accent,theme,slideSize,title,type,items}
 var editingId = null; // id of the draft currently being edited (null = new project)
 function headerHTML(meta, pillText){
-  var subtle = (pillText === "সৃজনশীল");
+  // Answer slides: the "উত্তরপত্র" pill is subtle too (no accent fill) —
+  // on answer slides nothing is coloured, only the answer text (white).
+  // His 21:33 order: "সৃজনশীল ৩ — উত্তর eita kothau rongin only ans sada".
+  var subtle = (pillText === "সৃজনশীল" || pillText === "উত্তরপত্র");
   return '<div class="top"><div class="logo"><div class="a">ARK</div><div class="p">PLUS POINT</div><div class="c">COACHING CENTER</div></div>'+
   '<div class="mid'+(subtle?' subtle':'')+'"><span>'+esc(pillText)+'</span></div>'+
   '<div class="right">SSC 2027</div></div>';
@@ -1001,9 +1008,10 @@ function renderAll(){
         g.rows.forEach(function(a){
           var row = document.createElement("div");
           row.className = "ansrow";
-          // Only the serial + sub-letter prefix is accent-coloured; the
-          // answer body is white (dark) / #111 (light). "ক: ..." -> the
-          // letter+punctuation joins the prefix; a bare "ক" is the prefix.
+          // Answer rows: prefix AND body are all in the slide text colour
+          // (white on dark / #111 on light) — no accent anywhere on answer
+          // slides (his 21:33 order). "ক: ..." -> the letter+punctuation
+          // joins the prefix; a bare "ক" is the prefix.
           var _at = String(a.ans);
           var _am = _at.match(/^([কখগঘ])\s*([:.।])\s*([\s\S]*)$/);
           var _ab = !_am && _at.match(/^([কখগঘ])$/);
@@ -1640,9 +1648,10 @@ $("btnPptx").addEventListener("click", async function(){
     var cardBd = dark ? "3A3A3A" : "DDDDDD";
     var railBg = dark ? "191919" : "E9E9E9";
     var footCol = dark ? "CFCFCF" : "666666";
+    var footLineCol = dark ? "8A8A8A" : "999999"; // bottom line only: dimmer (v2.5)
     function tagTxt(q){ return String(q||"").indexOf("নমুনা প্রশ্ন")>=0 ? "" : (isBoard(q)?"":" [নমুনা প্রশ্ন]"); }
     function addHeader(slide, pill, railNum){
-      var subtle = (pill === "সৃজনশীল");
+      var subtle = (pill === "সৃজনশীল" || pill === "উত্তরপত্র");
       slide.background = { color: bg };
       var lx = (L===3) ? 2.3 : 0.4; // layout 3: rail takes the left 1.9in
       if (L===3){
@@ -1677,8 +1686,8 @@ $("btnPptx").addEventListener("click", async function(){
         }
         slide.addText("SSC 2027", { x:11.4, y:0.3, w:1.5, h:0.4, fontSize:fs(12), bold:true, color:txt, align:"right" });
       }
-      slide.addText(current.teacher || "Khayrul Sir", { x:lx, y:7.05, w:3, h:0.3, fontSize:fs(9), color:footCol });
-      slide.addText((current.subject||"")+" • "+(current.chapter||""), { x:8.5, y:7.05, w:4.4, h:0.3, fontSize:fs(9), color:footCol, align:"right" });
+      slide.addText(current.teacher || "Khayrul Sir", { x:lx, y:7.05, w:3, h:0.3, fontSize:fs(4.5), color:footLineCol });
+      slide.addText((current.subject||"")+" • "+(current.chapter||""), { x:8.5, y:7.05, w:4.4, h:0.3, fontSize:fs(4.5), color:footLineCol, align:"right" });
     }
     /* Diagram figure: pptxgenjs cannot embed raw SVG, so the diagram is
        rendered to a high-resolution PNG (3x via canvas) and embedded as a
@@ -1798,10 +1807,10 @@ $("btnPptx").addEventListener("click", async function(){
         var s3 = pptx.addSlide(); addHeader(s3, "উত্তরপত্র", "✦");
         var ax = (L===3) ? 2.5 : 0.6, aw = (L===3) ? 10.2 : 12.13;
         var ay = 1.5;
-        // Answer slides: heading + body in the slide text colour (white on
-        // dark), ONLY the serial + sub-letter prefix in the accent — same
-        // rule as the preview (see renderAll).
-        var ansPre = dark ? acc : optLetter;
+        // Answer slides: heading + body + prefix ALL in the slide text
+        // colour (white on dark) — no accent anywhere on answer slides
+        // (his 21:33 order: nothing coloured, only the answer white).
+        var ansPre = txt;
         if (e.head){
           s3.addText(e.head, { x:ax, y:ay, w:aw, h:0.5, fontSize:fs(13), bold:true, color:txt });
           ay += 0.55;
@@ -1951,9 +1960,12 @@ var MASTER_PROMPT = [
 "   পরের লাইনে: ক. <প্রশ্ন> | খ. <প্রশ্ন> | গ. <প্রশ্ন> | ঘ. <প্রশ্ন>",
 "   পরের সৃজনশীল ২. দিয়ে শুরু হবে, এভাবে চলবে।",
 "5. উত্তরপত্র (ANSWER) হলে প্রতি লাইনে: ১. ক অথবা ১. <সঠিক অপশনের লেখা>",
+"   - MCQ-র উত্তর: শুধু সঠিক অপশনের অক্ষর (ক/খ/গ/ঘ) অথবা সঠিক অপশনের হুবহু লেখা দেবে — MCQ-র নম্বর আর উত্তরের নম্বর একই থাকবে।",
+"   - সৃজনশীল উত্তরে প্রতিটা উত্তর এভাবে লিখবে: ১০. সৃজনশীল ১ — ক: <উত্তর> (যে সৃজনশীলের উত্তর, তার নম্বরটা এভাবে লিখবে)।",
 "6. কোনো প্রশ্ন বা অপশনের ভাষা বদলাবে না, প্রশ্ন যোগ বা বাদ দেবে না, বাংলা যেমন আছে তেমন রাখবে, সংখ্যা ও একক যেমন আছে তেমন রাখবে।",
 "7. একসাথে MCQ + সৃজনশীল + উত্তরপত্র দিতে হলে: একটার পর একটা TYPE: লাইন দিয়ে সেকশন বদলাবে — প্রথমে TYPE: MCQ দিয়ে সব MCQ, তারপর TYPE: CQ দিয়ে সব সৃজনশীল, তারপর TYPE: ANSWER দিয়ে সব উত্তর। সেকশনের ক্রম যেমন দেবে, স্লাইডও তেমনই হবে।",
-"8. কোনো প্রশ্নে চিত্র/ডায়াগ্রাম থাকলে: ডায়াগ্রামটা বইয়ের মতো হুবহু কিন্তু পরিষ্কার করে এক লাইনের SVG হিসেবে দেবে — প্রশ্নের ঠিক পরের লাইনে: SVG: <svg viewBox=\"0 0 400 260\" ...>...</svg>। SVG-তে শুধু আকৃতি (line/circle/rect/path/text) দেবে, কোনো স্ক্রিপ্ট/ছবি/লিংক দেবে না। রঙের জন্য ACCENT শব্দটা ব্যবহার করবে (অ্যাপ সেটাকে প্রজেক্টের অ্যাকসেন্ট রঙে বদলে দেবে) — যেমন stroke=\"ACCENT\"। ডায়াগ্রামটা স্লাইডে ছবি (figure) হিসেবে দেখাবে।"
+"8. কোনো প্রশ্নে চিত্র/ডায়াগ্রাম থাকলে: ডায়াগ্রামটা বইয়ের মতো হুবহু কিন্তু পরিষ্কার করে এক লাইনের SVG হিসেবে দেবে — প্রশ্নের ঠিক পরের লাইনে: SVG: <svg viewBox=\"0 0 400 260\" ...>...</svg>। SVG-তে শুধু আকৃতি (line/circle/rect/path/text) দেবে, কোনো স্ক্রিপ্ট/ছবি/লিংক দেবে না। রঙের জন্য ACCENT শব্দটা ব্যবহার করবে (অ্যাপ সেটাকে প্রজেক্টের অ্যাকসেন্ট রঙে বদলে দেবে) — যেমন stroke=\"ACCENT\"। ডায়াগ্রামটা স্লাইডে ছবি (figure) হিসেবে দেখাবে।",
+"9. MCQ-র উত্তর দিলে: প্রতিটা MCQ-র ঠিক পরে তার সল্যুশন স্লাইড হবে — একই প্রশ্ন আবার দেখাবে, শুধু সঠিক অপশনটা সবুজ রঙে থাকবে। উত্তর আলাদা কোনো শেষের সেকশনে জমা হবে না। তাই MCQ-র উত্তর সবসময় TYPE: ANSWER সেকশনে MCQ-র নম্বর মিলিয়ে দেবে।"
 ].join("\n");
 $("btnCopyPrompt").addEventListener("click", function(){
   var done = function(){ var ok = $("copyOk"); ok.classList.remove("hidden"); setTimeout(function(){ ok.classList.add("hidden"); }, 2000); };
@@ -2025,7 +2037,7 @@ function doRun(){
   }
   var st2 = $("selType"); if (st2) st2.value = lastForce || "auto";
   var sl2 = $("selLayout"); if (sl2) sl2.value = String(_lay);
-  saveDraftSilent(); // auto-save draft on Run, so it survives even if the app is closed right after
+  saveDraftSilent(!_noTsBump); // auto-save draft on Run (explicit Run bumps ts; openDraft viewing does not)
   show("view-render");
   requestAnimationFrame(function(){ renderAll(); });
   return true;
@@ -2042,12 +2054,12 @@ $("selLayout").addEventListener("change", function(){
   if (!current) return;
   var v = parseInt($("selLayout").value, 10);
   current.layout = isNaN(v) ? 0 : v;
-  saveDraftSilent();
+  saveDraftSilent(true);
   renderAll();
 });
 $("btnSaveProj").addEventListener("click", function(){
   if (!current) return;
-  saveDraftSilent(); // upserts the same draft — never creates a duplicate
+  saveDraftSilent(true); // explicit Save bumps ts; upserts the same draft — never creates a duplicate
   alert("সেভ হয়েছে।");
 });
 var selectedIds = new Set();
@@ -2096,6 +2108,66 @@ function exitSelectionMode(){
   selectedIds.clear();
   renderHome();
 }
+/* ---------- drag-to-select (Google Files style) ----------
+   Long-press enters selection mode; while the finger/mouse is still
+   held, dragging up/down over other cards selects the whole range
+   from the anchor card, auto-scrolling near the top/bottom edge.
+   The list is RE-RENDERED when selection mode starts, so the drag
+   state lives at module level (not on the card element) and pointer
+   tracking is on the document. While dragging, touch-action is none
+   (the browser must not steal the gesture for scrolling) and the
+   rAF loop scrolls the page and re-checks what is under the finger. */
+var dragSel = null; // {anchor:number, base:Set} while a drag-select is live
+var suppressCardClick = false; // set on drag end; the next click is swallowed
+var _dragLast = {x:0, y:0};
+var _dragRaf = 0;
+function dragSelCards(){ return Array.prototype.slice.call($("projList").children); }
+function dragSelApply(cx, cy){
+  if (!dragSel) return;
+  var el = document.elementFromPoint(cx, cy);
+  var card = el && el.closest ? el.closest(".pcard") : null;
+  if (!card || !card.dataset.pid) return;
+  var ids = dragSelCards().map(function(c){ return Number(c.dataset.pid); });
+  var ai = ids.indexOf(dragSel.anchor), ci = ids.indexOf(Number(card.dataset.pid));
+  if (ai < 0 || ci < 0) return;
+  var lo = Math.min(ai, ci), hi = Math.max(ai, ci);
+  var next = new Set(dragSel.base);
+  for (var i=lo; i<=hi; i++) next.add(ids[i]);
+  selectedIds = next;
+  dragSelCards().forEach(function(c){
+    var on = next.has(Number(c.dataset.pid));
+    c.classList.toggle("sel", on);
+    var cb = c.querySelector('input[type="checkbox"]');
+    if (cb) cb.checked = on;
+  });
+  updateSelBar();
+}
+function dragSelScrollTick(){
+  _dragRaf = 0;
+  if (!dragSel) return;
+  var y = _dragLast.y, step = 0;
+  if (y < 70) step = -14; else if (y > window.innerHeight - 70) step = 14;
+  if (step){ window.scrollBy(0, step); dragSelApply(_dragLast.x, _dragLast.y); }
+  _dragRaf = requestAnimationFrame(dragSelScrollTick);
+}
+function dragSelStart(anchorId){
+  dragSel = {anchor: anchorId, base: new Set(selectedIds)};
+  document.documentElement.style.touchAction = "none";
+  _dragRaf = requestAnimationFrame(dragSelScrollTick);
+}
+function dragSelEnd(){
+  if (!dragSel) return;
+  dragSel = null;
+  document.documentElement.style.touchAction = "";
+  if (_dragRaf){ cancelAnimationFrame(_dragRaf); _dragRaf = 0; }
+}
+document.addEventListener("pointermove", function(e){
+  if (!dragSel) return;
+  _dragLast.x = e.clientX; _dragLast.y = e.clientY;
+  dragSelApply(e.clientX, e.clientY);
+});
+document.addEventListener("pointerup", function(){ if (dragSel){ dragSelEnd(); suppressCardClick = true; } });
+document.addEventListener("pointercancel", function(){ if (dragSel){ dragSelEnd(); suppressCardClick = true; } });
 /* Fill the create form from a draft (shared by Edit and tap-to-open). */
 function fillCreateForm(p){
   current = null; editingId = p.id;
@@ -2110,9 +2182,20 @@ function fillCreateForm(p){
 /* Tap a draft card: open its slides (same as filling the form + Run).
    The create view is shown first (same synchronous task, never painted),
    so the back chain is uniformly render -> create form -> home. */
-function openDraft(p){ fillCreateForm(p); show("view-create"); doRun(); }
+function openDraft(p){ _noTsBump = true; fillCreateForm(p); show("view-create"); doRun(); _noTsBump = false; }
+/* Card date: last-modified date + TIME when we have a ts (v2.5+ drafts);
+   old drafts without ts fall back to their stored date string only. */
+function fmtDT(p){
+  if (p.ts){ try { var d = new Date(p.ts); return d.toLocaleDateString("bn-BD") + ", " + d.toLocaleTimeString("bn-BD", {hour:"numeric", minute:"2-digit"}); } catch(e){} }
+  return p.date || "";
+}
 function renderHome(){
   var ps = getProjects();
+  // SORT RULE (v2.5): latest first by last-modified ts, descending.
+  // ts bumps ONLY on explicit create / Run / Save / duplicate / edit;
+  // silent back-save and opening (viewing) never bump it. Drafts
+  // without ts (pre-v2.5) sort as oldest and never crash the sort.
+  ps.sort(function(a,b){ return (b.ts||0) - (a.ts||0); });
   var q = searchQuery;
   var list = q ? ps.filter(function(p){ return ((p.name||"")+" "+(p.subject||"")+" "+(p.chapter||"")).toLowerCase().indexOf(q) >= 0; }) : ps;
   var box = $("projList"); box.innerHTML = "";
@@ -2120,7 +2203,7 @@ function renderHome(){
   $("noMatch").classList.toggle("hidden", !(ps.length>0 && list.length===0));
   $("projCount").textContent = ps.length ? ps.length + "টি" : "";
   list.forEach(function(p){
-    var d = document.createElement("div"); d.className="pcard" + (selectedIds.has(p.id) ? " sel" : "");
+    var d = document.createElement("div"); d.className="pcard" + (selectedIds.has(p.id) ? " sel" : ""); d.dataset.pid = p.id;
     var dark = p.theme !== "light";
     var acc = p.accent || "#ffd700";
     var accD = darkenHex(acc, 0.55);
@@ -2138,21 +2221,21 @@ function renderHome(){
     var body = document.createElement("div"); body.className="pbody";
     var typeLabel = p.kind==="answer" ? "উত্তরপত্র" : (p.qtype==="CQ" ? "সৃজনশীল" : (p.qtype==="MIX" ? "মিশ্র" : "বহুনির্বাচনী"));
     var unit = p.kind==="answer" ? "টি উত্তর" : "টি প্রশ্ন";
-    body.innerHTML = '<b>'+esc(p.name)+'</b><small>'+esc(typeLabel)+' • '+bn(countQuestions(p))+unit+' • '+esc(p.date||"")+'</small>';
+    body.innerHTML = '<b>'+esc(p.name)+'</b><small>'+esc(typeLabel)+' • '+bn(countQuestions(p))+unit+' • '+esc(fmtDT(p))+'</small>';
     var acts = document.createElement("div"); acts.className="acts";
-    var bE = document.createElement("button"); bE.className="btn-w"; bE.textContent="Edit"; bE.type="button";
-    bE.onclick = function(){ fillCreateForm(p); show("view-create"); };
     var menuWrap = document.createElement("div"); menuWrap.className="menu-wrap";
-    var mBtn = document.createElement("button"); mBtn.className="btn-w menu-btn"; mBtn.textContent="\u22ee"; mBtn.type="button"; mBtn.setAttribute("aria-label","\u0986\u09b0\u09cb \u0985\u09aa\u09b6\u09a8");
+    var mBtn = document.createElement("button"); mBtn.className="plain-ic menu-btn"; mBtn.textContent="\u22ee"; mBtn.type="button"; mBtn.setAttribute("aria-label","\u0986\u09b0\u09cb \u0985\u09aa\u09b6\u09a8");
     var menu = document.createElement("div"); menu.className="menu hidden";
     var mD = document.createElement("button"); mD.className="menu-item"; mD.textContent="Duplicate"; mD.type="button";
-    mD.onclick = function(){ var c = Object.assign({}, p, {id:Date.now(), name:p.name+" (\u0995\u09aa\u09bf)"}); var all=getProjects(); all.push(c); saveProjects(all); renderHome(); };
+    mD.onclick = function(){ var c = Object.assign({}, p, {id:Date.now(), ts:Date.now(), date:new Date().toLocaleDateString("bn-BD"), name:p.name+" (\u0995\u09aa\u09bf)"}); var all=getProjects(); all.push(c); saveProjects(all); renderHome(); };
     var mX = document.createElement("button"); mX.className="menu-item danger"; mX.textContent="Delete"; mX.type="button";
     mX.onclick = function(){ if (confirm("\u09a1\u09bf\u09b2\u09bf\u099f \u0995\u09b0\u09ac\u09c7?")){ saveProjects(getProjects().filter(function(x){ return x.id!==p.id; })); renderHome(); clearCreateForm(); } };
-    menu.appendChild(mD); menu.appendChild(mX);
+    var mE = document.createElement("button"); mE.className="menu-item"; mE.textContent="Edit"; mE.type="button";
+    mE.onclick = function(){ fillCreateForm(p); show("view-create"); };
+    menu.appendChild(mE); menu.appendChild(mD); menu.appendChild(mX);
     mBtn.onclick = function(e){ e.stopPropagation(); document.querySelectorAll(".menu").forEach(function(m2){ if (m2!==menu) m2.classList.add("hidden"); }); menu.classList.toggle("hidden"); };
     menuWrap.appendChild(mBtn); menuWrap.appendChild(menu);
-    acts.appendChild(bE); acts.appendChild(menuWrap);
+    acts.appendChild(menuWrap);
     body.appendChild(acts);
     // Long-press (tap-and-hold, ~500ms) enters selection mode — WhatsApp
     // style. A normal tap opens the project; in selection mode a tap
@@ -2160,10 +2243,11 @@ function renderHome(){
     (function(card){
       var timer = null, sx = 0, sy = 0;
       card.addEventListener("pointerdown", function(e){
+        suppressCardClick = false;
         if (e.button !== undefined && e.button !== 0) return;
         if (e.target && e.target.closest && (e.target.closest("button") || e.target.closest("input") || e.target.closest("a"))) return;
         card._lpFired = false; sx = e.clientX; sy = e.clientY;
-        timer = setTimeout(function(){ timer = null; card._lpFired = true; enterSelectionMode(p.id); }, 500);
+        timer = setTimeout(function(){ timer = null; card._lpFired = true; enterSelectionMode(p.id); dragSelStart(p.id); }, 500);
       });
       function cancelLp(){ if (timer){ clearTimeout(timer); timer = null; } }
       card.addEventListener("pointerup", cancelLp);
@@ -2172,6 +2256,7 @@ function renderHome(){
       card.addEventListener("pointermove", function(e){ if (timer && (Math.abs(e.clientX-sx)>10 || Math.abs(e.clientY-sy)>10)) cancelLp(); });
       card.addEventListener("contextmenu", function(e){ e.preventDefault(); });
       card.addEventListener("click", function(e){
+        if (suppressCardClick){ suppressCardClick = false; card._lpFired = false; return; } // the tap that ends a long-press/drag must not also open/toggle
         if (card._lpFired){ card._lpFired = false; return; } // the tap that ends a long-press must not also open/toggle
         if (e.target && e.target.closest && (e.target.closest("button") || e.target.closest("input") || e.target.closest("a"))) return;
         if (selectMode){ toggleSelect(p.id); }
@@ -2216,23 +2301,36 @@ function waitControllerChange(ms){
     setTimeout(function(){ if (!done){ done = true; res(false); } }, ms || 20000);
   });
 }
+/* Update check — FAST (v2.5): instant "চেক করছি…" feedback, 8s timeout
+   on the update + the sw.js version fetch (was 15s, hung on weak Wi-Fi),
+   10s controller wait (was 20s), 6s skip-waiting wait (was 10s). A timeout
+   reports "চেক করা যায়নি" (retry) — it NEVER falsely says "up to date".
+   Runs from the Settings button AND the Home ⟳ icon; the message shows in
+   Settings (#updMsg) or on Home (#homeUpdMsg), whichever is visible. */
 async function checkForUpdate(){
-  var msg = $("updMsg");
-  if (!("serviceWorker" in navigator)){ if (msg) msg.textContent = "এই ব্রাউজারে আপডেট চেক চলে না।"; return false; }
-  if (navigator.onLine === false){ if (msg) msg.textContent = "ইন্টারনেট নেই — পরে চেষ্টা করো।"; return false; }
-  var btn = $("btnCheckUpd");
+  var inSettings = !$("view-settings").classList.contains("hidden");
+  var msg = inSettings ? $("updMsg") : $("homeUpdMsg");
+  function say(t){
+    if (!msg) return;
+    msg.classList.remove("hidden");
+    msg.textContent = t;
+    if (!inSettings) setTimeout(function(){ msg.classList.add("hidden"); }, 6000);
+  }
+  if (!("serviceWorker" in navigator)){ say("এই ব্রাউজারে আপডেট চেক চলে না।"); return false; }
+  if (navigator.onLine === false){ say("ইন্টারনেট নেই — পরে চেষ্টা করো।"); return false; }
+  var btns = [$("btnCheckUpd"), $("btnUpdHome")];
   try {
+    say("চেক করা হচ্ছে…");
     var reg = swReg || await navigator.serviceWorker.getRegistration();
-    if (!reg){ if (msg) msg.textContent = "সার্ভিস ওয়ার্কার চালু হয়নি — অ্যাপটা আবার খুলে দেখো।"; return false; }
+    if (!reg){ say("সার্ভিস ওয়ার্কার চালু হয়নি — অ্যাপটা আবার খুলে দেখো।"); return false; }
     swReg = reg;
-    if (btn){ btn.disabled = true; }
-    if (msg) msg.textContent = "চেক করা হচ্ছে…";
+    btns.forEach(function(b){ if (b) b.disabled = true; });
     var timedOut = false;
-    var to = setTimeout(function(){ timedOut = true; }, 15000);
+    var to = setTimeout(function(){ timedOut = true; }, 8000);
     var updP = reg.update();
-    await Promise.race([updP, new Promise(function(r){ setTimeout(r, 15000); })]);
+    await Promise.race([updP, new Promise(function(r){ setTimeout(r, 8000); })]);
     clearTimeout(to);
-    if (timedOut){ if (msg) msg.textContent = "চেক করা যায়নি — ইন্টারনেট দুর্বল হতে পারে, পরে চেষ্টা করো।"; return false; }
+    if (timedOut){ say("চেক করা যায়নি — ইন্টারনেট দুর্বল হতে পারে, পরে চেষ্টা করো।"); return false; }
     // Ground truth: the live sw.js version vs this page's version. The
     // page itself may be stale (old SW served it from cache) even after
     // the new worker has already taken over — SW state alone cannot tell
@@ -2242,7 +2340,10 @@ async function checkForUpdate(){
     // still applies.
     var newer = false;
     try {
-      var vr = await fetch("sw.js", {cache:"no-store"});
+      var ac = ("AbortController" in window) ? new AbortController() : null;
+      var acTo = ac ? setTimeout(function(){ ac.abort(); }, 8000) : null;
+      var vr = await fetch("sw.js", {cache:"no-store", signal: ac ? ac.signal : undefined});
+      if (acTo) clearTimeout(acTo);
       if (vr && vr.ok){
         var vtxt = await vr.text();
         var vm = vtxt.match(/APP_VERSION\s*=\s*"([^"]+)"/);
@@ -2252,26 +2353,27 @@ async function checkForUpdate(){
     // A new worker found? Wait for it to take over (the SW skips waiting
     // on install, so controllerchange is the signal), then reload.
     var changed = false;
-    if (reg.waiting || reg.installing) changed = await waitControllerChange(20000);
+    if (reg.waiting || reg.installing) changed = await waitControllerChange(10000);
     else if (navigator.serviceWorker.controller && reg.active && reg.active !== navigator.serviceWorker.controller) changed = true;
     if (changed || newer){
-      if (msg) msg.textContent = "নতুন ভার্সন এসেছে — রিফ্রেশ করছি…";
+      say("নতুন ভার্সন এসেছে — রিফ্রেশ করছি…");
       location.reload();
       return true;
     }
-    if (reg.waiting){ reg.waiting.postMessage({type:"SKIP_WAITING"}); changed = await waitControllerChange(10000); if (changed){ location.reload(); return true; } }
-    if (msg) msg.textContent = "তুমি সর্বশেষ ভার্সনে আছো (v" + APP_VERSION + ")।";
+    if (reg.waiting){ reg.waiting.postMessage({type:"SKIP_WAITING"}); changed = await waitControllerChange(6000); if (changed){ location.reload(); return true; } }
+    say("তুমি সর্বশেষ ভার্সনে আছো (v" + APP_VERSION + ")।");
     return false;
   } catch(e){
-    if (msg) msg.textContent = (navigator.onLine === false) ? "ইন্টারনেট নেই — পরে চেষ্টা করো।" : "চেক করা যায়নি — পরে চেষ্টা করো।";
+    say((navigator.onLine === false) ? "ইন্টারনেট নেই — পরে চেষ্টা করো।" : "চেক করা যায়নি — পরে চেষ্টা করো।");
     return false;
   } finally {
-    if (btn) btn.disabled = false;
+    btns.forEach(function(b){ if (b) b.disabled = false; });
   }
 }
 $("updReload").addEventListener("click", function(){ location.reload(); });
 $("updDismiss").addEventListener("click", hideUpdBanner);
 $("btnCheckUpd").addEventListener("click", checkForUpdate);
+$("btnUpdHome").addEventListener("click", checkForUpdate);
 
 applyAppTheme();
 renderHome();
