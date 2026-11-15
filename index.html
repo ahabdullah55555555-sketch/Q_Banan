@@ -98,6 +98,9 @@ textarea{min-height:220px;line-height:1.6}
 .slides.light .opt{background:#fff3d6;border:1px solid #d8c27a}
 /* PDF capture: no shadow/rounded corners, edge-to-edge like the real slide */
 .slides.pdf-capture .slide{box-shadow:none;border-radius:0}
+/* Hi-res PDF capture stage: off-screen 960px-wide clones of the slides */
+.pdf-hires-stage{position:fixed;left:-10000px;top:0;width:960px;pointer-events:none;z-index:1}
+.pdf-hires-stage .slide{max-width:none;width:960px;margin:0;box-shadow:none;border-radius:0}
 @media (max-width:700px){
  .logo .a{font-size:14px}.logo .p{font-size:8px}.logo .c{font-size:5px}
  .top .mid span{font-size:12px;padding:2px 12px}
@@ -510,26 +513,69 @@ function fitMcq(slide){
   }
 }
 
-/* ---------- export: PDF (direct download, 16:9 landscape, exactly like the preview) ---------- */
+/* ---------- export: PDF (direct download, 16:9 landscape, exactly like the preview) ----------
+   Sharp + non-selectable for the smartboard: each slide is re-rendered off-screen at
+   960px wide (a pixel-perfect scaled-up copy of the on-screen slide) and captured at
+   scale 4 = 3840x2160, i.e. 1:1 with his 3840x2160 board. The image is a raster, so
+   no text can ever be selected by a long-press while annotating on the board.
+   The slide is fitted INSIDE the page with the preview's own side gutter (~3.9%),
+   so the blank space stays — never cropped, never edge-to-edge. */
+function scalePxList(v, k){
+  // scale every px value in a computed shorthand ("5px" or "5px 12px"), else null
+  if (!v || v === "normal" || v === "none") return null;
+  var parts = String(v).trim().split(/\s+/), out = [];
+  for (var i=0;i<parts.length;i++){
+    if (parts[i].slice(-2) !== "px") return null;
+    out.push((parseFloat(parts[i]) * k) + "px");
+  }
+  return out.join(" ");
+}
 $("btnPdf").addEventListener("click", async function(){
   if (!current) return;
   if (typeof html2canvas === "undefined" || typeof window.jspdf === "undefined"){ alert("PDF লাইব্রেরি লোড হয়নি — অফলাইনে ফাইল আছে কিনা দেখো (html2canvas.min.js / jspdf.umd.min.js)।"); return; }
   var btn = $("btnPdf");
   btn.disabled = true; btn.textContent = "PDF বানানো হচ্ছে…";
   var box = $("slides");
+  var stage = null;
   try {
-    box.classList.add("pdf-capture");
     var pdf = new window.jspdf.jsPDF({ orientation:"landscape", unit:"in", format:[13.33, 7.5] });
     var dark = current.theme !== "light";
     var els = box.querySelectorAll(".slide");
+    stage = document.createElement("div");
+    stage.className = "pdf-hires-stage slides" + (box.classList.contains("light") ? " light" : "");
+    document.body.appendChild(stage);
+    var PROPS = ["fontSize","paddingTop","paddingRight","paddingBottom","paddingLeft","marginTop","marginRight","marginBottom","marginLeft","gap","borderTopLeftRadius","borderTopRightRadius","borderBottomRightRadius","borderBottomLeftRadius","letterSpacing","borderTopWidth","borderRightWidth","borderBottomWidth","borderLeftWidth","lineHeight"];
     for (var i=0;i<els.length;i++){
-      var canvas = await html2canvas(els[i], { backgroundColor: dark ? "#000000" : "#ffffff", scale: 2, logging: false });
+      var src = els[i];
+      var K = 960 / src.clientWidth;
+      var clone = src.cloneNode(true);
+      clone.style.width = "960px";
+      clone.style.maxWidth = "none";
+      clone.style.margin = "0";
+      clone.style.boxShadow = "none";
+      clone.style.borderRadius = "0";
+      stage.appendChild(clone);
+      var srcNodes = [src].concat(Array.prototype.slice.call(src.querySelectorAll("*")));
+      var clNodes = [clone].concat(Array.prototype.slice.call(clone.querySelectorAll("*")));
+      for (var n=0;n<srcNodes.length;n++){
+        var cs = getComputedStyle(srcNodes[n]);
+        var st = clNodes[n].style;
+        for (var p=0;p<PROPS.length;p++){
+          var scaled = scalePxList(cs[PROPS[p]], K);
+          if (scaled) st[PROPS[p]] = scaled;
+        }
+      }
+      clone.style.borderRadius = "0"; // after scaling: the slide itself stays square in the PDF
+      await new Promise(function(r){ requestAnimationFrame(function(){ requestAnimationFrame(r); }); });
+      var canvas = await html2canvas(clone, { backgroundColor: dark ? "#000000" : "#ffffff", scale: 4, logging: false });
       if (i>0) pdf.addPage([13.33, 7.5], "landscape");
-      pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, 13.33, 7.5);
+      var iw = 12.33, ih = iw * 9 / 16;
+      pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", (13.33 - iw) / 2, (7.5 - ih) / 2, iw, ih);
+      stage.removeChild(clone);
     }
     pdf.save((current.name || "Q_Banan") + ".pdf");
   } catch(e){ alert("PDF বানাতে সমস্যা হয়েছে: " + e.message); }
-  box.classList.remove("pdf-capture");
+  if (stage && stage.parentNode) stage.parentNode.removeChild(stage);
   btn.disabled = false; btn.textContent = "PDF এক্সপোর্ট";
 });
 

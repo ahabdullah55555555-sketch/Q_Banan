@@ -1,7 +1,7 @@
 "use strict";
 /* Q_Banan service worker — offline app shell. No network, no Firebase, no login.
    Drafts live in localStorage on the phone only; the SW only caches app files. */
-var CACHE = "qbanan-v4";
+var CACHE = "qbanan-v5";
 var FILES = [
   "./",
   "index.html",
