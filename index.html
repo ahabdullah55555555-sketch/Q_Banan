@@ -45,7 +45,7 @@ textarea{min-height:220px;line-height:1.6}
 .hidden{display:none !important}
 /* ===== ARK slide template (locked, v5) ===== */
 .slides{display:flex;flex-direction:column;gap:14px}
-.slide{aspect-ratio:16/9;width:100%;max-width:920px;margin:0 auto;border-radius:6px;overflow:hidden;display:flex;flex-direction:column;background:#222;color:#fff;box-shadow:0 4px 18px rgba(0,0,0,.25)}
+.slide{aspect-ratio:16/9;width:100%;max-width:920px;margin:0 auto;border-radius:6px;overflow:hidden;display:flex;flex-direction:column;background:#000;color:#fff;box-shadow:0 4px 18px rgba(0,0,0,.25)}
 .top{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:start;padding:9px 18px}
 .logo{line-height:1;text-align:left}
 .logo .a{font-family:'Work Sans',Arial,sans-serif;font-weight:800;font-size:17px;line-height:.95;color:#ffd700}
@@ -76,18 +76,25 @@ textarea{min-height:220px;line-height:1.6}
 .ansrow b{color:#ffd700}
 /* white theme slides */
 .slides.light .slide{background:#fff;color:#111}
+.slides.light .logo .a{color:#b8860b}
 .slides.light .logo .p{color:#111}
 .slides.light .logo .c{color:#666}
 .slides.light .top .right{color:#111}
-.slides.light .q{color:#8a6d00}
+.slides.light .q{color:#111}
+.slides.light .q .arr{color:#111}
 .slides.light .q .tag{color:#111}
-.slides.light .title{color:#8a6d00}
-.slides.light .sub{color:#111}
+.slides.light .title{color:#111}
+.slides.light .sub{color:#444}
 .slides.light .stim{color:#111}
-.slides.light .cqrow{color:#8a6d00}
-.slides.light .ansrow{color:#8a6d00}
-.slides.light .foot{color:#666}
+.slides.light .stim .tag{color:#111}
+.slides.light .cqrow{color:#111}
+.slides.light .cqrow b{color:#111}
+.slides.light .ansrow{color:#111}
+.slides.light .ansrow b{color:#111}
+.slides.light .foot{color:#555}
 .slides.light .opt{background:#fff3d6;border:1px solid #d8c27a}
+/* PDF capture: no shadow/rounded corners, edge-to-edge like the real slide */
+.slides.pdf-capture .slide{box-shadow:none;border-radius:0}
 @media (max-width:700px){
  .logo .a{font-size:14px}.logo .p{font-size:8px}.logo .c{font-size:5px}
  .top .mid span{font-size:12px;padding:2px 12px}
@@ -98,14 +105,6 @@ textarea{min-height:220px;line-height:1.6}
  .foot{padding:4px 12px;font-size:9px}
  .title{font-size:20px}.sub{font-size:13px}
  .stim{font-size:9px}.cqrow{font-size:10px}
-}
-@media print{
- @page{size:13.33in 7.5in landscape;margin:0}
- body{background:#fff}
- header,main>.card,.toolbar,.fab,#view-home,#view-create,#view-settings{display:none !important}
- #view-render{display:block !important}
- .slides{gap:0}
- .slide{max-width:none;width:13.33in;height:7.5in;border-radius:0;box-shadow:none;page-break-after:always;break-after:page}
 }
 </style>
 </head>
@@ -138,11 +137,11 @@ textarea{min-height:220px;line-height:1.6}
       <label><input type="radio" name="qtype" value="CQ"> সৃজনশীল (CQ)</label>
     </div>
     <label>ফাইলের / প্রজেক্টের নাম</label>
-    <input type="text" id="inName" placeholder="যেমন: Physics Ch 11 MCQ">
+    <input type="text" id="inName" autocomplete="off" placeholder="যেমন: Physics Ch 11 MCQ">
     <label>বিষয়</label>
-    <input type="text" id="inSubject" placeholder="যেমন: পদার্থবিজ্ঞান">
+    <input type="text" id="inSubject" autocomplete="off" placeholder="যেমন: পদার্থবিজ্ঞান">
     <label>অধ্যায়</label>
-    <input type="text" id="inChapter" placeholder="যেমন: অধ্যায় ১১: চল বিদ্যুৎ">
+    <input type="text" id="inChapter" autocomplete="off" placeholder="যেমন: অধ্যায় ১১: চল বিদ্যুৎ">
     <label>অ্যাকসেন্ট রং (হলুদ ডিফল্ট)</label>
     <input type="color" id="inAccent" value="#ffd700" style="height:44px;padding:4px">
     <label>থিম</label>
@@ -151,7 +150,7 @@ textarea{min-height:220px;line-height:1.6}
       <label><input type="radio" name="theme" value="light"> সাদা</label>
     </div>
     <label>স্পেশাল টেক্সট (TOM-এর দেওয়া)</label>
-    <textarea id="inText" placeholder="TITLE: ...&#10;TYPE: MCQ&#10;1. প্রশ্ন? | অপশন ১ | অপশন ২ | অপশন ৩ | অপশন ৪"></textarea>
+    <textarea id="inText" autocomplete="off" placeholder="TITLE: ...&#10;TYPE: MCQ&#10;1. প্রশ্ন? | অপশন ১ | অপশন ২ | অপশন ৩ | অপশন ৪"></textarea>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
       <button class="btn-w" id="btnSample" type="button">নমুনা টেক্সট বসাও</button>
       <button class="btn-y" id="btnRun" type="button">Run / তৈরি করো ▶</button>
@@ -196,6 +195,8 @@ textarea{min-height:220px;line-height:1.6}
 </section>
 </main>
 <script src="pptxgen.bundle.js"></script>
+<script src="html2canvas.min.js"></script>
+<script src="jspdf.umd.min.js"></script>
 <script>
 "use strict";
 /* ---------- helpers ---------- */
@@ -208,6 +209,19 @@ function saveSettings(s){ localStorage.setItem("qbanan_settings", JSON.stringify
 function getProjects(){ try{ return JSON.parse(localStorage.getItem("qbanan_projects")||"[]"); }catch(e){ return []; } }
 function saveProjects(p){ localStorage.setItem("qbanan_projects", JSON.stringify(p)); }
 function show(id){ ["view-home","view-create","view-render","view-settings"].forEach(function(v){ $(v).classList.toggle("hidden", v!==id); }); $("btnNew").classList.toggle("hidden", id!=="view-home"); window.scrollTo(0,0); }
+/* Create New must ALWAYS open with a completely empty form. The form is one
+   persistent DOM, so old input stays unless it is cleared here on purpose.
+   Clearing also on leaving the form + at startup: deleting text must stay
+   deleted, never come back from a stale DOM value or browser form-restore. */
+function setRadio(name, value){ var r = document.querySelector('input[name="'+name+'"][value="'+value+'"]'); if (r) r.checked = true; }
+function clearCreateForm(){
+  var st = getSettings();
+  $("inName").value = ""; $("inSubject").value = ""; $("inChapter").value = ""; $("inText").value = "";
+  $("inAccent").value = st.accent || "#ffd700";
+  setRadio("kind", "question"); setRadio("qtype", "MCQ"); setRadio("theme", st.theme || "dark");
+  $("parseErr").classList.add("hidden");
+  current = null;
+}
 
 /* ---------- parser ---------- */
 function parseSpecialText(text){
@@ -279,7 +293,7 @@ function parseSpecialText(text){
 /* ---------- renderer ---------- */
 var current = null; // {kind,qtype,name,subject,chapter,accent,theme,title,type,items}
 function headerHTML(meta, pillText){
-  return '<div class="top"><div class="logo"><div class="a" style="color:'+meta.accent+'">ARK</div><div class="p">PLUS POINT</div><div class="c">COACHING CENTER</div></div>'+
+  return '<div class="top"><div class="logo"><div class="a" style="color:'+(meta.theme==="light"?"#b8860b":meta.accent)+'">ARK</div><div class="p">PLUS POINT</div><div class="c">COACHING CENTER</div></div>'+
   '<div class="mid"><span style="background:'+meta.accent+';color:#000">'+esc(pillText)+'</span></div>'+
   '<div class="right">SSC 2027</div></div>';
 }
@@ -297,9 +311,9 @@ function renderAll(){
   // title slide (title line shown only when it adds something beyond subject+chapter)
   var t = document.createElement("div");
   t.className = "slide";
-  var titleLine = (meta.title && meta.title !== (meta.subject||"") && meta.title !== (meta.chapter||"") && meta.title !== ((meta.subject||"")+" "+(meta.chapter||"")).trim()) ? '<div class="sub" style="font-size:13px;color:#cfcfcf">'+esc(meta.title)+'</div>' : "";
+  var titleLine = (meta.title && meta.title !== (meta.subject||"") && meta.title !== (meta.chapter||"") && meta.title !== ((meta.subject||"")+" "+(meta.chapter||"")).trim()) ? '<div class="sub" style="font-size:13px;color:'+(meta.theme==="light"?"#444":"#cfcfcf")+'">'+esc(meta.title)+'</div>' : "";
   t.innerHTML = headerHTML(meta, meta.qtype==="CQ" ? "সৃজনশীল প্রশ্ন" : (meta.kind==="answer" ? "উত্তরপত্র" : "বহুনির্বাচনী")) +
-    '<div class="titlewrap"><div class="title" style="color:'+(meta.theme==="light"?"#8a6d00":meta.accent)+'">'+esc(meta.subject||meta.title||"")+'</div>'+
+    '<div class="titlewrap"><div class="title" style="color:'+(meta.theme==="light"?"#111":meta.accent)+'">'+esc(meta.subject||meta.title||"")+'</div>'+
     '<div class="sub">'+esc(meta.chapter||"")+'</div>'+ titleLine +'</div>' + footerHTML(meta);
   box.appendChild(t);
   var count = 1;
@@ -364,8 +378,28 @@ function fitMcq(slide){
   }
 }
 
-/* ---------- export: PDF ---------- */
-$("btnPdf").addEventListener("click", function(){ document.title = current.name || "Q_Banan"; window.print(); });
+/* ---------- export: PDF (direct download, 16:9 landscape, exactly like the preview) ---------- */
+$("btnPdf").addEventListener("click", async function(){
+  if (!current) return;
+  if (typeof html2canvas === "undefined" || typeof window.jspdf === "undefined"){ alert("PDF লাইব্রেরি লোড হয়নি — অফলাইনে ফাইল আছে কিনা দেখো (html2canvas.min.js / jspdf.umd.min.js)।"); return; }
+  var btn = $("btnPdf");
+  btn.disabled = true; btn.textContent = "PDF বানানো হচ্ছে…";
+  var box = $("slides");
+  try {
+    box.classList.add("pdf-capture");
+    var pdf = new window.jspdf.jsPDF({ orientation:"landscape", unit:"in", format:[13.33, 7.5] });
+    var dark = current.theme !== "light";
+    var els = box.querySelectorAll(".slide");
+    for (var i=0;i<els.length;i++){
+      var canvas = await html2canvas(els[i], { backgroundColor: dark ? "#000000" : "#ffffff", scale: 2, logging: false });
+      if (i>0) pdf.addPage([13.33, 7.5], "landscape");
+      pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, 13.33, 7.5);
+    }
+    pdf.save((current.name || "Q_Banan") + ".pdf");
+  } catch(e){ alert("PDF বানাতে সমস্যা হয়েছে: " + e.message); }
+  box.classList.remove("pdf-capture");
+  btn.disabled = false; btn.textContent = "PDF এক্সপোর্ট";
+});
 
 /* ---------- export: PPTX (real editable text) ---------- */
 $("btnPptx").addEventListener("click", function(){
@@ -374,13 +408,14 @@ $("btnPptx").addEventListener("click", function(){
   pptx.defineLayout({ name:"W", width:13.33, height:7.5 });
   pptx.layout = "W";
   var dark = current.theme !== "light";
-  var bg = dark ? "222222" : "FFFFFF";
+  var bg = dark ? "000000" : "FFFFFF";
   var txt = dark ? "FFFFFF" : "111111";
-  var qCol = dark ? current.accent.replace("#","") : "8A6D00";
+  var qCol = dark ? current.accent.replace("#","") : "111111";
+  var arkCol = dark ? current.accent.replace("#","") : "B8860B";
   var acc = current.accent.replace("#","");
   function addHeader(slide, pill){
     slide.background = { color: bg };
-    slide.addText("ARK", { x:0.4, y:0.25, w:2.2, h:0.5, fontSize:20, bold:true, color:qCol, fontFace:"Arial Black" });
+    slide.addText("ARK", { x:0.4, y:0.25, w:2.2, h:0.5, fontSize:20, bold:true, color:arkCol, fontFace:"Arial Black" });
     slide.addText("PLUS POINT", { x:0.4, y:0.75, w:2.2, h:0.3, fontSize:10, bold:true, color:txt });
     slide.addText("COACHING CENTER", { x:0.4, y:1.0, w:2.2, h:0.25, fontSize:7, color: dark?"CFCFCF":"666666" });
     slide.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:5.4, y:0.25, w:2.5, h:0.5, fill:{color:acc}, line:{color:acc} });
@@ -420,13 +455,12 @@ $("btnPptx").addEventListener("click", function(){
 /* ---------- create flow ---------- */
 function selected(name){ var r = document.querySelector('input[name="'+name+'"]:checked'); return r ? r.value : null; }
 $("btnNew").addEventListener("click", function(){
-  var st = getSettings();
-  if (st.accent) $("inAccent").value = st.accent;
+  clearCreateForm();
   show("view-create");
 });
-$("btnBackHome").addEventListener("click", function(){ show("view-home"); });
+$("btnBackHome").addEventListener("click", function(){ clearCreateForm(); show("view-home"); });
 $("btnBackHome2").addEventListener("click", function(){ show("view-home"); });
-$("btnBackRender").addEventListener("click", function(){ show("view-home"); });
+$("btnBackRender").addEventListener("click", function(){ clearCreateForm(); show("view-home"); });
 $("btnSettings").addEventListener("click", function(){
   var st = getSettings();
   if (st.accent) $("setAccent").value = st.accent;
@@ -478,7 +512,7 @@ $("btnDelSel").addEventListener("click", function(){
   if (!selectedIds.size) return;
   if (!confirm(selectedIds.size+"টি প্রজেক্ট ডিলিট করবে?")) return;
   saveProjects(getProjects().filter(function(x){ return !selectedIds.has(x.id); }));
-  selectedIds.clear(); renderHome();
+  selectedIds.clear(); renderHome(); clearCreateForm();
 });
 function renderHome(){
   var ps = getProjects();
@@ -493,17 +527,18 @@ function renderHome(){
     d.insertBefore(chk, d.firstChild);
     var acts = document.createElement("div"); acts.className="acts";
     var bE = document.createElement("button"); bE.className="btn-w"; bE.textContent="Edit";
-    bE.onclick = function(){ $("inName").value=p.name; $("inSubject").value=p.subject||""; $("inChapter").value=p.chapter||""; $("inAccent").value=p.accent||"#ffd700"; $("inText").value=p.text||""; show("view-create"); };
+    bE.onclick = function(){ $("inName").value=p.name; $("inSubject").value=p.subject||""; $("inChapter").value=p.chapter||""; $("inAccent").value=p.accent||"#ffd700"; $("inText").value=p.text||""; setRadio("kind", p.kind||"question"); setRadio("qtype", p.qtype||"MCQ"); setRadio("theme", p.theme||"dark"); $("parseErr").classList.add("hidden"); show("view-create"); };
     var bD = document.createElement("button"); bD.className="btn-w"; bD.textContent="Duplicate";
     bD.onclick = function(){ var c = Object.assign({}, p, {id:Date.now(), name:p.name+" (কপি)"}); var all=getProjects(); all.push(c); saveProjects(all); renderHome(); };
     var bX = document.createElement("button"); bX.className="btn-danger"; bX.textContent="Delete";
-    bX.onclick = function(){ if (confirm("ডিলিট করবে?")){ saveProjects(getProjects().filter(function(x){ return x.id!==p.id; })); renderHome(); } };
+    bX.onclick = function(){ if (confirm("ডিলিট করবে?")){ saveProjects(getProjects().filter(function(x){ return x.id!==p.id; })); renderHome(); clearCreateForm(); } };
     acts.appendChild(bE); acts.appendChild(bD); acts.appendChild(bX);
     d.appendChild(acts); box.appendChild(d);
   });
   updateSelBar();
 }
 renderHome();
+clearCreateForm();
 if ("serviceWorker" in navigator){ window.addEventListener("load", function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); }); }
 </script>
 </body>
