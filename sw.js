@@ -1,6 +1,6 @@
-/* Q_Banan service worker — v2.3.
+/* Q_Banan service worker — v2.4.
    Version: APP_VERSION here MUST match APP_VERSION in index.html (both are
-   "2.3" in this release); the cache name is derived from it, so a release
+   "2.4" in this release); the cache name is derived from it, so a release
    bump retires the old cache automatically.
    Fetch strategy: app shell (navigation + index.html) is NETWORK-FIRST with
    cache fallback — a refresh while online always fetches the fresh file,
@@ -8,7 +8,7 @@
    JS bundles are CACHE-FIRST (they change rarely and are heavy on weak
    Wi-Fi), falling back to the network when missing. Offline still works
    from the cache. */
-var APP_VERSION = "2.3";
+var APP_VERSION = "2.4";
 var CACHE = "qbanan-" + APP_VERSION;
 var FILES = ["./", "index.html", "manifest.json", "pptxgen.bundle.js", "html2canvas.min.js", "jspdf.umd.min.js", "harfbuzz.js", "hb-wrapper.mjs", "hb-loader.mjs", "hb-wasm.js", "vec-fonts.js", "icon.svg"];
 

@@ -43,7 +43,8 @@ textarea{min-height:220px;line-height:1.6}
 .radio-row label{border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-weight:400;margin:0;cursor:pointer;background:var(--surface)}
 .radio-row label:has(input:checked){border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
 .radio-row input{accent-color:var(--accD)}
-.pcard{display:flex;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px;margin:10px 0}
+.pcard{display:flex;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px;margin:10px 0;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+.pcard.sel{border-color:var(--acc,#ffd700);box-shadow:0 0 0 1px var(--acc,#ffd700)}
 .pcard .mini{flex:none;width:96px;aspect-ratio:16/9;border-radius:8px;padding:6px 10px;display:flex;flex-direction:column;justify-content:center;overflow:hidden;border:1px solid #ddd}
 .pcard .pbody{flex:1;min-width:0}
 .pcard b{font-size:16px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -84,7 +85,7 @@ textarea{min-height:220px;line-height:1.6}
 .cqcol{flex:1;display:flex;flex-direction:column;gap:0;min-width:0}
 .cqrow{display:flex;gap:8px;font-size:calc(var(--szf,.78)*11px);line-height:1.35;color:var(--acc,#ffd700);text-align:left}
 .cqrow b{color:var(--acc,#ffd700)}
-.ansrow{font-size:calc(var(--szf,.78)*14px);line-height:1.5;color:var(--acc,#ffd700);padding:3px 0}
+.ansrow{font-size:calc(var(--szf,.78)*14px);line-height:1.5;color:#fff;padding:3px 0}
 .ansrow b{color:var(--acc,#ffd700)}
 /* white theme slides */
 .slides.light .slide{background:#fff;color:#111}
@@ -102,7 +103,7 @@ textarea{min-height:220px;line-height:1.6}
 .slides.light .cqrow{color:#111}
 .slides.light .cqrow b{color:#111}
 .slides.light .ansrow{color:#111}
-.slides.light .ansrow b{color:#111}
+.slides.light .ansrow b{color:var(--accD,#b8860b)}
 .slides.light .foot{color:#555}
 .slides.light .opt{background:var(--optBg,#fff3d6);border:1px solid var(--optBd,#d8c27a)}
 /* ===== Slide layouts (0 = locked template, 1–4 from the proposal) =====
@@ -120,7 +121,7 @@ textarea{min-height:220px;line-height:1.6}
 .slide.l2 .cqrow{justify-content:center}
 .slide.l2 .ansrow{text-align:center}
 .slide.l2 .titlewrap{align-items:center;text-align:center}
-.anshead{font-size:calc(var(--szf,.78)*13px);font-weight:700;color:var(--acc,#ffd700);margin:4px 0 2px}
+.anshead{font-size:calc(var(--szf,.78)*13px);font-weight:700;color:#fff;margin:4px 0 2px}
 .slides.light .anshead{color:#111}
 .slide.l3 .l3wrap{flex:1;display:flex;min-height:0}
 .slide.l3 .rail{width:15%;background:#191919;border-right:1px solid #333;display:flex;align-items:center;justify-content:center;flex:none}
@@ -158,9 +159,63 @@ textarea{min-height:220px;line-height:1.6}
 .upd-banner{position:fixed;left:12px;right:12px;bottom:16px;z-index:60;background:var(--accD,#b8860b);color:#fff;border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:14px}
 .upd-banner button{flex:none;background:#fff;color:#111;border:none;border-radius:8px;padding:8px 12px;font-weight:700;font-family:inherit}
 .upd-banner .x{background:transparent;color:#fff;padding:8px;font-size:16px}
-.lay-list{display:flex;flex-direction:column;gap:6px}
-.lay-list label{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border:1px solid var(--border);border-radius:8px;cursor:pointer}
-.lay-list small{display:block;color:var(--text-2);font-weight:400}
+/* ===== Visual layout picker (Excel-style gallery, approved proposal) =====
+   Thumbnails are miniature 16:9 slides in each layout's REAL geometry
+   (cqw sizing inside a container-type:inline-size slide, copied from the
+   approved proposal file). --lpAcc follows the project accent colour. */
+.lp-cap{font-size:12px;color:var(--text-2);margin-bottom:10px}
+.lp-tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(min-width:700px){.lp-tiles{grid-template-columns:1fr 1fr 1fr}}
+.lp-tile{position:relative;background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:8px;cursor:pointer}
+.lp-tile.on{border-color:var(--acc,#ffd700);box-shadow:0 0 0 2px rgba(255,215,0,.35)}
+.lp-chk{position:absolute;top:2px;right:2px;z-index:2;background:var(--acc,#ffd700);color:var(--accOn,#000);font-weight:700;font-size:11px;border-radius:999px;padding:3px 9px;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.lp-tname{font-weight:700;font-size:14px;margin-top:8px}
+.lp-tdesc{font-size:12px;color:var(--text-2);line-height:1.5}
+.lp-tile.new{border-style:dashed;cursor:default}
+.lp-newbox{aspect-ratio:16/9;border:2px dashed var(--border);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text-2);text-align:center;padding:8px}
+.lp-newbox .lp-plus{font-size:34px;color:var(--acc,#ffd700);line-height:1}
+.lp-newbox b{font-size:15px;color:var(--text)}
+.lp-newbox small{font-size:11px;color:var(--text-2);line-height:1.5}
+.lp-slide{width:100%;background:#222;border:1px solid #444;border-radius:10px;overflow:hidden;aspect-ratio:16/9;display:flex;flex-direction:column;container-type:inline-size;position:relative}
+.lp-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;padding:3.2cqw 4cqw 0}
+.lp-ark b{font-family:'Work Sans','Hind Siliguri',sans-serif;font-weight:800;color:var(--lpAcc,#ffd700);font-size:3.4cqw;letter-spacing:.1cqw;line-height:1;display:block}
+.lp-ark small{display:block;color:#fff;font-size:1.6cqw;font-weight:700;line-height:1.4}
+.lp-ark em{display:block;color:#999;font-size:1.1cqw;font-style:normal;line-height:1.4}
+.lp-pill{justify-self:center;background:var(--lpAcc,#ffd700);color:#000;font-weight:700;font-size:2.6cqw;padding:1cqw 2.4cqw;border-radius:5cqw;white-space:nowrap}
+.lp-ssc{justify-self:end;color:#fff;font-size:2.2cqw;font-weight:700}
+.lp-q{color:var(--lpAcc,#ffd700);font-size:3.1cqw;line-height:1.55;font-weight:700}
+.lp-q i{color:#fff;font-style:normal;font-size:2cqw;font-weight:400}
+.lp-foot{display:flex;justify-content:space-between;font-size:1.9cqw;color:#aaa;padding:0 4cqw 2.6cqw;margin-top:auto}
+.lp-opt{background:#fff3d6;color:#222;border-radius:1.2cqw;padding:1.1cqw 1.8cqw;font-size:2.4cqw;line-height:1.4}
+.lp-opt b{color:#222;font-weight:700;margin-right:1.2cqw}
+.lp-opts-v{display:flex;flex-direction:column;gap:1.4cqw;width:38%}
+.lp-opts-g{display:grid;grid-template-columns:1fr 1fr;gap:1.6cqw}
+.lp-opts-p{display:flex;flex-wrap:wrap;gap:1.6cqw;justify-content:center}
+.lp-optp{background:#fff3d6;color:#222;border-radius:5cqw;padding:1.2cqw 3cqw;font-size:2.5cqw;font-weight:700;white-space:nowrap}
+.lp-optp b{margin-right:1cqw}
+.lp-body0{display:flex;gap:4cqw;align-items:flex-end;flex:1;padding:3cqw 4cqw}
+.lp-body0 .lp-q{flex:1}
+.lp-body1{display:flex;flex-direction:column;flex:1;padding:3cqw 4cqw;gap:2.4cqw}
+.lp-q-top{font-size:3.3cqw}
+.lp-body1 .lp-opts-g{margin-top:auto}
+.lp-body2{display:flex;flex-direction:column;flex:1;justify-content:center;align-items:center;padding:3cqw 5cqw;gap:3.4cqw;text-align:center}
+.lp-q-mid{font-size:3.6cqw;text-align:center}
+.lp-body3{display:flex;flex:1;min-height:0}
+.lp-rail{width:15%;background:#191919;border-right:1px solid #333;display:flex;align-items:center;justify-content:center;flex:none}
+.lp-rail span{color:var(--lpAcc,#ffd700);font-size:11cqw;font-weight:700;line-height:1}
+.lp-r-main{flex:1;display:flex;flex-direction:column;min-width:0}
+.lp-r-main .lp-head{padding:3.2cqw 4cqw 0}
+.lp-r-main .lp-q{padding:3cqw 4cqw 0}
+.lp-r-main .lp-opts-v{padding:2cqw 4cqw 0;width:100%}
+.lp-band{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;background:var(--lpAcc,#ffd700);padding:2.2cqw 4cqw}
+.lp-band .lp-ark b{color:#000}
+.lp-band .lp-ark small{color:#000}
+.lp-band .lp-ark em{color:#444}
+.lp-band .lp-ssc{color:#000}
+.lp-pill-b{background:#000;color:var(--lpAcc,#ffd700)}
+.lp-body4{display:flex;flex-direction:column;flex:1;padding:3cqw 4cqw;gap:2.4cqw}
+.lp-qcard{background:#2c2c2c;border:1px solid #3a3a3a;border-radius:1.6cqw;padding:2.6cqw 3cqw}
+.lp-body4 .lp-opts-g{margin-top:auto}
 /* PDF capture: no shadow/rounded corners, edge-to-edge like the real slide */
 .slides.pdf-capture .slide{box-shadow:none;border-radius:0}
 /* Hi-res PDF capture stage: off-screen 960px-wide clones of the slides */
@@ -232,7 +287,7 @@ body.app-dark .sw.on{border-color:#fff}
   <div class="search-wrap"><span class="s-ic">🔍</span><input type="text" id="searchProj" class="search" placeholder="প্রজেক্ট খুঁজো…" autocomplete="off"></div>
   <div class="home-head"><h1>আমার প্রজেক্ট</h1><span id="projCount"></span></div>
   <div id="projList"></div>
-  <div id="selBar" class="hidden" style="margin:8px 0"><button class="btn-danger" id="btnDelSel" type="button">সিলেক্ট করা ডিলিট করো (<span id="selCount">0</span>টি)</button></div>
+  <div id="selBar" class="hidden" style="margin:8px 0;display:flex;gap:8px"><button class="btn-danger" id="btnDelSel" type="button">সিলেক্ট করা ডিলিট করো (<span id="selCount">0</span>টি)</button><button class="btn-w" id="btnSelCancel" type="button">✕ বাতিল</button></div>
   <p id="noProj" class="note">এখনো কোনো প্রজেক্ট নেই — উপরের নতুন প্রজেক্ট চাপো। টেক্সট বসিয়ে Run দিলেই ARK টেমপ্লেটে স্লাইড বানাবে — MCQ এক পেজে, সৃজনশীল আলাদা আলাদা স্লাইডে। PDF আর PPTX — দুটোই ফ্রি, অফলাইনে চলে।</p>
   <p id="noMatch" class="note hidden">এই নামে কোনো প্রজেক্ট পাওয়া যায়নি।</p>
 </section>
@@ -253,6 +308,29 @@ body.app-dark .sw.on{border-color:#fff}
       <label><input type="radio" name="qtype" value="MCQ"> বহুনির্বাচনী (MCQ)</label>
       <label><input type="radio" name="qtype" value="CQ"> সৃজনশীল (CQ)</label>
     </div>
+        <label>লেআউট বাছো</label>
+    <p class="lp-cap">ছবি দেখে টাইলে চাপ দিলেই সেটা সিলেক্ট থাকবে — নিচে বাকি অপশনগুলো আসবে।</p>
+    <div class="lp-tiles" id="layoutTiles">
+      <div class="lp-tile on" data-layout="0" role="button" tabindex="0"><span class="lp-chk">✓ নির্বাচিত</span><section class="lp-slide"><div class="lp-head"><div class="lp-ark"><b>ARK</b><small>PLUS POINT</small><em>COACHING CENTER</em></div><span class="lp-pill">বহুনির্বাচনী</span><span class="lp-ssc">SSC 2027</span></div><div class="lp-body0"><div class="lp-q">২. কোনো পরিবাহীর প্রস্থচ্ছেদ দিয়ে 6 s-এ 54 C আধান প্রবাহিত হলে, তড়িৎ প্রবাহ কত? <i>[নমুনা প্রশ্ন]</i></div><div class="lp-opts-v"><div class="lp-opt"><b>ক</b> 6 A</div><div class="lp-opt"><b>খ</b> 9 A</div><div class="lp-opt"><b>গ</b> 12 A</div><div class="lp-opt"><b>ঘ</b> 54 A</div></div></div><div class="lp-foot"><span>Khayrul Sir</span><span>Physics • Ch 11 চল বিদ্যুৎ</span></div></section><div class="lp-tname">লেআউট ০ — বর্তমানটা</div><div class="lp-tdesc">প্রশ্ন বামে, অপশন ডানে লম্বা লিস্টে</div></div>
+      <div class="lp-tile" data-layout="1" role="button" tabindex="0"><span class="lp-chk hidden">✓ নির্বাচিত</span><section class="lp-slide"><div class="lp-head"><div class="lp-ark"><b>ARK</b><small>PLUS POINT</small><em>COACHING CENTER</em></div><span class="lp-pill">বহুনির্বাচনী</span><span class="lp-ssc">SSC 2027</span></div><div class="lp-body1"><div class="lp-q lp-q-top">২. কোনো পরিবাহীর প্রস্থচ্ছেদ দিয়ে 6 s-এ 54 C আধান প্রবাহিত হলে, তড়িৎ প্রবাহ কত? <i>[নমুনা প্রশ্ন]</i></div><div class="lp-opts-g"><div class="lp-opt"><b>ক</b> 6 A</div><div class="lp-opt"><b>খ</b> 9 A</div><div class="lp-opt"><b>গ</b> 12 A</div><div class="lp-opt"><b>ঘ</b> 54 A</div></div></div><div class="lp-foot"><span>Khayrul Sir</span><span>Physics • Ch 11 চল বিদ্যুৎ</span></div></section><div class="lp-tname">লেআউট ১ — উপরে প্রশ্ন, নিচে ২×২ গ্রিড</div><div class="lp-tdesc">লম্বা প্রশ্নের জন্য বেশি জায়গা</div></div>
+      <div class="lp-tile" data-layout="2" role="button" tabindex="0"><span class="lp-chk hidden">✓ নির্বাচিত</span><section class="lp-slide"><div class="lp-head"><div class="lp-ark"><b>ARK</b><small>PLUS POINT</small><em>COACHING CENTER</em></div><span class="lp-pill">বহুনির্বাচনী</span><span class="lp-ssc">SSC 2027</span></div><div class="lp-body2"><div class="lp-q lp-q-mid">২. কোনো পরিবাহীর প্রস্থচ্ছেদ দিয়ে 6 s-এ 54 C আধান প্রবাহিত হলে, তড়িৎ প্রবাহ কত? <i>[নমুনা প্রশ্ন]</i></div><div class="lp-opts-p"><div class="lp-optp"><b>ক</b> 6 A</div><div class="lp-optp"><b>খ</b> 9 A</div><div class="lp-optp"><b>গ</b> 12 A</div><div class="lp-optp"><b>ঘ</b> 54 A</div></div></div><div class="lp-foot"><span>Khayrul Sir</span><span>Physics • Ch 11 চল বিদ্যুৎ</span></div></section><div class="lp-tname">লেআউট ২ — মাঝখানে প্রশ্ন, নিচে পিল অপশন</div><div class="lp-tdesc">ছোট প্রশ্নে পরিষ্কার, বোর্ডে লেখার জায়গা বেশি</div></div>
+      <div class="lp-tile" data-layout="3" role="button" tabindex="0"><span class="lp-chk hidden">✓ নির্বাচিত</span><section class="lp-slide"><div class="lp-body3"><div class="lp-rail"><span>২.</span></div><div class="lp-r-main"><div class="lp-head"><div class="lp-ark"><b>ARK</b><small>PLUS POINT</small><em>COACHING CENTER</em></div><span class="lp-pill">বহুনির্বাচনী</span><span class="lp-ssc">SSC 2027</span></div><div class="lp-q">কোনো পরিবাহীর প্রস্থচ্ছেদ দিয়ে 6 s-এ 54 C আধান প্রবাহিত হলে, তড়িৎ প্রবাহ কত? <i>[নমুনা প্রশ্ন]</i></div><div class="lp-opts-v"><div class="lp-opt"><b>ক</b> 6 A</div><div class="lp-opt"><b>খ</b> 9 A</div><div class="lp-opt"><b>গ</b> 12 A</div><div class="lp-opt"><b>ঘ</b> 54 A</div></div></div></div><div class="lp-foot"><span>Khayrul Sir</span><span>Physics • Ch 11 চল বিদ্যুৎ</span></div></section><div class="lp-tname">লেআউট ৩ — বামে বড় নম্বর রেল</div><div class="lp-tdesc">কোন প্রশ্ন চলছে এক নজরে বোঝা যায়</div></div>
+      <div class="lp-tile" data-layout="4" role="button" tabindex="0"><span class="lp-chk hidden">✓ নির্বাচিত</span><section class="lp-slide"><div class="lp-band"><div class="lp-ark"><b>ARK</b><small>PLUS POINT</small><em>COACHING CENTER</em></div><span class="lp-pill lp-pill-b">বহুনির্বাচনী</span><span class="lp-ssc">SSC 2027</span></div><div class="lp-body4"><div class="lp-qcard"><div class="lp-q">২. কোনো পরিবাহীর প্রস্থচ্ছেদ দিয়ে 6 s-এ 54 C আধান প্রবাহিত হলে, তড়িৎ প্রবাহ কত? <i>[নমুনা প্রশ্ন]</i></div></div><div class="lp-opts-g"><div class="lp-opt"><b>ক</b> 6 A</div><div class="lp-opt"><b>খ</b> 9 A</div><div class="lp-opt"><b>গ</b> 12 A</div><div class="lp-opt"><b>ঘ</b> 54 A</div></div></div><div class="lp-foot"><span>Khayrul Sir</span><span>Physics • Ch 11 চল বিদ্যুৎ</span></div></section><div class="lp-tname">লেআউট ৪ — উপরে হলুদ ব্যান্ড</div><div class="lp-tdesc">প্রশ্ন কার্ডের ভেতরে, অপশন নিচে দুই কলামে</div></div>
+      <div class="lp-tile new"><div class="lp-newbox"><span class="lp-plus">＋</span><b>নতুন স্টাইল</b><small>এখানে পরে নতুন লেআউট আসবে — তুমি বললে বানাবো</small></div><div class="lp-tname">নতুন</div><div class="lp-tdesc">নতুন লেআউটের জায়গা (এখনো বানানো হয়নি)</div></div>
+    </div>
+    <div class="hidden" aria-hidden="true"><input type="radio" name="layout" value="0" checked><input type="radio" name="layout" value="1"><input type="radio" name="layout" value="2"><input type="radio" name="layout" value="3"><input type="radio" name="layout" value="4"></div>
+<label>স্লাইডের লেখার সাইজ (এই প্রজেক্টের জন্য)</label>
+    <div class="radio-row">
+      <label><input type="radio" name="slideSize" value="small"> ছোট</label>
+      <label><input type="radio" name="slideSize" value="normal" checked> স্বাভাবিক</label>
+      <label><input type="radio" name="slideSize" value="large"> বড়</label>
+    </div>
+    <label>থিম</label>
+    <div class="radio-row">
+      <label><input type="radio" name="theme" value="dark" checked> কালো</label>
+      <label><input type="radio" name="theme" value="light"> সাদা</label>
+    </div>
+    <label style="display:flex;gap:8px;align-items:center;margin-top:10px"><input type="checkbox" id="inTitle" checked style="width:20px;height:20px;accent-color:var(--accD)"> টাইটেল স্লাইড বানাও (না টিকলে টাইটেল স্লাইড আসবে না)</label>
     <label>ফাইলের / প্রজেক্টের নাম</label>
     <input type="text" id="inName" autocomplete="off" placeholder="যেমন: Physics Ch 11 MCQ">
     <label>বিষয়</label>
@@ -263,26 +341,6 @@ body.app-dark .sw.on{border-color:#fff}
     <input type="text" id="inTeacher" autocomplete="off" placeholder="যেমন: Khayrul Sir">
     <label>অ্যাকসেন্ট রং (হলুদ ডিফল্ট)</label>
     <input type="color" id="inAccent" value="#ffd700" style="height:44px;padding:4px">
-    <label>স্লাইডের লেখার সাইজ (এই প্রজেক্টের জন্য)</label>
-    <div class="radio-row">
-      <label><input type="radio" name="slideSize" value="small"> ছোট</label>
-      <label><input type="radio" name="slideSize" value="normal" checked> স্বাভাবিক</label>
-      <label><input type="radio" name="slideSize" value="large"> বড়</label>
-    </div>
-    <label>লেআউট (এই প্রজেক্টের জন্য)</label>
-    <div class="lay-list">
-      <label><input type="radio" name="layout" value="0" checked> <span>লেআউট ০ — বর্তমানটা<small>প্রশ্ন বামে, অপশন ডানে লম্বা লিস্টে</small></span></label>
-      <label><input type="radio" name="layout" value="1"> <span>লেআউট ১ — উপরে প্রশ্ন, নিচে ২×২ গ্রিড<small>লম্বা প্রশ্নের জন্য বেশি জায়গা</small></span></label>
-      <label><input type="radio" name="layout" value="2"> <span>লেআউট ২ — মাঝখানে প্রশ্ন, নিচে পিল অপশন<small>ছোট প্রশ্নে পরিষ্কার, বোর্ডে লেখার জায়গা বেশি</small></span></label>
-      <label><input type="radio" name="layout" value="3"> <span>লেআউট ৩ — বামে বড় নম্বর রেল<small>কোন প্রশ্ন চলছে এক নজরে বোঝা যায়</small></span></label>
-      <label><input type="radio" name="layout" value="4"> <span>লেআউট ৪ — উপরে হলুদ ব্যান্ড<small>প্রশ্ন কার্ডের ভেতরে, অপশন নিচে দুই কলামে</small></span></label>
-    </div>
-    <label style="display:flex;gap:8px;align-items:center;margin-top:10px"><input type="checkbox" id="inTitle" checked style="width:20px;height:20px;accent-color:var(--accD)"> টাইটেল স্লাইড বানাও (না টিকলে টাইটেল স্লাইড আসবে না)</label>
-    <label>থিম</label>
-    <div class="radio-row">
-      <label><input type="radio" name="theme" value="dark" checked> কালো</label>
-      <label><input type="radio" name="theme" value="light"> সাদা</label>
-    </div>
     <label>স্পেশাল টেক্সট (TOM-এর দেওয়া)</label>
     <textarea id="inText" autocomplete="off" placeholder="TITLE: ...&#10;TYPE: MCQ&#10;1. প্রশ্ন? | অপশন ১ | অপশন ২ | অপশন ৩ | অপশন ৪"></textarea>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
@@ -429,7 +487,7 @@ body.app-dark .sw.on{border-color:#fff}
 /* App version — the ONE version string shown to the user (Home + Settings).
    The service worker cache is "qbanan-" + this version (same literal in
    sw.js) — bump both together on every release. */
-var APP_VERSION = "2.3";
+var APP_VERSION = "2.4";
 /* ---------- helpers ---------- */
 var BN = {"0":"০","1":"১","2":"২","3":"৩","4":"৪","5":"৫","6":"৬","7":"৭","8":"৮","9":"৯"};
 function bn(n){ return String(n).split("").map(function(c){ return BN[c] || c; }).join(""); }
@@ -482,7 +540,36 @@ function applyAppTheme(){
   var bm = $("btnMode");
   if (bm) bm.textContent = dark ? "সাদা মোড" : "কালো মোড";
 }
-function show(id){ ["view-home","view-create","view-render","view-settings"].forEach(function(v){ $(v).classList.toggle("hidden", v!==id); }); $("appHeader").classList.toggle("hidden", id!=="view-home"); window.scrollTo(0,0); }
+/* ---------- history: one entry per screen, so Android/system back walks
+   the screens (render -> create -> home) instead of leaving the app. On
+   Home there is always a spare entry, so back on Home stays on Home.
+   navReady flips on after the initial replaceState+pushState at startup. */
+var navReady = false;
+var selectMode = false; // draft selection mode (long-press); see renderHome
+function show(id, noPush){
+  ["view-home","view-create","view-render","view-settings"].forEach(function(v){ $(v).classList.toggle("hidden", v!==id); });
+  $("appHeader").classList.toggle("hidden", id!=="view-home"); window.scrollTo(0,0);
+  if (id !== "view-home" && selectMode) exitSelectionMode();
+  if (navReady && !noPush){
+    try {
+      var cur = history.state && history.state.view;
+      if (cur !== id) history.pushState({view:id}, "");
+    } catch(e){}
+  }
+}
+window.addEventListener("popstate", function(ev){
+  var view = (ev.state && ev.state.view) || "view-home";
+  var from = currentView();
+  // System back from the create/render screen: auto-save the draft first
+  // (same as the in-app back button does).
+  if ((from==="view-create" || from==="view-render") && view!==from) saveDraftSilent();
+  if (selectMode) exitSelectionMode();
+  show(view, true);
+  if (view==="view-home"){
+    // Re-arm: keep one spare home entry, so the NEXT back also stays in-app.
+    try { history.pushState({view:"view-home"}, ""); } catch(e){}
+  }
+});
 /* Create New must ALWAYS open with a completely empty form. The form is one
    persistent DOM, so old input stays unless it is cleared here on purpose.
    Clearing also on leaving the form + at startup: deleting text must stay
@@ -499,7 +586,38 @@ function clearCreateForm(){
   $("parseErr").classList.add("hidden");
   editingId = null;
   current = null;
+  syncLayoutPicker();
 }
+/* ---------- visual layout picker (Excel-style gallery) ----------
+   The tiles are the UI; the hidden layout radios stay the source of truth
+   for doRun / saveDraftSilent / Edit (selected("layout") / setRadio), so
+   no other code had to change. The "নতুন" tile has no data-layout and is
+   never selectable — it only holds the place for a future layout. */
+function syncLayoutPicker(){
+  var v = selected("layout") || "0";
+  document.querySelectorAll("#layoutTiles .lp-tile[data-layout]").forEach(function(t){
+    var on = t.getAttribute("data-layout") === String(v);
+    t.classList.toggle("on", on);
+    var c = t.querySelector(".lp-chk"); if (c) c.classList.toggle("hidden", !on);
+  });
+  var tiles = $("layoutTiles");
+  if (tiles) tiles.style.setProperty("--lpAcc", ($("inAccent") && $("inAccent").value) || "#ffd700");
+}
+$("layoutTiles").addEventListener("click", function(e){
+  var t = e.target && e.target.closest ? e.target.closest(".lp-tile[data-layout]") : null;
+  if (!t) return;
+  setRadio("layout", t.getAttribute("data-layout"));
+  syncLayoutPicker();
+});
+$("layoutTiles").addEventListener("keydown", function(e){
+  if (e.key !== "Enter" && e.key !== " ") return;
+  var t = e.target && e.target.closest ? e.target.closest(".lp-tile[data-layout]") : null;
+  if (!t) return;
+  e.preventDefault();
+  setRadio("layout", t.getAttribute("data-layout"));
+  syncLayoutPicker();
+});
+$("inAccent").addEventListener("input", function(){ syncLayoutPicker(); });
 
 /* ---------- drafts: auto-save on back / on Run (silent, no dialog) ----------
    A draft is upserted by id, never duplicated: if the project being left
@@ -883,7 +1001,17 @@ function renderAll(){
         g.rows.forEach(function(a){
           var row = document.createElement("div");
           row.className = "ansrow";
-          row.innerHTML = '<b>'+bn(a.num)+'.</b> '+esc(a.ans);
+          // Only the serial + sub-letter prefix is accent-coloured; the
+          // answer body is white (dark) / #111 (light). "ক: ..." -> the
+          // letter+punctuation joins the prefix; a bare "ক" is the prefix.
+          var _at = String(a.ans);
+          var _am = _at.match(/^([কখগঘ])\s*([:.।])\s*([\s\S]*)$/);
+          var _ab = !_am && _at.match(/^([কখগঘ])$/);
+          var _pre = '<b>'+bn(a.num)+'.</b> ';
+          var _body = _at;
+          if (_am){ _pre += '<b>'+_am[1]+_am[2]+'</b> '; _body = _am[3]; }
+          else if (_ab){ _pre += '<b>'+_ab[1]+'</b>'; _body = ''; }
+          row.innerHTML = _pre + (_body ? esc(_body) : '');
           col.appendChild(row);
           plan[plan.length-1].items.push(a);
           if (curBody.scrollHeight > curBody.clientHeight + 2){
@@ -1670,12 +1798,31 @@ $("btnPptx").addEventListener("click", async function(){
         var s3 = pptx.addSlide(); addHeader(s3, "উত্তরপত্র", "✦");
         var ax = (L===3) ? 2.5 : 0.6, aw = (L===3) ? 10.2 : 12.13;
         var ay = 1.5;
+        // Answer slides: heading + body in the slide text colour (white on
+        // dark), ONLY the serial + sub-letter prefix in the accent — same
+        // rule as the preview (see renderAll).
+        var ansPre = dark ? acc : optLetter;
         if (e.head){
-          s3.addText(e.head, { x:ax, y:ay, w:aw, h:0.5, fontSize:fs(13), bold:true, color:qCol });
+          s3.addText(e.head, { x:ax, y:ay, w:aw, h:0.5, fontSize:fs(13), bold:true, color:txt });
           ay += 0.55;
         }
-        var aLines = e.items.map(function(a){ return bn(a.num)+". "+a.ans; });
-        if (aLines.length) s3.addText(aLines.join("\n"), { x:ax, y:ay, w:aw, h:6.9-ay, fontSize:fs(14), color:qCol, valign:"top", shrinkText:true });
+        // One flat run list; breakLine on the last run of each row makes a
+        // new paragraph (this bundle's addText takes runs, not run-arrays —
+        // an array-of-arrays silently renders nothing).
+        var aRuns = [];
+        e.items.forEach(function(a, ai){
+          var _at = String(a.ans);
+          var _am = _at.match(/^([কখগঘ])\s*([:.।])\s*([\s\S]*)$/);
+          var _ab = !_am && _at.match(/^([কখগঘ])$/);
+          aRuns.push({text:bn(a.num)+". ", options:{color:ansPre, bold:true}});
+          var _body = _at;
+          if (_am){ aRuns.push({text:_am[1]+_am[2]+" ", options:{color:ansPre, bold:true}}); _body = _am[3]; }
+          else if (_ab){ aRuns.push({text:_ab[1], options:{color:ansPre, bold:true}}); _body = ""; }
+          var _last = (ai === e.items.length - 1);
+          if (_body) aRuns.push({text:_body, options:{color:txt, breakLine:!_last}});
+          else aRuns[aRuns.length-1].options.breakLine = !_last;
+        });
+        if (aRuns.length) s3.addText(aRuns, { x:ax, y:ay, w:aw, h:6.9-ay, fontSize:fs(14), valign:"top", shrinkText:true });
       }
     }
     await pptx.writeFile({ fileName: (current.name||"Q_Banan") + ".pptx" });
@@ -1689,9 +1836,9 @@ $("btnNewTop").addEventListener("click", function(){
   clearCreateForm();
   show("view-create");
 });
-$("btnBackHome").addEventListener("click", function(){ saveDraftSilent(); clearCreateForm(); show("view-home"); });
-$("btnBackHome2").addEventListener("click", function(){ show(settingsReturn || "view-home"); });
-$("btnBackRender").addEventListener("click", function(){ saveDraftSilent(); clearCreateForm(); show("view-home"); });
+$("btnBackHome").addEventListener("click", function(){ saveDraftSilent(); history.back(); });
+$("btnBackHome2").addEventListener("click", function(){ history.back(); });
+$("btnBackRender").addEventListener("click", function(){ saveDraftSilent(); history.back(); });
 function markSwatch(c){
   document.querySelectorAll("#swatches .sw").forEach(function(b){
     b.classList.toggle("on", b.getAttribute("data-c").toLowerCase() === String(c||"").toLowerCase());
@@ -1912,8 +2059,9 @@ $("btnDelSel").addEventListener("click", function(){
   if (!selectedIds.size) return;
   if (!confirm(selectedIds.size+"টি প্রজেক্ট ডিলিট করবে?")) return;
   saveProjects(getProjects().filter(function(x){ return !selectedIds.has(x.id); }));
-  selectedIds.clear(); renderHome(); clearCreateForm();
+  selectedIds.clear(); exitSelectionMode(); clearCreateForm();
 });
+$("btnSelCancel").addEventListener("click", function(){ exitSelectionMode(); });
 function countQuestions(p){
   if (!p.text) return 0;
   var n = 0, sec = null;
@@ -1928,6 +2076,41 @@ function countQuestions(p){
   });
   return n;
 }
+/* ---------- draft selection: long-press only (WhatsApp-style) ----------
+   No checkboxes are shown until a long-press (~500ms) on a card enters
+   selection mode. A normal tap opens the project; in selection mode a tap
+   toggles. Back (system or the ✕ button) exits selection mode. */
+function enterSelectionMode(id){
+  selectMode = true;
+  selectedIds.add(id);
+  renderHome();
+}
+function toggleSelect(id){
+  if (selectedIds.has(id)) selectedIds.delete(id); else selectedIds.add(id);
+  if (!selectedIds.size){ exitSelectionMode(); return; }
+  renderHome();
+}
+function exitSelectionMode(){
+  if (!selectMode && !selectedIds.size) return;
+  selectMode = false;
+  selectedIds.clear();
+  renderHome();
+}
+/* Fill the create form from a draft (shared by Edit and tap-to-open). */
+function fillCreateForm(p){
+  current = null; editingId = p.id;
+  $("inName").value=p.name; $("inSubject").value=p.subject||""; $("inChapter").value=p.chapter||""; $("inTeacher").value=p.teacher||"Khayrul Sir"; $("inAccent").value=p.accent||"#ffd700"; $("inText").value=p.text||"";
+  setRadio("kind", "auto"); setRadio("qtype", "auto"); setRadio("theme", p.theme||"dark");
+  setRadio("slideSize", p.slideSize || getSettings().slideSize || "normal");
+  setRadio("layout", String(p.layout==null?0:p.layout));
+  syncLayoutPicker();
+  var _t2=$("inTitle"); if (_t2) _t2.checked = p.showTitle !== false;
+  $("parseErr").classList.add("hidden");
+}
+/* Tap a draft card: open its slides (same as filling the form + Run).
+   The create view is shown first (same synchronous task, never painted),
+   so the back chain is uniformly render -> create form -> home. */
+function openDraft(p){ fillCreateForm(p); show("view-create"); doRun(); }
 function renderHome(){
   var ps = getProjects();
   var q = searchQuery;
@@ -1937,7 +2120,7 @@ function renderHome(){
   $("noMatch").classList.toggle("hidden", !(ps.length>0 && list.length===0));
   $("projCount").textContent = ps.length ? ps.length + "টি" : "";
   list.forEach(function(p){
-    var d = document.createElement("div"); d.className="pcard";
+    var d = document.createElement("div"); d.className="pcard" + (selectedIds.has(p.id) ? " sel" : "");
     var dark = p.theme !== "light";
     var acc = p.accent || "#ffd700";
     var accD = darkenHex(acc, 0.55);
@@ -1946,16 +2129,19 @@ function renderHome(){
     mini.innerHTML = '<div style="color:'+(dark?acc:accD)+';font-weight:800;font-family:Work Sans,Arial,sans-serif;font-size:12px;line-height:1">ARK</div>'+
       '<div style="color:'+(dark?"#fff":"#111")+';font-size:9px;font-weight:700;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(p.subject||"")+'</div>'+
       '<div style="color:'+(dark?"#cfcfcf":"#666")+';font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(p.chapter||"")+'</div>';
-    var chk = document.createElement("input"); chk.type="checkbox"; chk.style.cssText="width:20px;height:20px;accent-color:var(--accD);flex:none";
+    var chk = document.createElement("input"); chk.type="checkbox"; chk.style.cssText="width:20px;height:20px;accent-color:var(--accD);flex:none" + (selectMode ? "" : ";display:none");
     chk.checked = selectedIds.has(p.id);
-    chk.onchange = function(){ if (chk.checked) selectedIds.add(p.id); else selectedIds.delete(p.id); updateSelBar(); };
+    chk.onchange = function(){
+      if (chk.checked) selectedIds.add(p.id); else selectedIds.delete(p.id);
+      if (!selectedIds.size && selectMode) exitSelectionMode(); else updateSelBar();
+    };
     var body = document.createElement("div"); body.className="pbody";
     var typeLabel = p.kind==="answer" ? "উত্তরপত্র" : (p.qtype==="CQ" ? "সৃজনশীল" : (p.qtype==="MIX" ? "মিশ্র" : "বহুনির্বাচনী"));
     var unit = p.kind==="answer" ? "টি উত্তর" : "টি প্রশ্ন";
     body.innerHTML = '<b>'+esc(p.name)+'</b><small>'+esc(typeLabel)+' • '+bn(countQuestions(p))+unit+' • '+esc(p.date||"")+'</small>';
     var acts = document.createElement("div"); acts.className="acts";
     var bE = document.createElement("button"); bE.className="btn-w"; bE.textContent="Edit"; bE.type="button";
-    bE.onclick = function(){ current = null; editingId = p.id; $("inName").value=p.name; $("inSubject").value=p.subject||""; $("inChapter").value=p.chapter||""; $("inTeacher").value=p.teacher||"Khayrul Sir"; $("inAccent").value=p.accent||"#ffd700"; $("inText").value=p.text||""; setRadio("kind", "auto"); setRadio("qtype", "auto"); setRadio("theme", p.theme||"dark"); setRadio("slideSize", p.slideSize || getSettings().slideSize || "normal"); setRadio("layout", String(p.layout==null?0:p.layout)); var _t2=$("inTitle"); if (_t2) _t2.checked = p.showTitle !== false; $("parseErr").classList.add("hidden"); show("view-create"); };
+    bE.onclick = function(){ fillCreateForm(p); show("view-create"); };
     var menuWrap = document.createElement("div"); menuWrap.className="menu-wrap";
     var mBtn = document.createElement("button"); mBtn.className="btn-w menu-btn"; mBtn.textContent="\u22ee"; mBtn.type="button"; mBtn.setAttribute("aria-label","\u0986\u09b0\u09cb \u0985\u09aa\u09b6\u09a8");
     var menu = document.createElement("div"); menu.className="menu hidden";
@@ -1968,6 +2154,30 @@ function renderHome(){
     menuWrap.appendChild(mBtn); menuWrap.appendChild(menu);
     acts.appendChild(bE); acts.appendChild(menuWrap);
     body.appendChild(acts);
+    // Long-press (tap-and-hold, ~500ms) enters selection mode — WhatsApp
+    // style. A normal tap opens the project; in selection mode a tap
+    // toggles. Buttons/inputs on the card never start a long-press.
+    (function(card){
+      var timer = null, sx = 0, sy = 0;
+      card.addEventListener("pointerdown", function(e){
+        if (e.button !== undefined && e.button !== 0) return;
+        if (e.target && e.target.closest && (e.target.closest("button") || e.target.closest("input") || e.target.closest("a"))) return;
+        card._lpFired = false; sx = e.clientX; sy = e.clientY;
+        timer = setTimeout(function(){ timer = null; card._lpFired = true; enterSelectionMode(p.id); }, 500);
+      });
+      function cancelLp(){ if (timer){ clearTimeout(timer); timer = null; } }
+      card.addEventListener("pointerup", cancelLp);
+      card.addEventListener("pointercancel", cancelLp);
+      card.addEventListener("pointerleave", cancelLp);
+      card.addEventListener("pointermove", function(e){ if (timer && (Math.abs(e.clientX-sx)>10 || Math.abs(e.clientY-sy)>10)) cancelLp(); });
+      card.addEventListener("contextmenu", function(e){ e.preventDefault(); });
+      card.addEventListener("click", function(e){
+        if (card._lpFired){ card._lpFired = false; return; } // the tap that ends a long-press must not also open/toggle
+        if (e.target && e.target.closest && (e.target.closest("button") || e.target.closest("input") || e.target.closest("a"))) return;
+        if (selectMode){ toggleSelect(p.id); }
+        else { openDraft(p); }
+      });
+    })(d);
     d.appendChild(chk); d.appendChild(mini); d.appendChild(body);
     box.appendChild(d);
   });
@@ -2067,6 +2277,10 @@ applyAppTheme();
 renderHome();
 clearCreateForm();
 $("appVer").textContent = "v" + APP_VERSION;
+// Arm the history stack (see show()): one spare home entry, so the first
+// system-back press on Home stays in the app instead of leaving it.
+try { history.replaceState({view:"view-home"}, ""); history.pushState({view:"view-home"}, ""); } catch(e){}
+navReady = true;
 if ("serviceWorker" in navigator){
   hadController = !!navigator.serviceWorker.controller;
   // A new SW took over while the page is open: show the banner, never
