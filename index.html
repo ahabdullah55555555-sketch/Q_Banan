@@ -56,35 +56,35 @@ textarea{min-height:220px;line-height:1.6}
 .slide{aspect-ratio:16/9;width:100%;max-width:920px;margin:0 auto;border-radius:6px;overflow:hidden;display:flex;flex-direction:column;background:#000;color:#fff;box-shadow:0 4px 18px rgba(0,0,0,.25)}
 .top{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:start;padding:10px 26px}
 .logo{line-height:1;text-align:left}
-.logo .a{font-family:'Work Sans',Arial,sans-serif;font-weight:800;font-size:17px;line-height:.95;color:var(--acc,#ffd700)}
-.logo .p{font-size:8px;font-weight:700;color:#fff;line-height:1;margin-top:0}
-.logo .c{font-size:6px;letter-spacing:1.5px;color:#cfcfcf;line-height:1;margin-top:0}
+.logo .a{font-family:'Work Sans',Arial,sans-serif;font-weight:800;font-size:calc(var(--szf,.78)*17px);line-height:.95;color:var(--acc,#ffd700)}
+.logo .p{font-size:calc(var(--szf,.78)*8px);font-weight:700;color:#fff;line-height:1;margin-top:0}
+.logo .c{font-size:calc(var(--szf,.78)*6px);letter-spacing:1.5px;color:#cfcfcf;line-height:1;margin-top:0}
 .top .mid{text-align:center}
-.top .mid span{display:inline-block;background:var(--acc,#ffd700);color:var(--accOn,#000);font-size:15px;font-weight:700;border-radius:20px;padding:3px 18px}
+.top .mid span{display:inline-block;background:var(--acc,#ffd700);color:var(--accOn,#000);font-size:calc(var(--szf,.78)*15px);font-weight:700;border-radius:20px;padding:3px 18px}
 /* CQ pill — subtle: no yellow background (it grabbed too much attention).
    Plain text + thin outline, slightly smaller, shorter label "সৃজনশীল". */
-.top .mid.subtle span{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.45);font-size:13px;padding:3px 14px}
+.top .mid.subtle span{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.45);font-size:calc(var(--szf,.78)*13px);padding:3px 14px}
 .slides.light .top .mid.subtle span{color:#111;border-color:rgba(17,17,17,.4)}
-.top .right{text-align:right;color:#fff;font-size:12px;font-weight:700;padding-top:2px}
+.top .right{text-align:right;color:#fff;font-size:calc(var(--szf,.78)*12px);font-weight:700;padding-top:2px}
 .body{flex:1;padding:8px 26px 10px;display:flex;flex-direction:row;gap:20px;min-height:0}
 .qwrap{flex:1.5;min-width:0}
-.q{font-size:16px;line-height:1.35;font-weight:700;color:var(--acc,#ffd700);text-align:left;margin:4px 0}
-.q .tag{font-size:10px;font-weight:400;color:#fff;white-space:nowrap}
+.q{font-size:calc(var(--szf,.78)*16px);line-height:1.35;font-weight:700;color:var(--acc,#ffd700);text-align:left;margin:4px 0}
+.q .tag{font-size:calc(var(--szf,.78)*10px);font-weight:400;color:#fff;white-space:nowrap}
 .q .arr{color:var(--acc,#ffd700)}
 .opts{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;padding-bottom:6px}
-.opt{background:#fff3d6;color:#111;border-radius:8px;padding:5px 10px;font-size:11px;line-height:1.3;text-align:left}
+.opt{background:var(--optBg,#fff3d6);color:#111;border-radius:8px;padding:5px 10px;font-size:calc(var(--szf,.78)*11px);line-height:1.3;text-align:left}
 .opt b{color:var(--accD,#b8860b);margin-right:6px}
-.foot{padding:6px 26px;font-size:10px;color:#cfcfcf;display:flex;justify-content:space-between}
+.foot{padding:6px 26px;font-size:calc(var(--szf,.78)*10px);color:#cfcfcf;display:flex;justify-content:space-between}
 .titlewrap{flex:1;display:flex;flex-direction:column;justify-content:center;padding:10px 26px}
-.title{font-size:28px;line-height:1.25;font-weight:700;color:var(--acc,#ffd700)}
-.sub{font-size:15px;margin-top:7px;color:#fff}
-.stim{color:#fff;font-size:10px;line-height:1.4;margin:4px 0 8px}
-.stim .tag{font-size:9px;font-weight:400;color:#fff;white-space:nowrap}
+.title{font-size:calc(var(--szf,.78)*28px);line-height:1.25;font-weight:700;color:var(--acc,#ffd700)}
+.sub{font-size:calc(var(--szf,.78)*15px);margin-top:7px;color:#fff}
+.stim{color:#fff;font-size:calc(var(--szf,.78)*10px);line-height:1.4;margin:4px 0 8px}
+.stim .tag{font-size:calc(var(--szf,.78)*9px);font-weight:400;color:#fff;white-space:nowrap}
 .cq{flex:1;display:flex;flex-direction:column;gap:5px;min-width:0}
 .cqcol{flex:1;display:flex;flex-direction:column;gap:0;min-width:0}
-.cqrow{display:flex;gap:8px;font-size:11px;line-height:1.35;color:var(--acc,#ffd700);text-align:left}
+.cqrow{display:flex;gap:8px;font-size:calc(var(--szf,.78)*11px);line-height:1.35;color:var(--acc,#ffd700);text-align:left}
 .cqrow b{color:var(--acc,#ffd700)}
-.ansrow{font-size:14px;line-height:1.5;color:var(--acc,#ffd700);padding:3px 0}
+.ansrow{font-size:calc(var(--szf,.78)*14px);line-height:1.5;color:var(--acc,#ffd700);padding:3px 0}
 .ansrow b{color:var(--acc,#ffd700)}
 /* white theme slides */
 .slides.light .slide{background:#fff;color:#111}
@@ -104,33 +104,37 @@ textarea{min-height:220px;line-height:1.6}
 .slides.light .ansrow{color:#111}
 .slides.light .ansrow b{color:#111}
 .slides.light .foot{color:#555}
-.slides.light .opt{background:#fff3d6;border:1px solid #d8c27a}
+.slides.light .opt{background:var(--optBg,#fff3d6);border:1px solid var(--optBd,#d8c27a)}
 /* PDF capture: no shadow/rounded corners, edge-to-edge like the real slide */
 .slides.pdf-capture .slide{box-shadow:none;border-radius:0}
 /* Hi-res PDF capture stage: off-screen 960px-wide clones of the slides */
 .pdf-hires-stage{position:fixed;left:-10000px;top:0;width:960px;pointer-events:none;z-index:1}
 .pdf-hires-stage .slide{max-width:none;width:960px;margin:0;box-shadow:none;border-radius:0}
 @media (max-width:700px){
- .logo .a{font-size:14px}.logo .p{font-size:8px}.logo .c{font-size:5px}
- .top .mid span{font-size:12px;padding:2px 12px}
- .top .mid.subtle span{font-size:11px;padding:2px 10px}
- .top .right{font-size:10px}
+ .logo .a{font-size:calc(var(--szf,.78)*14px)}.logo .p{font-size:calc(var(--szf,.78)*8px)}.logo .c{font-size:calc(var(--szf,.78)*5px)}
+ .top .mid span{font-size:calc(var(--szf,.78)*12px);padding:2px 12px}
+ .top .mid.subtle span{font-size:calc(var(--szf,.78)*11px);padding:2px 10px}
+ .top .right{font-size:calc(var(--szf,.78)*10px)}
  .top{padding:8px 16px}
  .body{padding:6px 16px 8px;gap:12px}
  .titlewrap{padding:8px 16px}
- .q{font-size:11px}.q .tag{font-size:9px}
- .opts{gap:4px}.opt{font-size:10px;padding:4px 8px}
- .foot{padding:5px 16px;font-size:9px}
- .title{font-size:20px}.sub{font-size:13px}
- .stim{font-size:9px}.cqrow{font-size:10px}
+ .q{font-size:calc(var(--szf,.78)*11px)}.q .tag{font-size:calc(var(--szf,.78)*9px)}
+ .opts{gap:4px}.opt{font-size:calc(var(--szf,.78)*10px);padding:4px 8px}
+ .foot{padding:5px 16px;font-size:calc(var(--szf,.78)*9px)}
+ .title{font-size:calc(var(--szf,.78)*20px)}.sub{font-size:calc(var(--szf,.78)*13px)}
+ .stim{font-size:calc(var(--szf,.78)*9px)}.cqrow{font-size:calc(var(--szf,.78)*10px)}
 }
-/* PDF stage: NO size overrides here on purpose. The clone MUST inherit the
-   same computed styles as the on-screen slide (phone sizes on a phone,
-   desktop sizes on desktop) — the PDF is a geometric upscale of the preview
-   the user sees, so it looks exactly like the preview. Forcing desktop sizes
-   here made the PDF text ~2.6x smaller than the phone preview (the 18 Nov
-   "slides look tiny" bug). buildPdfClone scales every px value by
-   960 / (on-screen slide width), so layout and wrapping are preserved. */
+/* ===== Slide text size =====
+   Every slide font size is the ORIGINAL locked-template size times --szf.
+   Default (no class) = স্বাভাবিক 0.78 — about 22% smaller than the original
+   template, per his order. ছোট = 0.65, বড় = 0.95 (same multipliers on
+   desktop and phone, so preview and PDF always match). MCQ auto-shrink
+   (fitMcq) still runs on top, so an MCQ always fits one slide.
+   --szf lives on .slides, so the PDF stage (class "slides") and the clone
+   inherit the same factor automatically. */
+.slides{--szf:.78}
+.slides.sz-small{--szf:.65}
+.slides.sz-large{--szf:.95}
 /* ===== CapCut-style home + grouped settings + app light/dark mode ===== */
 .big-new{width:100%;padding:16px;font-size:18px;border-radius:var(--radius-lg);margin:4px 0 12px}
 .search{margin:0}
@@ -155,54 +159,7 @@ textarea{min-height:220px;line-height:1.6}
 .seg label{flex:1;text-align:center}
 body.app-dark .err{background:#3d1a1a;border-color:#7a3a3a;color:#ffd7d7}
 body.app-dark .sw.on{border-color:#fff}
-/* ===== Slide text size (Settings > Export) =====
-   Default = স্বাভাবিক: NO class, so the locked template sizes apply exactly.
-   ছোট = x0.85, বড় = x1.2 on every slide text element. MCQ auto-shrink
-   (fitMcq) still runs on top, so an MCQ always fits one slide. */
-.slides.sz-small .q{font-size:13.6px}
-.slides.sz-small .opt{font-size:9.35px}
-.slides.sz-small .stim{font-size:8.5px}
-.slides.sz-small .cqrow{font-size:9.35px}
-.slides.sz-small .title{font-size:23.8px}
-.slides.sz-small .sub{font-size:12.75px}
-.slides.sz-small .ansrow{font-size:11.9px}
-.slides.sz-small .top .mid span{font-size:12.75px}
-.slides.sz-small .foot{font-size:8.5px}
-.slides.sz-small .logo .a{font-size:14.45px}
-.slides.sz-small .q .tag{font-size:8.5px}
-.slides.sz-small .stim .tag{font-size:7.65px}
-.slides.sz-large .q{font-size:19.2px}
-.slides.sz-large .opt{font-size:13.2px}
-.slides.sz-large .stim{font-size:12px}
-.slides.sz-large .cqrow{font-size:13.2px}
-.slides.sz-large .title{font-size:33.6px}
-.slides.sz-large .sub{font-size:18px}
-.slides.sz-large .ansrow{font-size:16.8px}
-.slides.sz-large .top .mid span{font-size:18px}
-.slides.sz-large .foot{font-size:12px}
-.slides.sz-large .logo .a{font-size:20.4px}
-.slides.sz-large .q .tag{font-size:12px}
-.slides.sz-large .stim .tag{font-size:10.8px}
-@media (max-width:700px){
-.slides.sz-small .q{font-size:9.35px}
-.slides.sz-small .opt{font-size:8.5px}
-.slides.sz-small .stim{font-size:7.65px}
-.slides.sz-small .cqrow{font-size:8.5px}
-.slides.sz-small .title{font-size:17px}
-.slides.sz-small .sub{font-size:11.05px}
-.slides.sz-small .top .mid span{font-size:10.2px}
-.slides.sz-small .foot{font-size:7.65px}
-.slides.sz-small .logo .a{font-size:11.9px}
-.slides.sz-large .q{font-size:13.2px}
-.slides.sz-large .opt{font-size:12px}
-.slides.sz-large .stim{font-size:10.8px}
-.slides.sz-large .cqrow{font-size:12px}
-.slides.sz-large .title{font-size:24px}
-.slides.sz-large .sub{font-size:15.6px}
-.slides.sz-large .top .mid span{font-size:14.4px}
-.slides.sz-large .foot{font-size:10.8px}
-.slides.sz-large .logo .a{font-size:16.8px}
-}
+/* (Slide text size now lives in --szf above — no absolute overrides here.) */
 </style>
 </head>
 <body>
@@ -245,6 +202,12 @@ body.app-dark .sw.on{border-color:#fff}
     <input type="text" id="inTeacher" autocomplete="off" placeholder="যেমন: Khayrul Sir">
     <label>অ্যাকসেন্ট রং (হলুদ ডিফল্ট)</label>
     <input type="color" id="inAccent" value="#ffd700" style="height:44px;padding:4px">
+    <label>স্লাইডের লেখার সাইজ (এই প্রজেক্টের জন্য)</label>
+    <div class="radio-row">
+      <label><input type="radio" name="slideSize" value="small"> ছোট</label>
+      <label><input type="radio" name="slideSize" value="normal" checked> স্বাভাবিক</label>
+      <label><input type="radio" name="slideSize" value="large"> বড়</label>
+    </div>
     <label>থিম</label>
     <div class="radio-row">
       <label><input type="radio" name="theme" value="dark" checked> কালো</label>
@@ -324,7 +287,7 @@ body.app-dark .sw.on{border-color:#fff}
   </div>
   <div class="card set-group">
     <h2>স্লাইডের লেখার সাইজ</h2>
-    <p class="set-hint">ডিফল্ট: স্বাভাবিক — এখন যেমন আছে ঠিক তেমন। বড় করলে প্রশ্ন-অপশনের লেখা বড় হবে, তবু MCQ এক স্লাইডেই থাকবে।</p>
+    <p class="set-hint">ডিফল্ট: স্বাভাবিক — আগের টেমপ্লেটের চেয়ে প্রায় ২২% ছোট লেখা। বড় করলে প্রশ্ন-অপশনের লেখা বড় হবে, তবু MCQ এক স্লাইডেই থাকবে। প্রতিটা প্রজেক্টে আলাদা সাইজও বাছা যায়।</p>
     <div class="radio-row">
       <label><input type="radio" name="setSlideSize" value="small"> ছোট</label>
       <label><input type="radio" name="setSlideSize" value="normal" checked> স্বাভাবিক</label>
@@ -390,6 +353,15 @@ function darkenHex(hex, f){
   return out;
 }
 function accOnText(hex){ return hexLum(hex) > 0.45 ? "#000000" : "#ffffff"; }
+/* Light tint of a colour: mix it with white (f = fraction of the colour).
+   Used for the MCQ option boxes — a light wash of the project accent, so the
+   boxes follow the accent like everything else instead of staying cream. */
+function tintHex(hex, f){
+  var h = String(hex||"#ffd700").replace("#","");
+  if (h.length===3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  function m(i){ var v = Math.round(parseInt(h.slice(i,i+2),16)*f + 255*(1-f)); if (v<0)v=0; if (v>255)v=255; return (v<16?"0":"")+v.toString(16); }
+  return "#"+m(0)+m(2)+m(4);
+}
 /* App theme: accent everywhere (header, buttons, FAB, toggles) + light/dark mode.
    Slide theme stays independent (per project). */
 function applyAppTheme(){
@@ -418,6 +390,7 @@ function clearCreateForm(){
   $("inName").value = ""; $("inSubject").value = ""; $("inChapter").value = ""; $("inTeacher").value = st.teacher || "Khayrul Sir"; $("inText").value = "";
   $("inAccent").value = st.accent || "#ffd700";
   setRadio("kind", "auto"); setRadio("qtype", "auto"); setRadio("theme", st.theme || "dark");
+  setRadio("slideSize", st.slideSize || "normal");
   $("parseErr").classList.add("hidden");
   editingId = null;
   current = null;
@@ -451,6 +424,7 @@ function saveDraftSilent(){
   if (current){
     var rec = { id: current.draftId || Date.now(), name: current.name, kind: current.kind, qtype: current.qtype,
       subject: current.subject, chapter: current.chapter, teacher: current.teacher, accent: current.accent, theme: current.theme,
+      slideSize: current.slideSize || getSettings().slideSize || "normal",
       text: $("inText").value, date: new Date().toLocaleDateString("bn-BD") };
     current.draftId = upsertDraft(rec);
     return true;
@@ -461,6 +435,7 @@ function saveDraftSilent(){
   var _n2 = normalizeForDraft(selected("kind"), selected("qtype"), text);
   var rec2 = { id: editingId || Date.now(), name: $("inName").value.trim() || "Q_Banan", kind: _n2.kind, qtype: _n2.qtype,
     subject: $("inSubject").value.trim(), chapter: $("inChapter").value.trim(), teacher: $("inTeacher").value.trim() || getSettings().teacher || "Khayrul Sir", accent: $("inAccent").value, theme: selected("theme"),
+    slideSize: selected("slideSize") || getSettings().slideSize || "normal",
     text: text, date: new Date().toLocaleDateString("bn-BD") };
   upsertDraft(rec2);
   return true;
@@ -577,7 +552,7 @@ function parseSpecialText(text, force){
 }
 
 /* ---------- renderer ---------- */
-var current = null; // {kind,qtype,name,subject,chapter,accent,theme,title,type,items}
+var current = null; // {kind,qtype,name,subject,chapter,accent,theme,slideSize,title,type,items}
 var editingId = null; // id of the draft currently being edited (null = new project)
 function headerHTML(meta, pillText){
   var subtle = (pillText === "সৃজনশীল");
@@ -595,17 +570,22 @@ function renderAll(){
   var box = $("slides");
   box.innerHTML = "";
   box.classList.toggle("light", current.theme==="light");
-  var _sz = (getSettings().slideSize || "normal");
+  // Slide text size: the project's own size wins, else the app default.
+  // (Old drafts have no slideSize — they fall back to the app default.)
+  var _sz = (current.slideSize || getSettings().slideSize || "normal");
   box.classList.toggle("sz-small", _sz==="small");
   box.classList.toggle("sz-large", _sz==="large");
   box.style.setProperty("--acc", current.accent);
   box.style.setProperty("--accD", darkenHex(current.accent, 0.55));
   box.style.setProperty("--accOn", accOnText(current.accent));
+  // Option boxes: a light wash of the project accent (not fixed cream).
+  box.style.setProperty("--optBg", tintHex(current.accent, 0.13));
+  box.style.setProperty("--optBd", tintHex(current.accent, 0.35));
   var meta = current;
   // title slide (title line shown only when it adds something beyond subject+chapter)
   var t = document.createElement("div");
   t.className = "slide";
-  var titleLine = (meta.title && meta.title !== (meta.subject||"") && meta.title !== (meta.chapter||"") && meta.title !== ((meta.subject||"")+" "+(meta.chapter||"")).trim()) ? '<div class="sub" style="font-size:13px;color:'+(meta.theme==="light"?"#444":"#cfcfcf")+'">'+esc(meta.title)+'</div>' : "";
+  var titleLine = (meta.title && meta.title !== (meta.subject||"") && meta.title !== (meta.chapter||"") && meta.title !== ((meta.subject||"")+" "+(meta.chapter||"")).trim()) ? '<div class="sub" style="color:'+(meta.theme==="light"?"#444":"#cfcfcf")+'">'+esc(meta.title)+'</div>' : "";
   t.innerHTML = headerHTML(meta, meta.qtype==="CQ" ? "সৃজনশীল" : (meta.kind==="answer" ? "উত্তরপত্র" : "বহুনির্বাচনী")) +
     '<div class="titlewrap"><div class="title" style="color:'+(meta.theme==="light"?"#111":meta.accent)+'">'+esc(meta.subject||meta.title||"")+'</div>'+
     '<div class="sub">'+esc(meta.chapter||"")+'</div>'+ titleLine +'</div>' + footerHTML(meta);
@@ -676,12 +656,14 @@ function fitMcq(slide){
   // that grows).
   var q = slide.querySelector(".q"), opts = slide.querySelectorAll(".opt");
   var bd = slide.querySelector(".body");
+  // (Default slide text is now ~22% smaller than the old template, so the
+  // shrink floor is lower too — a long question still fits one slide.)
   var qSize = q ? parseFloat(getComputedStyle(q).fontSize) : 16;
   var oSize = opts.length ? parseFloat(getComputedStyle(opts[0]).fontSize) : 11, guard = 0;
-  while (bd && bd.scrollHeight > bd.clientHeight + 2 && qSize > 9 && guard < 12){
+  while (bd && bd.scrollHeight > bd.clientHeight + 2 && qSize > 6 && guard < 12){
     qSize -= 1; oSize -= 1; guard++;
     if (q) q.style.fontSize = qSize + "px";
-    opts.forEach(function(o){ o.style.fontSize = Math.max(8,oSize) + "px"; });
+    opts.forEach(function(o){ o.style.fontSize = Math.max(6,oSize) + "px"; });
   }
 }
 
@@ -711,6 +693,8 @@ function buildPdfStage(box){
   stage.style.setProperty("--acc", current.accent);
   stage.style.setProperty("--accD", darkenHex(current.accent, 0.55));
   stage.style.setProperty("--accOn", accOnText(current.accent));
+  stage.style.setProperty("--optBg", tintHex(current.accent, 0.13));
+  stage.style.setProperty("--optBd", tintHex(current.accent, 0.35));
   document.body.appendChild(stage);
   return stage;
 }
@@ -750,6 +734,15 @@ function buildPdfClone(src, stage){
     }
   }
   clone.style.borderRadius = "0"; // after scaling: the slide itself stays square in the PDF
+  // HARDENING (the yellow-PDF bug): the clone carries the PROJECT accent as
+  // its own inline vars, so export can never fall back to the app-level
+  // yellow default — even if the stage vars are lost, the clone's colours
+  // still resolve from the project, exactly like the on-screen preview.
+  clone.style.setProperty("--acc", current.accent);
+  clone.style.setProperty("--accD", darkenHex(current.accent, 0.55));
+  clone.style.setProperty("--accOn", accOnText(current.accent));
+  clone.style.setProperty("--optBg", tintHex(current.accent, 0.13));
+  clone.style.setProperty("--optBd", tintHex(current.accent, 0.35));
   return clone;
 }
 
@@ -1061,47 +1054,56 @@ $("btnPptx").addEventListener("click", function(){
   var qCol = dark ? current.accent.replace("#","") : "111111";
   var arkCol = dark ? current.accent.replace("#","") : darkenHex(current.accent, 0.55).replace("#","");
   var acc = current.accent.replace("#","");
+  // Slide text size: same multipliers as preview/PDF (small 0.65 / normal
+  // 0.78 / large 0.95 of the original template sizes). Option boxes use a
+  // light tint of the project accent, like the preview — never fixed cream.
+  var szf = {small:0.65, normal:0.78, large:0.95}[current.slideSize || getSettings().slideSize || "normal"] || 0.78;
+  function fs(n){ return Math.round(n*szf*10)/10; }
+  var accOn = accOnText(current.accent).replace("#","");
+  var optBg = tintHex(current.accent, 0.13).replace("#","");
+  var optBd = tintHex(current.accent, 0.35).replace("#","");
+  var optLetter = darkenHex(current.accent, 0.55).replace("#","");
   function addHeader(slide, pill){
     var subtle = (pill === "সৃজনশীল");
     slide.background = { color: bg };
-    slide.addText("ARK", { x:0.4, y:0.25, w:2.2, h:0.5, fontSize:20, bold:true, color:arkCol, fontFace:"Arial Black" });
-    slide.addText("PLUS POINT", { x:0.4, y:0.75, w:2.2, h:0.3, fontSize:10, bold:true, color:txt });
-    slide.addText("COACHING CENTER", { x:0.4, y:1.0, w:2.2, h:0.25, fontSize:7, color: dark?"CFCFCF":"666666" });
+    slide.addText("ARK", { x:0.4, y:0.25, w:2.2, h:0.5, fontSize:fs(20), bold:true, color:arkCol, fontFace:"Arial Black" });
+    slide.addText("PLUS POINT", { x:0.4, y:0.75, w:2.2, h:0.3, fontSize:fs(10), bold:true, color:txt });
+    slide.addText("COACHING CENTER", { x:0.4, y:1.0, w:2.2, h:0.25, fontSize:fs(7), color: dark?"CFCFCF":"666666" });
     if (!subtle){
       slide.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:5.4, y:0.25, w:2.5, h:0.5, fill:{color:acc}, line:{color:acc} });
-      slide.addText(pill, { x:5.4, y:0.25, w:2.5, h:0.5, fontSize:14, bold:true, color:"000000", align:"center", valign:"middle" });
+      slide.addText(pill, { x:5.4, y:0.25, w:2.5, h:0.5, fontSize:fs(14), bold:true, color:accOn, align:"center", valign:"middle" });
     } else {
       // CQ pill — subtle like on screen: no yellow fill, thin outline, text in slide colour
       slide.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:5.75, y:0.25, w:1.8, h:0.5, fill:{color:bg}, line:{color:"999999"} });
-      slide.addText(pill, { x:5.75, y:0.25, w:1.8, h:0.5, fontSize:13, bold:true, color:txt, align:"center", valign:"middle" });
+      slide.addText(pill, { x:5.75, y:0.25, w:1.8, h:0.5, fontSize:fs(13), bold:true, color:txt, align:"center", valign:"middle" });
     }
-    slide.addText("SSC 2027", { x:11.4, y:0.3, w:1.5, h:0.4, fontSize:12, bold:true, color:txt, align:"right" });
-    slide.addText(current.teacher || "Khayrul Sir", { x:0.4, y:7.05, w:3, h:0.3, fontSize:9, color: dark?"CFCFCF":"666666" });
-    slide.addText((current.subject||"")+" • "+(current.chapter||""), { x:8.5, y:7.05, w:4.4, h:0.3, fontSize:9, color: dark?"CFCFCF":"666666", align:"right" });
+    slide.addText("SSC 2027", { x:11.4, y:0.3, w:1.5, h:0.4, fontSize:fs(12), bold:true, color:txt, align:"right" });
+    slide.addText(current.teacher || "Khayrul Sir", { x:0.4, y:7.05, w:3, h:0.3, fontSize:fs(9), color: dark?"CFCFCF":"666666" });
+    slide.addText((current.subject||"")+" • "+(current.chapter||""), { x:8.5, y:7.05, w:4.4, h:0.3, fontSize:fs(9), color: dark?"CFCFCF":"666666", align:"right" });
   }
   var s0 = pptx.addSlide(); addHeader(s0, current.qtype==="CQ"?"সৃজনশীল":"বহুনির্বাচনী");
-  s0.addText(current.subject||current.title||"", { x:0.6, y:2.6, w:12, h:1, fontSize:28, bold:true, color:qCol });
-  s0.addText(current.chapter||"", { x:0.6, y:3.6, w:12, h:0.6, fontSize:16, color:txt });
+  s0.addText(current.subject||current.title||"", { x:0.6, y:2.6, w:12, h:1, fontSize:fs(28), bold:true, color:qCol });
+  s0.addText(current.chapter||"", { x:0.6, y:3.6, w:12, h:0.6, fontSize:fs(16), color:txt });
   if (current.kind==="answer"){
     var s = pptx.addSlide(); addHeader(s, "উত্তরপত্র");
     var lines = current.items.map(function(a){ return bn(a.num)+". "+a.ans; });
-    s.addText(lines.join("\n"), { x:0.6, y:1.6, w:12, h:5, fontSize:14, color:qCol, valign:"top" });
+    s.addText(lines.join("\n"), { x:0.6, y:1.6, w:12, h:5, fontSize:fs(14), color:qCol, valign:"top" });
   } else if (current.type==="MCQ"){
     current.items.forEach(function(it){
       var s = pptx.addSlide(); addHeader(s, "বহুনির্বাচনী");
-      s.addText(bn(it.num)+". "+it.q + (isBoard(it.q)?"":" [নমুনা প্রশ্ন]"), { x:0.6, y:1.5, w:7.2, h:2.6, fontSize:16, bold:true, color:qCol, valign:"top" });
+      s.addText(bn(it.num)+". "+it.q + (isBoard(it.q)?"":" [নমুনা প্রশ্ন]"), { x:0.6, y:1.5, w:7.2, h:2.6, fontSize:fs(16), bold:true, color:qCol, valign:"top" });
       it.opts.forEach(function(o,idx){
         var y = 1.6 + idx*0.85;
-        s.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:8.4, y:y, w:4.3, h:0.65, fill:{color:"FFF3D6"}, line:{color:"D8C27A"} });
-        s.addText(["ক","খ","গ","ঘ"][idx]+"  "+o, { x:8.6, y:y, w:4.0, h:0.65, fontSize:12, color:"111111", valign:"middle" });
+        s.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:8.4, y:y, w:4.3, h:0.65, fill:{color:optBg}, line:{color:optBd} });
+        s.addText([{text:["ক","খ","গ","ঘ"][idx]+"  ", options:{color:optLetter, bold:true}}, {text:o, options:{color:"111111"}}], { x:8.6, y:y, w:4.0, h:0.65, fontSize:fs(12), valign:"middle" });
       });
     });
   } else {
     current.items.forEach(function(cq){
       var s = pptx.addSlide(); addHeader(s, "সৃজনশীল");
-      s.addText(bn(cq.num)+". "+cq.stimulus + (isBoard(cq.stimulus)?"":" [নমুনা প্রশ্ন]"), { x:0.6, y:1.5, w:12, h:1.6, fontSize:12, color:txt, valign:"top" });
+      s.addText(bn(cq.num)+". "+cq.stimulus + (isBoard(cq.stimulus)?"":" [নমুনা প্রশ্ন]"), { x:0.6, y:1.5, w:12, h:1.6, fontSize:fs(12), color:txt, valign:"top" });
       var lines = cq.subs.map(function(sub){ return sub.k+". "+sub.q; });
-      s.addText(lines.join("\n"), { x:0.6, y:3.2, w:12, h:3.6, fontSize:13, bold:true, color:qCol, valign:"top" });
+      s.addText(lines.join("\n"), { x:0.6, y:3.2, w:12, h:3.6, fontSize:fs(13), bold:true, color:qCol, valign:"top" });
     });
   }
   pptx.writeFile({ fileName: (current.name||"Q_Banan") + ".pptx" });
@@ -1227,6 +1229,7 @@ function doRun(){
     subject: $("inSubject").value.trim(), chapter: $("inChapter").value.trim(),
     teacher: $("inTeacher").value.trim() || getSettings().teacher || "Khayrul Sir",
     accent: $("inAccent").value, theme: selected("theme"),
+    slideSize: selected("slideSize") || getSettings().slideSize || "normal",
     title: parsed.title, type: det,
     items: parsed.items
   };
@@ -1295,7 +1298,7 @@ function renderHome(){
     body.innerHTML = '<b>'+esc(p.name)+'</b><small>'+esc(typeLabel)+' • '+bn(countQuestions(p))+unit+' • '+esc(p.date||"")+'</small>';
     var acts = document.createElement("div"); acts.className="acts";
     var bE = document.createElement("button"); bE.className="btn-w"; bE.textContent="Edit"; bE.type="button";
-    bE.onclick = function(){ current = null; editingId = p.id; $("inName").value=p.name; $("inSubject").value=p.subject||""; $("inChapter").value=p.chapter||""; $("inTeacher").value=p.teacher||"Khayrul Sir"; $("inAccent").value=p.accent||"#ffd700"; $("inText").value=p.text||""; setRadio("kind", "auto"); setRadio("qtype", "auto"); setRadio("theme", p.theme||"dark"); $("parseErr").classList.add("hidden"); show("view-create"); };
+    bE.onclick = function(){ current = null; editingId = p.id; $("inName").value=p.name; $("inSubject").value=p.subject||""; $("inChapter").value=p.chapter||""; $("inTeacher").value=p.teacher||"Khayrul Sir"; $("inAccent").value=p.accent||"#ffd700"; $("inText").value=p.text||""; setRadio("kind", "auto"); setRadio("qtype", "auto"); setRadio("theme", p.theme||"dark"); setRadio("slideSize", p.slideSize || getSettings().slideSize || "normal"); $("parseErr").classList.add("hidden"); show("view-create"); };
     var menuWrap = document.createElement("div"); menuWrap.className="menu-wrap";
     var mBtn = document.createElement("button"); mBtn.className="btn-w menu-btn"; mBtn.textContent="\u22ee"; mBtn.type="button"; mBtn.setAttribute("aria-label","\u0986\u09b0\u09cb \u0985\u09aa\u09b6\u09a8");
     var menu = document.createElement("div"); menu.className="menu hidden";
