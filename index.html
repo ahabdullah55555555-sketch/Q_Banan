@@ -105,6 +105,62 @@ textarea{min-height:220px;line-height:1.6}
 .slides.light .ansrow b{color:#111}
 .slides.light .foot{color:#555}
 .slides.light .opt{background:var(--optBg,#fff3d6);border:1px solid var(--optBd,#d8c27a)}
+/* ===== Slide layouts (0 = locked template, 1–4 from the proposal) =====
+   Layouts are pure CSS on the slide element (.slide.l1 … .l4) — the DOM
+   stays the same, so preview, vector PDF (clone) and raster PDF all follow
+   automatically. PPTX draws each layout separately (see the PPTX handler). */
+.slide.l1 .body{flex-direction:column;gap:10px}
+.slide.l1 .qwrap{flex:none}
+.slide.l1 .opts{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:auto;justify-content:flex-end;padding-bottom:6px}
+.slide.l2 .body{flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px}
+.slide.l2 .q{text-align:center}
+.slide.l2 .opts{display:flex;flex-direction:row;flex-wrap:wrap;justify-content:center;gap:6px;padding-bottom:0}
+.slide.l2 .opt{border-radius:999px;padding:5px 14px;white-space:nowrap}
+.slide.l2 .stim{text-align:center}
+.slide.l2 .cqrow{justify-content:center}
+.slide.l2 .ansrow{text-align:center}
+.slide.l2 .titlewrap{align-items:center;text-align:center}
+.anshead{font-size:calc(var(--szf,.78)*13px);font-weight:700;color:var(--acc,#ffd700);margin:4px 0 2px}
+.slides.light .anshead{color:#111}
+.slide.l3 .l3wrap{flex:1;display:flex;min-height:0}
+.slide.l3 .rail{width:15%;background:#191919;border-right:1px solid #333;display:flex;align-items:center;justify-content:center;flex:none}
+.slide.l3 .rail span{color:var(--acc,#ffd700);font-size:calc(var(--szf,.78)*64px);font-weight:700;line-height:1}
+.slide.l3 .l3main{flex:1;display:flex;flex-direction:column;min-width:0}
+.slide.l3 .body{flex-direction:column;gap:8px}
+.slide.l3 .qwrap{flex:none}
+.slide.l3 .opts{flex:none;width:100%;justify-content:flex-start;padding-bottom:0}
+.slides.light .slide.l3 .rail{background:#e9e9e9;border-right-color:#ccc}
+.slides.light .slide.l3 .rail span{color:var(--accD,#b8860b)}
+.slide.l4 .top{background:var(--acc,#ffd700);padding:10px 26px}
+.slide.l4 .logo .a{color:#000}
+.slide.l4 .logo .p{color:#000}
+.slide.l4 .logo .c{color:#444}
+.slide.l4 .top .right{color:#000}
+.slide.l4 .top .mid span{background:#000;color:var(--acc,#ffd700);border:none}
+.slide.l4 .top .mid.subtle span{background:transparent;color:#000;border:1px solid rgba(0,0,0,.55)}
+.slide.l4 .qwrap{background:#2c2c2c;border:1px solid #3a3a3a;border-radius:8px;padding:10px 14px}
+.slide.l4 .body{flex-direction:column;gap:10px}
+.slide.l4 .opts{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:auto;justify-content:flex-end;padding-bottom:6px}
+.slide.l4 .stim{background:#2c2c2c;border:1px solid #3a3a3a;border-radius:8px;padding:8px 12px}
+.slide.l4 .titlewrap{background:#2c2c2c;border:1px solid #3a3a3a;border-radius:8px;margin:10px 26px;padding:14px}
+.slides.light .slide.l4 .qwrap{background:#f2f2f2;border-color:#ddd}
+.slides.light .slide.l4 .stim{background:#f2f2f2;border-color:#ddd}
+.slides.light .slide.l4 .titlewrap{background:#f2f2f2;border-color:#ddd}
+/* Diagram / figure inside a question (SVG: marker in the special text) */
+.fig{display:flex;justify-content:center;margin:6px 0;min-height:0}
+.fig svg{max-width:100%;display:block}
+/* MCQ solution slide: the SAME slide repeated right after the question,
+   only the correct option is green. */
+.slide.sol .opt.correct{background:#2e9e44;border-color:#2e9e44;color:#fff}
+.slide.sol .opt.correct b{color:#fff}
+/* App version + update banner */
+.app-ver{font-size:11px;color:var(--text-2);font-weight:400;margin-left:6px}
+.upd-banner{position:fixed;left:12px;right:12px;bottom:16px;z-index:60;background:var(--accD,#b8860b);color:#fff;border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:14px}
+.upd-banner button{flex:none;background:#fff;color:#111;border:none;border-radius:8px;padding:8px 12px;font-weight:700;font-family:inherit}
+.upd-banner .x{background:transparent;color:#fff;padding:8px;font-size:16px}
+.lay-list{display:flex;flex-direction:column;gap:6px}
+.lay-list label{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border:1px solid var(--border);border-radius:8px;cursor:pointer}
+.lay-list small{display:block;color:var(--text-2);font-weight:400}
 /* PDF capture: no shadow/rounded corners, edge-to-edge like the real slide */
 .slides.pdf-capture .slide{box-shadow:none;border-radius:0}
 /* Hi-res PDF capture stage: off-screen 960px-wide clones of the slides */
@@ -123,6 +179,10 @@ textarea{min-height:220px;line-height:1.6}
  .foot{padding:5px 16px;font-size:calc(var(--szf,.78)*9px)}
  .title{font-size:calc(var(--szf,.78)*20px)}.sub{font-size:calc(var(--szf,.78)*13px)}
  .stim{font-size:calc(var(--szf,.78)*9px)}.cqrow{font-size:calc(var(--szf,.78)*10px)}
+ .slide.l3 .rail span{font-size:calc(var(--szf,.78)*34px)}
+ .slide.l2 .opt{padding:4px 10px}
+ .slide.l4 .top{padding:8px 16px}
+ .slide.l4 .titlewrap{margin:8px 16px}
 }
 /* ===== Slide text size =====
    Every slide font size is the ORIGINAL locked-template size times --szf.
@@ -163,7 +223,8 @@ body.app-dark .sw.on{border-color:#fff}
 </style>
 </head>
 <body>
-<header id="appHeader"><div class="brand">Q_Banan</div><div class="head-acts"><button class="btn-w icon-btn" id="btnMode" type="button">কালো মোড</button><button class="btn-w icon-btn" id="btnSettings" type="button">⚙ সেটিংস</button></div></header>
+<header id="appHeader"><div class="brand">Q_Banan <span id="appVer" class="app-ver"></span></div><div class="head-acts"><button class="btn-w icon-btn" id="btnMode" type="button">কালো মোড</button><button class="btn-w icon-btn" id="btnSettings" type="button">⚙ সেটিংস</button></div></header>
+<div id="updBanner" class="upd-banner hidden"><span style="flex:1">নতুন ভার্সন এসেছে — ট্যাপ করে রিফ্রেশ করো</span><button id="updReload" type="button">রিফ্রেশ করো</button><button id="updDismiss" class="x" type="button" aria-label="বন্ধ করো">✕</button></div>
 <main>
 <!-- HOME -->
 <section id="view-home">
@@ -208,6 +269,15 @@ body.app-dark .sw.on{border-color:#fff}
       <label><input type="radio" name="slideSize" value="normal" checked> স্বাভাবিক</label>
       <label><input type="radio" name="slideSize" value="large"> বড়</label>
     </div>
+    <label>লেআউট (এই প্রজেক্টের জন্য)</label>
+    <div class="lay-list">
+      <label><input type="radio" name="layout" value="0" checked> <span>লেআউট ০ — বর্তমানটা<small>প্রশ্ন বামে, অপশন ডানে লম্বা লিস্টে</small></span></label>
+      <label><input type="radio" name="layout" value="1"> <span>লেআউট ১ — উপরে প্রশ্ন, নিচে ২×২ গ্রিড<small>লম্বা প্রশ্নের জন্য বেশি জায়গা</small></span></label>
+      <label><input type="radio" name="layout" value="2"> <span>লেআউট ২ — মাঝখানে প্রশ্ন, নিচে পিল অপশন<small>ছোট প্রশ্নে পরিষ্কার, বোর্ডে লেখার জায়গা বেশি</small></span></label>
+      <label><input type="radio" name="layout" value="3"> <span>লেআউট ৩ — বামে বড় নম্বর রেল<small>কোন প্রশ্ন চলছে এক নজরে বোঝা যায়</small></span></label>
+      <label><input type="radio" name="layout" value="4"> <span>লেআউট ৪ — উপরে হলুদ ব্যান্ড<small>প্রশ্ন কার্ডের ভেতরে, অপশন নিচে দুই কলামে</small></span></label>
+    </div>
+    <label style="display:flex;gap:8px;align-items:center;margin-top:10px"><input type="checkbox" id="inTitle" checked style="width:20px;height:20px;accent-color:var(--accD)"> টাইটেল স্লাইড বানাও (না টিকলে টাইটেল স্লাইড আসবে না)</label>
     <label>থিম</label>
     <div class="radio-row">
       <label><input type="radio" name="theme" value="dark" checked> কালো</label>
@@ -225,10 +295,11 @@ body.app-dark .sw.on{border-color:#fff}
   </div>
   <div class="card">
     <h2>ফরম্যাট কেমন হবে?</h2>
-    <p class="note" style="font-size:13px">TYPE: লাইন না দিলেও চলবে — টেক্সট দেখে MCQ / সৃজনশীল / উত্তরপত্র নিজেই বুঝে নেবে।<br>
+    <p class="note" style="font-size:13px">TYPE: লাইন না দিলেও চলবে — টেক্সট দেখে MCQ / সৃজনশীল / উত্তরপত্র নিজেই বুঝে নেবে। একসাথে সব ধরনও দেওয়া যাবে: <b>TYPE: MCQ</b> দিয়ে MCQ-গুলো, তারপর <b>TYPE: CQ</b> দিয়ে সৃজনশীলগুলো, তারপর <b>TYPE: ANSWER</b> দিয়ে উত্তরগুলো — ক্রম যেমন দেবে, স্লাইডও তেমনই হবে।<br>
     MCQ: <b>1. প্রশ্ন? | অপশন ১ | অপশন ২ | অপশন ৩ | অপশন ৪</b><br>
     CQ: <b>1. উদ্দীপক...</b> তারপর <b>ক. ... | খ. ... | গ. ... | ঘ. ...</b> (এক লাইনে বা আলাদা আলাদা লাইনে)<br>
-    উত্তরপত্র: <b>1. ক</b> বা <b>1. অ্যাম্পিয়ার</b></p>
+    উত্তরপত্র: <b>1. ক</b> বা <b>1. অ্যাম্পিয়ার</b><br>
+    ডায়াগ্রাম: প্রশ্নের ঠিক পরের লাইনে <b>SVG: &lt;svg ...&gt;...&lt;/svg&gt;</b> (এক লাইনে) — ডায়াগ্রামটা স্লাইডে ছবি হিসেবে দেখাবে।</p>
   </div>
 </section>
 
@@ -294,6 +365,26 @@ body.app-dark .sw.on{border-color:#fff}
       <label><input type="radio" name="setSlideSize" value="large"> বড়</label>
     </div>
   </div>
+  <p class="set-cat">ব্যাকআপ</p>
+  <div class="card set-group">
+    <h2>ড্রাফট ব্যাকআপ</h2>
+    <p class="set-hint">সব প্রজেক্ট + সেটিংস একটা ফাইলে নামিয়ে রাখো — ফোনে কিছু হলে ফিরিয়ে আনতে পারবে। যতবার খুশি ব্যাকআপ নেওয়া যাবে।</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn-y" id="btnBackup" type="button">ব্যাকআপ নাও</button>
+      <button class="btn-w" id="btnRestore" type="button">ব্যাকআপ ফেরাও</button>
+    </div>
+    <input type="file" id="restoreFile" accept=".json,application/json" class="hidden">
+    <p id="backupMsg" class="note hidden" style="margin-top:10px"></p>
+  </div>
+  <p class="set-cat">অ্যাপ</p>
+  <div class="card set-group">
+    <h2>অ্যাপ ভার্সন</h2>
+    <p class="set-hint">এখন চলছে: <b id="setVer"></b></p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button class="btn-w" id="btnCheckUpd" type="button">নতুন ভার্সন চেক করো</button>
+      <span id="updMsg" style="font-size:13px"></span>
+    </div>
+  </div>
   <button class="btn-y" id="btnSaveSettings" type="button" style="width:100%;padding:14px">সেভ করো</button>
   <p id="setSaved" class="note hidden" style="margin-top:10px">সেভ হয়েছে।</p>
 </section>
@@ -315,6 +406,14 @@ body.app-dark .sw.on{border-color:#fff}
       <option value="CQ">সৃজনশীল</option>
       <option value="ANS">উত্তরপত্র</option>
     </select>
+    <label for="selLayout" style="align-self:center;font-size:14px;margin:0">লেআউট:</label>
+    <select id="selLayout" style="width:auto;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-family:inherit;font-size:14px">
+      <option value="0">লেআউট ০ — বর্তমানটা</option>
+      <option value="1">লেআউট ১ — প্রশ্ন উপরে, ২×২ গ্রিড</option>
+      <option value="2">লেআউট ২ — মাঝখানে প্রশ্ন, পিল অপশন</option>
+      <option value="3">লেআউট ৩ — বামে নম্বর রেল</option>
+      <option value="4">লেআউট ৪ — উপরে হলুদ ব্যান্ড</option>
+    </select>
   </div>
   <div id="slides" class="slides"></div>
 </section>
@@ -327,6 +426,10 @@ body.app-dark .sw.on{border-color:#fff}
 <script type="module" src="hb-loader.mjs"></script>
 <script>
 "use strict";
+/* App version — the ONE version string shown to the user (Home + Settings).
+   The service worker cache is "qbanan-" + this version (same literal in
+   sw.js) — bump both together on every release. */
+var APP_VERSION = "2.3";
 /* ---------- helpers ---------- */
 var BN = {"0":"০","1":"১","2":"২","3":"৩","4":"৪","5":"৫","6":"৬","7":"৭","8":"৮","9":"৯"};
 function bn(n){ return String(n).split("").map(function(c){ return BN[c] || c; }).join(""); }
@@ -391,6 +494,8 @@ function clearCreateForm(){
   $("inAccent").value = st.accent || "#ffd700";
   setRadio("kind", "auto"); setRadio("qtype", "auto"); setRadio("theme", st.theme || "dark");
   setRadio("slideSize", st.slideSize || "normal");
+  setRadio("layout", "0");
+  var _t = $("inTitle"); if (_t) _t.checked = true;
   $("parseErr").classList.add("hidden");
   editingId = null;
   current = null;
@@ -425,6 +530,7 @@ function saveDraftSilent(){
     var rec = { id: current.draftId || Date.now(), name: current.name, kind: current.kind, qtype: current.qtype,
       subject: current.subject, chapter: current.chapter, teacher: current.teacher, accent: current.accent, theme: current.theme,
       slideSize: current.slideSize || getSettings().slideSize || "normal",
+      layout: (current.layout==null?0:current.layout), showTitle: current.showTitle !== false,
       text: $("inText").value, date: new Date().toLocaleDateString("bn-BD") };
     current.draftId = upsertDraft(rec);
     return true;
@@ -436,6 +542,8 @@ function saveDraftSilent(){
   var rec2 = { id: editingId || Date.now(), name: $("inName").value.trim() || "Q_Banan", kind: _n2.kind, qtype: _n2.qtype,
     subject: $("inSubject").value.trim(), chapter: $("inChapter").value.trim(), teacher: $("inTeacher").value.trim() || getSettings().teacher || "Khayrul Sir", accent: $("inAccent").value, theme: selected("theme"),
     slideSize: selected("slideSize") || getSettings().slideSize || "normal",
+    layout: parseInt(selected("layout") || "0", 10) || 0,
+    showTitle: $("inTitle") ? $("inTitle").checked : true,
     text: text, date: new Date().toLocaleDateString("bn-BD") };
   upsertDraft(rec2);
   return true;
@@ -477,48 +585,93 @@ function detectTypeFromLines(rawLines){
   }
   return "MCQ";
 }
+/* SVG figure safety: only a plain <svg>…</svg> with shapes is allowed —
+   no scripts, no event handlers, no foreign content, no external refs.
+   Returns the markup or null. */
+function sanitizeSvg(s){
+  s = String(s||"").trim();
+  if (!/^<svg[\s>]/i.test(s) || !/<\/svg\s*>$/i.test(s)) return null;
+  if (/<\s*(script|foreignObject|iframe|object|embed|a|image|use|style|link|meta)\b/i.test(s)) return null;
+  if (/\bon\w+\s*=/i.test(s) || /javascript:/i.test(s) || /xlink:href\s*=\s*["'][^#]/i.test(s)) return null;
+  return s;
+}
+function isSvgLine(line){ return /^SVG\s*:/i.test(line); }
+/* Mixed parser: ONE paste can hold MCQ + CQ + ANSWER sections in sequence.
+   TYPE: lines may appear mid-text and switch the section (TYPE: MCQ / CQ /
+   ANSWER). Without a TYPE: line each numbered block is auto-detected by
+   structure (pipes -> MCQ; ক/খ/গ/ঘ subs -> CQ; short numbered lines -> ANS).
+   A line starting with "SVG:" holds one diagram (single-line SVG markup);
+   it attaches to the question above it (or the next one) and renders as a
+   figure in that question's slide. Lines BEFORE the first recognised line
+   are a file cover note and are ignored silently.
+   `force` (UI override) still forces ONE type for the whole text, as before.
+   Returns {title, type, items, sections, errors}; each item carries .t
+   (its own type); sections = consecutive runs of the same type. type is
+   "MIX" when more than one section exists. */
 function parseSpecialText(text, force){
   var rawLines = text.split(/\r?\n/);
-  var title = "", type = "", items = [], errors = [];
-  var i, line, m, cur = null;
-  /* Precedence: explicit TYPE: line in the text wins, then the UI override
-     (force), then structural auto-detect. */
-  var typeLine = null;
-  for (var ti=0;ti<rawLines.length;ti++){
-    var tm = rawLines[ti].trim().match(/^(?:TYPE|ধরন)\s*:\s*(.+)$/i);
-    if (tm){ typeLine = mapTypeStr(tm[1]); break; }
+  var title = "", items = [], errors = [];
+  var i, line, m, cur = null, pendingSvg = null, started = false;
+  var hint = force || null; // current TYPE: hint (null = auto-detect per block)
+  function hasSubsAhead(from){
+    for (var j=from;j<rawLines.length;j++){
+      var l2 = rawLines[j].trim();
+      if (!l2) continue;
+      if (/^([0-9০-৯]+)[\.\)]/.test(l2)) return false;
+      if (/^(?:TYPE|ধরন)\s*:/i.test(l2)) return false;
+      if (/^[কখগঘ][\.\)]/.test(l2)) return true;
+    }
+    return false;
   }
-  type = typeLine || force || detectTypeFromLines(rawLines);
+  function numOf(s){ return parseInt(String(s).replace(/[০-৯]/g, function(c){ return "০১২৩৪৫৬৭৮৯".indexOf(c); }),10); }
   for (i=0;i<rawLines.length;i++){
     var ln = i+1;
     line = rawLines[i].trim();
     if (!line) continue;
     m = line.match(/^(?:TITLE|শিরোনাম)\s*:\s*(.+)$/i);
-    if (m){ title = m[1].trim(); continue; }
+    if (m){ title = m[1].trim(); started = true; continue; }
     m = line.match(/^(?:TYPE|ধরন)\s*:\s*(.+)$/i);
-    if (m){ type = mapTypeStr(m[1]); continue; }
-    // MCQ / stimulus / answer numbered line
+    if (m){ hint = mapTypeStr(m[1]); started = true; continue; }
+    // Diagram line: SVG: <svg ...>...</svg> (single line)
+    if (isSvgLine(line)){
+      var svg = sanitizeSvg(line.replace(/^SVG\s*:/i, ""));
+      if (!svg){ errors.push("লাইন "+ln+": SVG লাইনটা ঠিক নয় — শুধু <svg>…</svg> আকৃতি দেওয়া যাবে (স্ক্রিপ্ট/ছবি/লিংক নয়)।"); continue; }
+      if (cur) cur.svg = svg;
+      else pendingSvg = svg;
+      started = true;
+      continue;
+    }
+    // Numbered line: MCQ / CQ stimulus / answer
     m = line.match(/^([0-9০-৯]+)[\.\)]\s*(.+)$/);
     if (m){
-      var num = parseInt(m[1].replace(/[০-৯]/g, function(c){ return "০১২৩৪৫৬৭৮৯".indexOf(c); }),10), rest = m[2].trim();
-      if (type==="ANS" || (!type && /^[কখগঘ]\s*$/.test(rest))){
-        items.push({num:num, ans:rest}); cur=null; continue;
+      var num = numOf(m[1]), rest = m[2].trim();
+      var parts = rest.split("|").map(function(s){ return s.trim(); }).filter(function(s){ return s.length>0; });
+      var want = hint;
+      if (!want){
+        if (parts.length>=5) want = "MCQ";
+        else if (hasSubsAhead(i+1)) want = "CQ";
+        else if (rest.length>80) want = "CQ";
+        else want = "ANS";
       }
-      if (type==="CQ" || (!type && cur && cur.subs)){
-        cur = {num:num, stimulus:rest, subs:[]};
-        items.push(cur); continue;
-      }
-      // MCQ line: question | opt1 | opt2 | opt3 | opt4
-      if (type==="MCQ" || !type){
-        var parts = rest.split("|").map(function(s){ return s.trim(); }).filter(function(s){ return s.length>0; });
+      if (want==="MCQ"){
         if (parts.length < 5){
           errors.push("লাইন "+ln+": MCQ-তে প্রশ্ন + ৪টি অপশন লাগবে (| দিয়ে আলাদা করো) — পাওয়া গেছে "+(parts.length-1)+"টি অপশন।");
           continue;
         }
-        items.push({num:num, q:parts[0], opts:parts.slice(1,5)}); cur=null; continue;
+        cur = {num:num, t:"MCQ", q:parts[0], opts:parts.slice(1,5)};
+        if (pendingSvg){ cur.svg = pendingSvg; pendingSvg = null; }
+        items.push(cur);
+      } else if (want==="CQ"){
+        cur = {num:num, t:"CQ", stimulus:rest, subs:[]};
+        if (pendingSvg){ cur.svg = pendingSvg; pendingSvg = null; }
+        items.push(cur);
+      } else {
+        cur = {num:num, t:"ANS", ans:rest};
+        if (pendingSvg){ cur.svg = pendingSvg; pendingSvg = null; }
+        items.push(cur);
       }
-      // CQ stimulus (type already CQ, handled above) fallback
-      cur = {num:num, stimulus:rest, subs:[]}; items.push(cur); continue;
+      started = true;
+      continue;
     }
     // CQ sub-question line(s): ক. ... | খ. ... | গ. ... | ঘ. ...
     var subParts = line.split("|").map(function(s){ return s.trim(); }).filter(function(s){ return s.length>0; });
@@ -529,26 +682,52 @@ function parseSpecialText(text, force){
       if (sm) subs.push({k:sm[1], q:sm[2].trim()});
       else ok = false;
     });
-    if (subs.length && ok && cur && cur.subs){
-      cur.subs = cur.subs.concat(subs); continue;
+    if (subs.length && ok && cur && cur.t==="CQ"){
+      cur.subs = cur.subs.concat(subs); started = true; continue;
     }
-    // single sub-question line
     var sm2 = line.match(/^([কখগঘ])[\.\)]\s*(.+)$/);
-    if (sm2 && cur && cur.subs){ cur.subs.push({k:sm2[1], q:sm2[2].trim()}); continue; }
+    if (sm2 && cur && cur.t==="CQ"){ cur.subs.push({k:sm2[1], q:sm2[2].trim()}); started = true; continue; }
+    // Not recognised: before parsing started it's a cover note (ignored);
+    // afterwards it's a real error.
+    if (!started) continue;
     errors.push("লাইন "+ln+": এই লাইনটা বোঝা যায়নি — \""+line.slice(0,60)+"\"");
   }
-  if (!type){
-    if (items.length && items[0].subs !== undefined) type="CQ";
-    else if (items.length && items[0].ans !== undefined) type="ANS";
-    else type="MCQ";
-  }
-  if (type==="CQ"){
-    items.forEach(function(cq){
-      if (!cq.subs || cq.subs.length!==4) errors.push("প্রশ্ন "+cq.num+": সৃজনশীলে ক খ গ ঘ — ৪টি লাগবে, পাওয়া গেছে "+(cq.subs?cq.subs.length:0)+"টি।");
-    });
-  }
+  if (pendingSvg) errors.push("একটা SVG লাইন কোনো প্রশ্নের সাথে জোড়া লাগেনি — SVG: লাইনটা প্রশ্নের ঠিক পরের লাইনে দাও।");
+  // MCQ solution matching: an answer line whose number matches an MCQ and
+  // whose text is a single option letter (ক/খ/গ/ঘ) or exactly one of that
+  // MCQ's options marks the MCQ's correct option (item.sol = option index)
+  // and consumes the answer line (item.used) — so the MCQ answers do NOT
+  // go into a trailing answer section; each MCQ gets its own solution
+  // slide right after it instead. CQ answers are never consumed.
+  var mcqByNum = {};
+  items.forEach(function(it){ if (it.t==="MCQ") mcqByNum[it.num] = it; });
+  items.forEach(function(it){
+    if (it.t!=="ANS") return;
+    var mcq = mcqByNum[it.num];
+    if (!mcq) return;
+    var a = String(it.ans).trim();
+    var li = ["ক","খ","গ","ঘ"].indexOf(a);
+    if (li >= 0){ mcq.sol = li; it.used = true; return; }
+    var oi = mcq.opts.indexOf(a);
+    if (oi >= 0){ mcq.sol = oi; it.used = true; }
+  });
+  // Group consecutive items of the same type into sections (order kept).
+  var sections = [];
+  items.forEach(function(it){
+    var last = sections[sections.length-1];
+    if (last && last.type===it.t) last.items.push(it);
+    else sections.push({type:it.t, items:[it]});
+  });
+  var type = sections.length===1 ? sections[0].type : (sections.length ? "MIX" : (force || "MCQ"));
+  sections.forEach(function(sec){
+    if (sec.type==="CQ"){
+      sec.items.forEach(function(cq){
+        if (!cq.subs || cq.subs.length!==4) errors.push("প্রশ্ন "+cq.num+": সৃজনশীলে ক খ গ ঘ — ৪টি লাগবে, পাওয়া গেছে "+(cq.subs?cq.subs.length:0)+"টি।");
+      });
+    }
+  });
   if (!items.length && !errors.length) errors.push("কোনো প্রশ্ন পাওয়া যায়নি — টেক্সটটা ঠিক আছে কিনা দেখো।");
-  return {title:title, type:type, items:items, errors:errors};
+  return {title:title, type:type, items:items, sections:sections, errors:errors};
 }
 
 /* ---------- renderer ---------- */
@@ -564,8 +743,88 @@ function footerHTML(meta){
   return '<div class="foot"><span>'+esc(meta.teacher||"Khayrul Sir")+'</span><span>'+esc(meta.subject||"")+' • '+esc(meta.chapter||"")+'</span></div>';
 }
 function isBoard(q){ return /\[.*বো\.?\s*\d/.test(q); }
-function tagHTML(q){ return isBoard(q) ? "" : ' <span class="tag">[নমুনা প্রশ্ন]</span>'; }
+/* The [নমুনা প্রশ্ন] tag is added only when the text doesn't already carry
+   it (TOM's formatted text often includes it inline — adding it again
+   would print it twice). */
+function tagHTML(q){ if (String(q||"").indexOf("নমুনা প্রশ্ন")>=0) return ""; return isBoard(q) ? "" : ' <span class="tag">[নমুনা প্রশ্ন]</span>'; }
 
+var LAYOUT_NAMES = ["বর্তমানটা","প্রশ্ন উপরে, ২×২ গ্রিড","মাঝখানে প্রশ্ন, পিল অপশন","বামে নম্বর রেল","উপরে হলুদ ব্যান্ড"];
+function layoutOf(){ var l = parseInt(current && current.layout, 10); return (isNaN(l) || l<0 || l>4) ? 0 : l; }
+function pillFor(t){ return t==="CQ" ? "সৃজনশীল" : t==="ANS" ? "উত্তরপত্র" : "বহুনির্বাচনী"; }
+/* Diagram figure: the SVG markup from the special text, with the literal
+   word ACCENT replaced by the project accent (ACCENT-DARK = darkened) so
+   TOM's diagrams follow the project colour. */
+function figHTML(svg){
+  if (!svg) return "";
+  var s = String(svg).replace(/\bACCENT-DARK\b/g, darkenHex(current.accent, 0.55)).replace(/\bACCENT\b/g, current.accent);
+  return '<div class="fig">'+s+'</div>';
+}
+/* Slide skeleton for the current layout. Returns {slide, body}. Layout 3
+   wraps the header+body in .l3main beside the number rail; the footer stays
+   full-width under everything. All other layouts keep the locked DOM. */
+function slideEl(pillText, railNum){
+  var L = layoutOf();
+  var s = document.createElement("div");
+  s.className = "slide l"+L;
+  if (L===3){
+    s.innerHTML = '<div class="l3wrap"><div class="rail"><span>'+esc(railNum||"✦")+'</span></div><div class="l3main">'+headerHTML(current, pillText)+'<div class="body"></div></div></div>'+footerHTML(current);
+  } else {
+    s.innerHTML = headerHTML(current, pillText)+'<div class="body"></div>'+footerHTML(current);
+  }
+  return {slide:s, body:s.querySelector(".body")};
+}
+function titleEl(){
+  var L = layoutOf();
+  var meta = current;
+  var s = document.createElement("div");
+  s.className = "slide l"+L;
+  var pill = meta.type==="MIX" ? "প্রশ্নপত্র" : pillFor(meta.type);
+  var titleLine = (meta.title && meta.title !== (meta.subject||"") && meta.title !== (meta.chapter||"") && meta.title !== ((meta.subject||"")+" "+(meta.chapter||"")).trim()) ? '<div class="sub" style="color:'+(meta.theme==="light"?"#444":"#cfcfcf")+'">'+esc(meta.title)+'</div>' : "";
+  var inner = '<div class="titlewrap"><div class="title" style="color:'+(meta.theme==="light"?"#111":meta.accent)+'">'+esc(meta.subject||meta.title||"")+'</div>'+
+    '<div class="sub">'+esc(meta.chapter||"")+'</div>'+ titleLine +'</div>';
+  if (L===3){
+    s.innerHTML = '<div class="l3wrap"><div class="rail"><span>✦</span></div><div class="l3main">'+headerHTML(meta, pill)+inner+'</div></div>'+footerHTML(meta);
+  } else {
+    s.innerHTML = headerHTML(meta, pill)+inner+footerHTML(meta);
+  }
+  return s;
+}
+/* Answer groups (mixed projects only): plain "ক/খ" answers -> "MCQ উত্তর
+   (১–৮)"; rows starting with "সৃজনশীল N —" -> "সৃজনশীল N — উত্তর" with the
+   prefix stripped from the row. Single-type answer sheets stay plain. */
+function ansGroups(items, mixed){
+  if (!mixed) return [{head:null, rows:items}];
+  var groups = [], curG = null;
+  function newMcqGroup(){ curG = {head:"MCQ", rows:[]}; groups.push(curG); }
+  items.forEach(function(a){
+    var m = String(a.ans).match(/^সৃজনশীল\s*([০-৯0-9]+)\s*[—–-]\s*(.+)$/);
+    if (m){
+      curG = {head:"সৃজনশীল "+bn(m[1])+" — উত্তর", rows:[{num:a.num, ans:m[2]}]};
+      groups.push(curG);
+    } else {
+      if (!curG || curG.head!=="MCQ") newMcqGroup();
+      curG.rows.push({num:a.num, ans:a.ans});
+    }
+  });
+  groups.forEach(function(g){
+    if (g.head==="MCQ"){
+      g.head = "MCQ উত্তর ("+bn(g.rows[0].num)+"–"+bn(g.rows[g.rows.length-1].num)+")";
+    }
+  });
+  return groups;
+}
+/* A diagram must never push a question into the footer: cap the figure at
+   ~42% of the slide height (the PDF clone scales this px value with K, so
+   the PDF matches). */
+function fitFig(slide){
+  var svg = slide.querySelector(".fig svg");
+  if (!svg) return;
+  var cap = Math.round(slide.clientHeight * 0.42);
+  if (cap > 40) svg.style.maxHeight = cap + "px";
+  svg.style.width = "100%";
+  svg.style.height = "auto";
+  if (!svg.getAttribute("preserveAspectRatio")) svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+}
 function renderAll(){
   var box = $("slides");
   box.innerHTML = "";
@@ -582,67 +841,135 @@ function renderAll(){
   box.style.setProperty("--optBg", tintHex(current.accent, 0.13));
   box.style.setProperty("--optBd", tintHex(current.accent, 0.35));
   var meta = current;
-  // title slide (title line shown only when it adds something beyond subject+chapter)
-  var t = document.createElement("div");
-  t.className = "slide";
-  var titleLine = (meta.title && meta.title !== (meta.subject||"") && meta.title !== (meta.chapter||"") && meta.title !== ((meta.subject||"")+" "+(meta.chapter||"")).trim()) ? '<div class="sub" style="color:'+(meta.theme==="light"?"#444":"#cfcfcf")+'">'+esc(meta.title)+'</div>' : "";
-  t.innerHTML = headerHTML(meta, meta.qtype==="CQ" ? "সৃজনশীল" : (meta.kind==="answer" ? "উত্তরপত্র" : "বহুনির্বাচনী")) +
-    '<div class="titlewrap"><div class="title" style="color:'+(meta.theme==="light"?"#111":meta.accent)+'">'+esc(meta.subject||meta.title||"")+'</div>'+
-    '<div class="sub">'+esc(meta.chapter||"")+'</div>'+ titleLine +'</div>' + footerHTML(meta);
-  box.appendChild(t);
-  var count = 1;
-  if (meta.kind==="answer"){
-    var s = document.createElement("div"); s.className="slide";
-    var rows = meta.items.map(function(a){ return '<div class="ansrow"><b>'+bn(a.num)+'.</b> '+esc(a.ans)+'</div>'; }).join("");
-    s.innerHTML = headerHTML(meta, "উত্তরপত্র") + '<div class="body" style="flex-direction:column"><div class="cqcol">'+rows+'</div></div>' + footerHTML(meta);
-    box.appendChild(s); count++;
-  } else if (meta.type==="MCQ"){
-    meta.items.forEach(function(it){
-      var s = document.createElement("div"); s.className="slide";
-      var opts = it.opts.map(function(o,idx){ return '<div class="opt"><b>'+["ক","খ","গ","ঘ"][idx]+'</b> '+esc(o)+'</div>'; }).join("");
-      s.innerHTML = headerHTML(meta, "বহুনির্বাচনী") +
-        '<div class="body"><div class="qwrap"><div class="q"><span class="arr">'+bn(it.num)+'.</span> '+esc(it.q)+tagHTML(it.q)+'</div></div>'+
-        '<div class="opts">'+opts+'</div></div>' + footerHTML(meta);
-      box.appendChild(s); count++;
-      fitMcq(s);
-    });
-  } else if (meta.type==="CQ"){
-    meta.items.forEach(function(cq){
-      var s = document.createElement("div"); s.className="slide";
-      var body = document.createElement("div"); body.className="body"; body.style.flexDirection="column"; body.style.gap="0";
-      body.innerHTML = '<div class="stim">'+bn(cq.num)+'. '+esc(cq.stimulus)+tagHTML(cq.stimulus)+'</div><div class="cq"></div>';
-      s.innerHTML = headerHTML(meta, "সৃজনশীল");
-      s.appendChild(body);
-      s.insertAdjacentHTML("beforeend", footerHTML(meta));
-      box.appendChild(s); count++;
-      var col = body.querySelector(".cq");
-      var curBody = body;
-      cq.subs.forEach(function(sub){
-        var row = document.createElement("div"); row.className="cqrow";
-        row.innerHTML = '<span><b>'+sub.k+'.</b> '+esc(sub.q)+'</span>';
-        col.appendChild(row);
-        // overflow -> move to a fresh slide for THIS CQ only (never mix CQs)
-        // Check the BODY's scrollHeight, NOT the slide's: the slide is a
-        // flex column with overflow:hidden, so its scrollHeight stays equal
-        // to its clientHeight even when a row overflows into the footer
-        // (measured: slide 178 == 178 while body was 133 vs 110 and the
-        // row sat on top of the footer). The body's scrollHeight grows.
-        if (curBody.scrollHeight > curBody.clientHeight + 2){
-          col.removeChild(row);
-          s = document.createElement("div"); s.className="slide";
-          var b2 = document.createElement("div"); b2.className="body"; b2.style.flexDirection="column"; b2.style.gap="0";
-          b2.innerHTML = '<div class="cq"></div>';
-          s.innerHTML = headerHTML(meta, "সৃজনশীল");
-          s.appendChild(b2);
-          s.insertAdjacentHTML("beforeend", footerHTML(meta));
-          box.appendChild(s); count++;
-          col = b2.querySelector(".cq");
-          curBody = b2;
+  var L = layoutOf();
+  var showNum = (L!==3); // layout 3 shows the number in the rail, not in the text
+  var plan = []; // slide plan for the PPTX export (same split as preview/PDF)
+  var count = 0;
+  // Title slide — optional (off = slides start directly with the first question).
+  if (current.showTitle !== false){
+    box.appendChild(titleEl()); count++;
+    plan.push({t:"title"});
+  }
+  var sections = current.sections && current.sections.length ? current.sections : [{type:current.type, items:current.items}];
+  var mixed = current.type==="MIX";
+  sections.forEach(function(sec){
+    if (sec.type==="ANS"){
+      // Answer sheet: MCQ answers consumed by solution slides never appear
+      // here — only the remaining answers (e.g. CQ written answers) do.
+      var ansItems = sec.items.filter(function(a){ return !a.used; });
+      if (!ansItems.length) return; // every answer became a solution slide
+      // Answer sheet: split across slides on overflow, never into the footer.
+      var groups = ansGroups(ansItems, mixed);
+      var col = null, curBody = null;
+      function newAnsSlide(){
+        var r = slideEl("উত্তরপত্র", "✦");
+        r.body.style.flexDirection = "column";
+        r.body.innerHTML = '<div class="cqcol"></div>';
+        box.appendChild(r.slide); count++;
+        plan.push({t:"ans", items:[], mixed:mixed});
+        col = r.body.querySelector(".cqcol");
+        curBody = r.body;
+      }
+      newAnsSlide();
+      groups.forEach(function(g){
+        if (g.head){
+          var h = document.createElement("div");
+          h.className = "anshead";
+          h.textContent = g.head;
+          col.appendChild(h);
+          plan[plan.length-1].head = g.head;
+          if (curBody.scrollHeight > curBody.clientHeight + 2){ col.removeChild(h); newAnsSlide(); col.appendChild(h); plan[plan.length-1].head = g.head; }
+        }
+        g.rows.forEach(function(a){
+          var row = document.createElement("div");
+          row.className = "ansrow";
+          row.innerHTML = '<b>'+bn(a.num)+'.</b> '+esc(a.ans);
           col.appendChild(row);
+          plan[plan.length-1].items.push(a);
+          if (curBody.scrollHeight > curBody.clientHeight + 2){
+            col.removeChild(row);
+            plan[plan.length-1].items.pop();
+            newAnsSlide();
+            col.appendChild(row);
+            plan[plan.length-1].items.push(a);
+          }
+        });
+      });
+    } else if (sec.type==="MCQ"){
+      sec.items.forEach(function(it){
+        // One slide builder for the question AND its solution slide (the
+        // same slide, only the correct option is green on the solution).
+        function mcqSlideEl(solIdx){
+          var r = slideEl("বহুনির্বাচনী", bn(it.num)+".");
+          if (solIdx != null) r.slide.classList.add("sol");
+          var opts = it.opts.map(function(o,idx){
+            var cls = (solIdx != null && idx === solIdx) ? ' class="opt correct"' : ' class="opt"';
+            return '<div'+cls+'><b>'+["ক","খ","গ","ঘ"][idx]+'</b> '+esc(o)+'</div>';
+          }).join("");
+          r.body.innerHTML = '<div class="qwrap"><div class="q">'+(showNum?'<span class="arr">'+bn(it.num)+'.</span> ':'')+esc(it.q)+tagHTML(it.q)+'</div>'+figHTML(it.svg)+'</div>'+
+            '<div class="opts">'+opts+'</div>';
+          return r;
+        }
+        var r = mcqSlideEl(null);
+        box.appendChild(r.slide); count++;
+        plan.push({t:"mcq", item:it});
+        fitFig(r.slide);
+        fitMcq(r.slide);
+        // Solution slide immediately after its question — only when the
+        // answer key says which option is correct.
+        if (it.sol != null){
+          var rs = mcqSlideEl(it.sol);
+          box.appendChild(rs.slide); count++;
+          plan.push({t:"mcq", item:it, sol:true});
+          fitFig(rs.slide);
+          fitMcq(rs.slide);
         }
       });
-    });
-  }
+    } else { // CQ
+      sec.items.forEach(function(cq){
+        var r = slideEl("সৃজনশীল", bn(cq.num)+".");
+        var body = r.body;
+        body.style.flexDirection = "column";
+        body.style.gap = "0";
+        body.innerHTML = '<div class="stim">'+(showNum?bn(cq.num)+'. ':'')+esc(cq.stimulus)+tagHTML(cq.stimulus)+'</div>'+figHTML(cq.svg)+'<div class="cq"></div>';
+        box.appendChild(r.slide); count++;
+        fitFig(r.slide);
+        var entry = {t:"cq", item:cq, subs:[]};
+        plan.push(entry);
+        var col = body.querySelector(".cq");
+        var curBody = body;
+        cq.subs.forEach(function(sub){
+          var row = document.createElement("div"); row.className="cqrow";
+          row.innerHTML = '<span><b>'+sub.k+'.</b> '+esc(sub.q)+'</span>';
+          col.appendChild(row);
+          entry.subs.push(sub);
+          // overflow -> move to a fresh slide for THIS CQ only (never mix CQs)
+          // Check the BODY's scrollHeight, NOT the slide's: the slide is a
+          // flex column with overflow:hidden, so its scrollHeight stays equal
+          // to its clientHeight even when a row overflows into the footer
+          // (measured: slide 178 == 178 while body was 133 vs 110 and the
+          // row sat on top of the footer). The body's scrollHeight grows.
+          if (curBody.scrollHeight > curBody.clientHeight + 2){
+            col.removeChild(row);
+            entry.subs.pop();
+            var ns = slideEl("সৃজনশীল", bn(cq.num)+".");
+            var b2 = ns.body;
+            b2.style.flexDirection = "column";
+            b2.style.gap = "0";
+            b2.innerHTML = '<div class="cq"></div>';
+            box.appendChild(ns.slide); count++;
+            entry = {t:"cq", item:cq, subs:[]};
+            plan.push(entry);
+            col = b2.querySelector(".cq");
+            curBody = b2;
+            col.appendChild(row);
+            entry.subs.push(sub);
+          }
+        });
+      });
+    }
+  });
+  current._plan = plan;
   $("slideCount").textContent = "মোট স্লাইড: " + count;
 }
 function fitMcq(slide){
@@ -654,16 +981,42 @@ function fitMcq(slide){
   // clientHeight even when the question overflows into the footer (same
   // latent bug as the CQ row split — the body's scrollHeight is the one
   // that grows).
+  // Levers, in order (each only when the previous one is exhausted):
+  //  1. text (question + option fonts, floor 6px) — keeps the diagram whole;
+  //  2. the diagram's max-height (floor 24px) — a smaller figure beats a
+  //     hidden one on a small phone screen;
+  //  3. compaction (tighter option padding + gaps + card padding).
+  // On a stacked layout (1-4) the options sit BELOW the question, so a very
+  // long question or a diagram can still overflow a small phone body after
+  // the fonts hit the floor — levers 2 and 3 are what save those slides.
   var q = slide.querySelector(".q"), opts = slide.querySelectorAll(".opt");
   var bd = slide.querySelector(".body");
-  // (Default slide text is now ~22% smaller than the old template, so the
-  // shrink floor is lower too — a long question still fits one slide.)
+  if (!bd) return;
+  var svg = slide.querySelector(".fig svg");
+  var optsBox = slide.querySelector(".opts");
+  var qwrap = slide.querySelector(".qwrap");
   var qSize = q ? parseFloat(getComputedStyle(q).fontSize) : 16;
   var oSize = opts.length ? parseFloat(getComputedStyle(opts[0]).fontSize) : 11, guard = 0;
-  while (bd && bd.scrollHeight > bd.clientHeight + 2 && qSize > 6 && guard < 12){
-    qSize -= 1; oSize -= 1; guard++;
-    if (q) q.style.fontSize = qSize + "px";
-    opts.forEach(function(o){ o.style.fontSize = Math.max(6,oSize) + "px"; });
+  var figCap = svg ? (parseFloat(svg.style.maxHeight) || svg.getBoundingClientRect().height) : 0;
+  var compacted = false;
+  while (bd.scrollHeight > bd.clientHeight + 2 && guard < 30){
+    guard++;
+    if (qSize > 6 || oSize > 6){
+      if (qSize > 6){ qSize -= 1; if (q) q.style.fontSize = qSize + "px"; }
+      if (oSize > 6){ oSize -= 1; opts.forEach(function(o){ o.style.fontSize = Math.max(6,oSize) + "px"; }); }
+    } else if (svg && figCap > 24){
+      figCap = Math.max(24, figCap - 8);
+      svg.style.maxHeight = figCap + "px";
+    } else if (!compacted){
+      compacted = true;
+      opts.forEach(function(o){ o.style.paddingTop = "2px"; o.style.paddingBottom = "2px"; });
+      if (optsBox) optsBox.style.gap = "3px";
+      bd.style.gap = "4px";
+      if (qwrap){
+        var qp = parseFloat(getComputedStyle(qwrap).paddingTop) || 0;
+        if (qp > 4){ qwrap.style.paddingTop = "4px"; qwrap.style.paddingBottom = "4px"; }
+      }
+    } else break;
   }
 }
 
@@ -714,7 +1067,7 @@ function buildPdfClone(src, stage){
   clone.style.boxShadow = "none";
   clone.style.borderRadius = "0";
   stage.appendChild(clone);
-  var PROPS = ["fontSize","paddingTop","paddingRight","paddingBottom","paddingLeft","marginTop","marginRight","marginBottom","marginLeft","gap","borderTopLeftRadius","borderTopRightRadius","borderBottomRightRadius","borderBottomLeftRadius","letterSpacing","borderTopWidth","borderRightWidth","borderBottomWidth","borderLeftWidth","lineHeight"];
+  var PROPS = ["fontSize","paddingTop","paddingRight","paddingBottom","paddingLeft","marginTop","marginRight","marginBottom","marginLeft","gap","borderTopLeftRadius","borderTopRightRadius","borderBottomRightRadius","borderBottomLeftRadius","letterSpacing","borderTopWidth","borderRightWidth","borderBottomWidth","borderLeftWidth","lineHeight","maxHeight"];
   var clNodes = [clone].concat(Array.prototype.slice.call(clone.querySelectorAll("*")));
   // Two passes: read every computed style first (from the clone, i.e. the
   // desktop values), then apply the scaled inline styles. Reading and
@@ -920,7 +1273,75 @@ function vecTextLines(el, slideRect){
 }
 /* Redraw one 960px slide clone as vector onto the PDF page. ox/oy = slide
    box origin in pt; k = pt per px. */
-function vecDrawSlide(doc, pageH, ox, oy, k, clone){
+/* Diagram figure -> image (3x, for the PDF/PPTX): with keepText=false the
+   single-line <text> labels are REMOVED from the image — they are drawn as
+   true vector glyphs instead (see vecDrawFig), so diagram labels stay sharp
+   at any zoom. With keepText=true (raster fallback / PPTX) the whole diagram
+   is one image.
+   The image is flattened onto the slide background and encoded as JPEG:
+   jsPDF embeds transparent PNGs UNCOMPRESSED (RGB + alpha mask, ~5MB per
+   figure — the diagram PDF came out at 11.5MB for 3 slides); a JPEG of the
+   same figure is ~100-200KB and looks identical on the slide background. */
+async function svgToPng(svgNode, wPx, hPx, keepText, bgCss){
+  var c = svgNode.cloneNode(true);
+  if (!keepText) c.querySelectorAll("text").forEach(function(t){ if (!t.querySelector("tspan")) t.parentNode.removeChild(t); });
+  c.setAttribute("width", String(Math.max(2, Math.round(wPx))));
+  c.setAttribute("height", String(Math.max(2, Math.round(hPx))));
+  var ser = new XMLSerializer().serializeToString(c);
+  var url = URL.createObjectURL(new Blob([ser], {type:"image/svg+xml;charset=utf-8"}));
+  try {
+    var img = await new Promise(function(res, rej){ var im = new Image(); im.onload = function(){ res(im); }; im.onerror = function(){ rej(new Error("svg")); }; im.src = url; });
+    var scale = 3;
+    var cv = document.createElement("canvas");
+    cv.width = Math.round(wPx*scale); cv.height = Math.round(hPx*scale);
+    var ctx = cv.getContext("2d");
+    ctx.fillStyle = bgCss || "#000000";
+    ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.drawImage(img, 0, 0, cv.width, cv.height);
+    return cv.toDataURL("image/jpeg", 0.92);
+  } finally { URL.revokeObjectURL(url); }
+}
+/* Diagram figure in the vector PDF: shapes as a 3x PNG, labels as vector
+   glyphs. If anything about the figure fails, it is simply skipped — the
+   PDF must never break because of one diagram. */
+async function vecDrawFig(doc, pageH, ox, oy, k, clone, sRect){
+  var svgEl = clone.querySelector(".fig svg");
+  if (!svgEl) return;
+  var sr = svgEl.getBoundingClientRect();
+  if (sr.width < 2 || sr.height < 2) return;
+  var rx = sr.left - sRect.left, ry = sr.top - sRect.top;
+  var slideBg = getComputedStyle(clone).backgroundColor || "#000000";
+  try {
+    var png = await svgToPng(svgEl, sr.width, sr.height, false, slideBg);
+    if (png) doc.addImage(png, "JPEG", (ox+rx*k)/72, (oy+ry*k)/72, sr.width*k/72, sr.height*k/72);
+  } catch(e){ return; }
+  var vb = svgEl.viewBox && svgEl.viewBox.baseVal;
+  if (!vb || !vb.width || !vb.height) return;
+  var sx = sr.width / vb.width, sy = sr.height / vb.height;
+  svgEl.querySelectorAll("text").forEach(function(t){
+    if (t.querySelector("tspan")) return;
+    var txt = (t.textContent||"").trim();
+    if (!txt) return;
+    var bb;
+    try { bb = t.getBBox(); } catch(e){ return; }
+    if (!bb || bb.width < 0.5) return;
+    var cs = getComputedStyle(t);
+    var fsAttr = parseFloat(cs.fontSize) || 14;
+    // The SVG text's y attribute IS its baseline; fall back to the bbox.
+    var yAttr = parseFloat(t.getAttribute("y"));
+    var baseUser = isNaN(yAttr) ? (bb.y + bb.height*0.85) : yAttr;
+    var xPt = ox + (rx + bb.x*sx)*k;
+    var basePt = oy + (ry + baseUser*sy)*k;
+    var fsPt = fsAttr * sx * k;
+    var fill = cs.fill && cs.fill !== "none" ? cs.fill : "#000000";
+    if (fill === "currentColor") fill = cs.color || "#000000";
+    try {
+      var glyphs = vecShape(txt, vecFontFor(cs.fontFamily, cs.fontWeight));
+      vecDrawGlyphs(doc, pageH, glyphs, xPt, basePt, fsPt, vecRgb(fill), 0);
+    } catch(e){}
+  });
+}
+async function vecDrawSlide(doc, pageH, ox, oy, k, clone){
   // NOTE: ox/oy/k are in PDF points, but jsPDF's rect/roundedRect/lineWidth
   // take the document unit (inches here) — so divide by 72 for those calls.
   // The glyph paths go through internal.write (raw PDF points) and need no conversion.
@@ -928,7 +1349,7 @@ function vecDrawSlide(doc, pageH, ox, oy, k, clone){
   var bg = vecRgb(getComputedStyle(clone).backgroundColor);
   doc.setFillColor(bg[0],bg[1],bg[2]);
   doc.rect(ox/72, oy/72, clone.clientWidth*k/72, clone.clientHeight*k/72, "F");
-  var els = clone.querySelectorAll(".top .logo .a, .top .logo .p, .top .logo .c, .top .mid span, .top .right, .titlewrap .title, .titlewrap .sub, .body .q, .body .opt, .stim, .cqrow, .ansrow, .foot span");
+  var els = clone.querySelectorAll(".top .logo .a, .top .logo .p, .top .logo .c, .top .mid span, .top .right, .titlewrap .title, .titlewrap .sub, .body .q, .body .opt, .stim, .cqrow, .ansrow, .anshead, .rail span, .foot span");
   els.forEach(function(el){
     var r = el.getBoundingClientRect();
     var rx = r.left - sRect.left, ry = r.top - sRect.top;
@@ -954,6 +1375,7 @@ function vecDrawSlide(doc, pageH, ox, oy, k, clone){
       });
     });
   });
+  await vecDrawFig(doc, pageH, ox, oy, k, clone, sRect);
 }
 async function exportPdfVector(){
   var box = $("slides");
@@ -973,7 +1395,7 @@ async function exportPdfVector(){
       var clone = buildPdfClone(els[i], stage);
       await new Promise(function(r){ requestAnimationFrame(function(){ requestAnimationFrame(r); }); });
       if (i>0) pdf.addPage([PW, PH], "landscape");
-      vecDrawSlide(pdf, pageH, ox, oy, k, clone);
+      await vecDrawSlide(pdf, pageH, ox, oy, k, clone);
       stage.removeChild(clone);
     }
   } finally {
@@ -995,6 +1417,21 @@ async function exportPdfRaster(){
     for (var i=0;i<els.length;i++){
       var clone = buildPdfClone(els[i], stage);
       await new Promise(function(r){ requestAnimationFrame(function(){ requestAnimationFrame(r); }); });
+      // html2canvas handles inline SVG unreliably — swap any diagram for
+      // its 3x PNG first (keeps the labels, since this is the raster path).
+      var figSvg = clone.querySelector(".fig svg");
+      if (figSvg){
+        try {
+          var fr = figSvg.getBoundingClientRect();
+          var fpng = await svgToPng(figSvg, fr.width, fr.height, true, dark ? "#000000" : "#ffffff");
+          if (fpng){
+            var fim = document.createElement("img");
+            fim.src = fpng;
+            fim.style.width = "100%"; fim.style.height = "auto"; fim.style.display = "block";
+            figSvg.parentNode.replaceChild(fim, figSvg);
+          }
+        } catch(e){}
+      }
       var canvas = await html2canvas(clone, { backgroundColor: dark ? "#000000" : "#ffffff", scale: 4, logging: false });
       if (i>0) pdf.addPage([PW, PH], "landscape");
       pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, PW, PH);
@@ -1043,70 +1480,207 @@ window.__qbananExportPdfVector = async function(){
 };
 
 /* ---------- export: PPTX (real editable text) ---------- */
-$("btnPptx").addEventListener("click", function(){
+$("btnPptx").addEventListener("click", async function(){
   if (typeof PptxGenJS === "undefined"){ alert("PPTX লাইব্রেরি লোড হয়নি — অফলাইনে ফাইলটা আছে কিনা দেখো (pptxgen.bundle.js)।"); return; }
-  var pptx = new PptxGenJS();
-  pptx.defineLayout({ name:"W", width:13.33, height:7.5 });
-  pptx.layout = "W";
-  var dark = current.theme !== "light";
-  var bg = dark ? "000000" : "FFFFFF";
-  var txt = dark ? "FFFFFF" : "111111";
-  var qCol = dark ? current.accent.replace("#","") : "111111";
-  var arkCol = dark ? current.accent.replace("#","") : darkenHex(current.accent, 0.55).replace("#","");
-  var acc = current.accent.replace("#","");
-  // Slide text size: same multipliers as preview/PDF (small 0.65 / normal
-  // 0.78 / large 0.95 of the original template sizes). Option boxes use a
-  // light tint of the project accent, like the preview — never fixed cream.
-  var szf = {small:0.65, normal:0.78, large:0.95}[current.slideSize || getSettings().slideSize || "normal"] || 0.78;
-  function fs(n){ return Math.round(n*szf*10)/10; }
-  var accOn = accOnText(current.accent).replace("#","");
-  var optBg = tintHex(current.accent, 0.13).replace("#","");
-  var optBd = tintHex(current.accent, 0.35).replace("#","");
-  var optLetter = darkenHex(current.accent, 0.55).replace("#","");
-  function addHeader(slide, pill){
-    var subtle = (pill === "সৃজনশীল");
-    slide.background = { color: bg };
-    slide.addText("ARK", { x:0.4, y:0.25, w:2.2, h:0.5, fontSize:fs(20), bold:true, color:arkCol, fontFace:"Arial Black" });
-    slide.addText("PLUS POINT", { x:0.4, y:0.75, w:2.2, h:0.3, fontSize:fs(10), bold:true, color:txt });
-    slide.addText("COACHING CENTER", { x:0.4, y:1.0, w:2.2, h:0.25, fontSize:fs(7), color: dark?"CFCFCF":"666666" });
-    if (!subtle){
-      slide.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:5.4, y:0.25, w:2.5, h:0.5, fill:{color:acc}, line:{color:acc} });
-      slide.addText(pill, { x:5.4, y:0.25, w:2.5, h:0.5, fontSize:fs(14), bold:true, color:accOn, align:"center", valign:"middle" });
-    } else {
-      // CQ pill — subtle like on screen: no yellow fill, thin outline, text in slide colour
-      slide.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:5.75, y:0.25, w:1.8, h:0.5, fill:{color:bg}, line:{color:"999999"} });
-      slide.addText(pill, { x:5.75, y:0.25, w:1.8, h:0.5, fontSize:fs(13), bold:true, color:txt, align:"center", valign:"middle" });
+  if (!current) return;
+  var btn = $("btnPptx"); btn.disabled = true; btn.textContent = "PPTX বানানো হচ্ছে…";
+  try {
+    // The slide plan (built by renderAll) already splits big CQs and answer
+    // sheets exactly like the preview/PDF — PPTX draws the same plan, so
+    // the three outputs can never drift apart again.
+    if (!current._plan || !current._plan.length) renderAll();
+    var pptx = new PptxGenJS();
+    pptx.defineLayout({ name:"W", width:13.33, height:7.5 });
+    pptx.layout = "W";
+    var dark = current.theme !== "light";
+    var bg = dark ? "000000" : "FFFFFF";
+    var txt = dark ? "FFFFFF" : "111111";
+    var qCol = dark ? current.accent.replace("#","") : "111111";
+    var arkCol = dark ? current.accent.replace("#","") : darkenHex(current.accent, 0.55).replace("#","");
+    var acc = current.accent.replace("#","");
+    // Slide text size: same multipliers as preview/PDF (small 0.65 / normal
+    // 0.78 / large 0.95 of the original template sizes). Option boxes use a
+    // light tint of the project accent, like the preview — never fixed cream.
+    var szf = {small:0.65, normal:0.78, large:0.95}[current.slideSize || getSettings().slideSize || "normal"] || 0.78;
+    function fs(n){ return Math.round(n*szf*10)/10; }
+    var accOn = accOnText(current.accent).replace("#","");
+    var optBg = tintHex(current.accent, 0.13).replace("#","");
+    var optBd = tintHex(current.accent, 0.35).replace("#","");
+    var optLetter = darkenHex(current.accent, 0.55).replace("#","");
+    var L = layoutOf();
+    var cardBg = dark ? "2C2C2C" : "F2F2F2";
+    var cardBd = dark ? "3A3A3A" : "DDDDDD";
+    var railBg = dark ? "191919" : "E9E9E9";
+    var footCol = dark ? "CFCFCF" : "666666";
+    function tagTxt(q){ return String(q||"").indexOf("নমুনা প্রশ্ন")>=0 ? "" : (isBoard(q)?"":" [নমুনা প্রশ্ন]"); }
+    function addHeader(slide, pill, railNum){
+      var subtle = (pill === "সৃজনশীল");
+      slide.background = { color: bg };
+      var lx = (L===3) ? 2.3 : 0.4; // layout 3: rail takes the left 1.9in
+      if (L===3){
+        slide.addShape(pptx.shapes.RECTANGLE, { x:0, y:0, w:1.9, h:7.5, fill:{color:railBg}, line:{color:railBg} });
+        slide.addText(railNum || "✦", { x:0, y:3.1, w:1.9, h:1.2, fontSize:fs(64), bold:true, color:arkCol, align:"center", valign:"middle" });
+      }
+      if (L===4){
+        // Yellow top band: ARK + pill + SSC 2027 all on the accent band.
+        slide.addShape(pptx.shapes.RECTANGLE, { x:0, y:0, w:13.33, h:1.15, fill:{color:acc}, line:{color:acc} });
+        slide.addText("ARK", { x:0.4, y:0.08, w:2.2, h:0.45, fontSize:fs(20), bold:true, color:"000000", fontFace:"Arial Black" });
+        slide.addText("PLUS POINT", { x:0.4, y:0.52, w:2.2, h:0.28, fontSize:fs(10), bold:true, color:"000000" });
+        slide.addText("COACHING CENTER", { x:0.4, y:0.78, w:2.2, h:0.24, fontSize:fs(7), color:"444444" });
+        if (!subtle){
+          slide.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:5.4, y:0.32, w:2.5, h:0.5, fill:{color:"000000"}, line:{color:"000000"} });
+          slide.addText(pill, { x:5.4, y:0.32, w:2.5, h:0.5, fontSize:fs(14), bold:true, color:acc, align:"center", valign:"middle" });
+        } else {
+          slide.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:5.75, y:0.32, w:1.8, h:0.5, fill:{color:acc}, line:{color:"000000"} });
+          slide.addText(pill, { x:5.75, y:0.32, w:1.8, h:0.5, fontSize:fs(13), bold:true, color:"000000", align:"center", valign:"middle" });
+        }
+        slide.addText("SSC 2027", { x:11.4, y:0.35, w:1.5, h:0.4, fontSize:fs(12), bold:true, color:"000000", align:"right" });
+      } else {
+        slide.addText("ARK", { x:lx, y:0.25, w:2.2, h:0.5, fontSize:fs(20), bold:true, color:arkCol, fontFace:"Arial Black" });
+        slide.addText("PLUS POINT", { x:lx, y:0.75, w:2.2, h:0.3, fontSize:fs(10), bold:true, color:txt });
+        slide.addText("COACHING CENTER", { x:lx, y:1.0, w:2.2, h:0.25, fontSize:fs(7), color:footCol });
+        if (!subtle){
+          slide.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:5.4, y:0.25, w:2.5, h:0.5, fill:{color:acc}, line:{color:acc} });
+          slide.addText(pill, { x:5.4, y:0.25, w:2.5, h:0.5, fontSize:fs(14), bold:true, color:accOn, align:"center", valign:"middle" });
+        } else {
+          // CQ pill — subtle like on screen: no yellow fill, thin outline, text in slide colour
+          slide.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:5.75, y:0.25, w:1.8, h:0.5, fill:{color:bg}, line:{color:"999999"} });
+          slide.addText(pill, { x:5.75, y:0.25, w:1.8, h:0.5, fontSize:fs(13), bold:true, color:txt, align:"center", valign:"middle" });
+        }
+        slide.addText("SSC 2027", { x:11.4, y:0.3, w:1.5, h:0.4, fontSize:fs(12), bold:true, color:txt, align:"right" });
+      }
+      slide.addText(current.teacher || "Khayrul Sir", { x:lx, y:7.05, w:3, h:0.3, fontSize:fs(9), color:footCol });
+      slide.addText((current.subject||"")+" • "+(current.chapter||""), { x:8.5, y:7.05, w:4.4, h:0.3, fontSize:fs(9), color:footCol, align:"right" });
     }
-    slide.addText("SSC 2027", { x:11.4, y:0.3, w:1.5, h:0.4, fontSize:fs(12), bold:true, color:txt, align:"right" });
-    slide.addText(current.teacher || "Khayrul Sir", { x:0.4, y:7.05, w:3, h:0.3, fontSize:fs(9), color: dark?"CFCFCF":"666666" });
-    slide.addText((current.subject||"")+" • "+(current.chapter||""), { x:8.5, y:7.05, w:4.4, h:0.3, fontSize:fs(9), color: dark?"CFCFCF":"666666", align:"right" });
-  }
-  var s0 = pptx.addSlide(); addHeader(s0, current.qtype==="CQ"?"সৃজনশীল":"বহুনির্বাচনী");
-  s0.addText(current.subject||current.title||"", { x:0.6, y:2.6, w:12, h:1, fontSize:fs(28), bold:true, color:qCol });
-  s0.addText(current.chapter||"", { x:0.6, y:3.6, w:12, h:0.6, fontSize:fs(16), color:txt });
-  if (current.kind==="answer"){
-    var s = pptx.addSlide(); addHeader(s, "উত্তরপত্র");
-    var lines = current.items.map(function(a){ return bn(a.num)+". "+a.ans; });
-    s.addText(lines.join("\n"), { x:0.6, y:1.6, w:12, h:5, fontSize:fs(14), color:qCol, valign:"top" });
-  } else if (current.type==="MCQ"){
-    current.items.forEach(function(it){
-      var s = pptx.addSlide(); addHeader(s, "বহুনির্বাচনী");
-      s.addText(bn(it.num)+". "+it.q + (isBoard(it.q)?"":" [নমুনা প্রশ্ন]"), { x:0.6, y:1.5, w:7.2, h:2.6, fontSize:fs(16), bold:true, color:qCol, valign:"top" });
-      it.opts.forEach(function(o,idx){
-        var y = 1.6 + idx*0.85;
-        s.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:8.4, y:y, w:4.3, h:0.65, fill:{color:optBg}, line:{color:optBd} });
-        s.addText([{text:["ক","খ","গ","ঘ"][idx]+"  ", options:{color:optLetter, bold:true}}, {text:o, options:{color:"111111"}}], { x:8.6, y:y, w:4.0, h:0.65, fontSize:fs(12), valign:"middle" });
-      });
-    });
-  } else {
-    current.items.forEach(function(cq){
-      var s = pptx.addSlide(); addHeader(s, "সৃজনশীল");
-      s.addText(bn(cq.num)+". "+cq.stimulus + (isBoard(cq.stimulus)?"":" [নমুনা প্রশ্ন]"), { x:0.6, y:1.5, w:12, h:1.6, fontSize:fs(12), color:txt, valign:"top" });
-      var lines = cq.subs.map(function(sub){ return sub.k+". "+sub.q; });
-      s.addText(lines.join("\n"), { x:0.6, y:3.2, w:12, h:3.6, fontSize:fs(13), bold:true, color:qCol, valign:"top" });
-    });
-  }
-  pptx.writeFile({ fileName: (current.name||"Q_Banan") + ".pptx" });
+    /* Diagram figure: pptxgenjs cannot embed raw SVG, so the diagram is
+       rendered to a high-resolution PNG (3x via canvas) and embedded as a
+       picture. ACCENT in the SVG follows the project accent, like the preview. */
+    async function addFig(slide, svg, cx, cy, maxW, maxH){
+      if (!svg) return 0;
+      try {
+        var markup = String(svg).replace(/\bACCENT-DARK\b/g, darkenHex(current.accent, 0.55)).replace(/\bACCENT\b/g, current.accent);
+        var tmp = document.createElement("div");
+        tmp.innerHTML = markup;
+        var el = tmp.querySelector("svg");
+        if (!el) return 0;
+        var vb = (el.getAttribute("viewBox")||"").split(/[\s,]+/);
+        var vw = parseFloat(vb[2]) || parseFloat(el.getAttribute("width")) || 400;
+        var vh = parseFloat(vb[3]) || parseFloat(el.getAttribute("height")) || 300;
+        var w = Math.min(maxW, maxH*vw/vh);
+        var h = w*vh/vw;
+        var png = await svgToPng(el, Math.round(w*150), Math.round(h*150), true, dark ? "#000000" : "#ffffff");
+        if (!png) return 0;
+        slide.addImage({ data: png, x: cx - w/2, y: cy, w: w, h: h });
+        return h;
+      } catch(e){ return 0; }
+    }
+    function optBox(slide, x, y, w, h, letter, text, correct){
+      // Solution slide: the correct option is GREEN (white text), the rest
+      // stay exactly like the question slide.
+      var fill = correct ? "2E9E44" : optBg;
+      var line = correct ? "2E9E44" : optBd;
+      var tcol = correct ? "FFFFFF" : "111111";
+      var lcol = correct ? "FFFFFF" : optLetter;
+      slide.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:x, y:y, w:w, h:h, fill:{color:fill}, line:{color:line} });
+      slide.addText([{text:letter+"  ", options:{color:lcol, bold:true}}, {text:text, options:{color:tcol}}], { x:x+0.2, y:y, w:w-0.35, h:h, fontSize:fs(12), valign:"middle", shrinkText:true });
+    }
+    var titlePill = current.type==="MIX" ? "প্রশ্নপত্র" : pillFor(current.type);
+    if (current.showTitle !== false){
+      var s0 = pptx.addSlide(); addHeader(s0, titlePill, "✦");
+      var tx = (L===3) ? 2.5 : 0.6, tw = (L===3) ? 10.2 : 12.13;
+      if (L===4){
+        s0.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:0.6, y:1.9, w:12.13, h:3.2, fill:{color:cardBg}, line:{color:cardBd} });
+        s0.addText(current.subject||current.title||"", { x:1.0, y:2.5, w:11.3, h:1, fontSize:fs(28), bold:true, color:qCol, align:"center" });
+        s0.addText(current.chapter||"", { x:1.0, y:3.5, w:11.3, h:0.6, fontSize:fs(16), color:txt, align:"center" });
+      } else if (L===2){
+        s0.addText(current.subject||current.title||"", { x:0.6, y:2.6, w:12.13, h:1, fontSize:fs(28), bold:true, color:qCol, align:"center" });
+        s0.addText(current.chapter||"", { x:0.6, y:3.6, w:12.13, h:0.6, fontSize:fs(16), color:txt, align:"center" });
+      } else {
+        s0.addText(current.subject||current.title||"", { x:tx, y:2.6, w:tw, h:1, fontSize:fs(28), bold:true, color:qCol });
+        s0.addText(current.chapter||"", { x:tx, y:3.6, w:tw, h:0.6, fontSize:fs(16), color:txt });
+      }
+    }
+    var plan = current._plan || [];
+    for (var i=0;i<plan.length;i++){
+      var e = plan[i];
+      if (e.t==="title") continue;
+      if (e.t==="mcq"){
+        var it = e.item;
+        var solIdx = (e.sol && it.sol != null) ? it.sol : -1;
+        var s = pptx.addSlide(); addHeader(s, "বহুনির্বাচনী", bn(it.num)+".");
+        var qText = bn(it.num)+". "+it.q+tagTxt(it.q);
+        var figH = 0;
+        if (L===0){
+          s.addText(qText, { x:0.6, y:1.5, w:7.2, h:2.6, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
+          if (it.svg) figH = await addFig(s, it.svg, 0.6+3.6, 4.3, 5.5, 1.6);
+          it.opts.forEach(function(o,idx){
+            var y = 1.6 + idx*0.85;
+            optBox(s, 8.4, y, 4.3, 0.65, ["ক","খ","গ","ঘ"][idx], o, idx===solIdx);
+          });
+        } else if (L===1){
+          s.addText(qText, { x:0.6, y:1.35, w:12.13, h:1.9, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
+          var yOpts1 = 4.0;
+          if (it.svg){ figH = await addFig(s, it.svg, 6.67, 3.35, 6, 1.1); yOpts1 = 4.6; }
+          it.opts.forEach(function(o,idx){
+            var gx = (idx%2===0) ? 0.6 : 6.85, gy = yOpts1 + Math.floor(idx/2)*1.05;
+            optBox(s, gx, gy, 5.88, 0.85, ["ক","খ","গ","ঘ"][idx], o, idx===solIdx);
+          });
+        } else if (L===2){
+          s.addText(qText, { x:1.5, y:1.9, w:10.33, h:1.8, fontSize:fs(16), bold:true, color:qCol, valign:"top", align:"center", shrinkText:true });
+          var yOpts2 = 4.9;
+          if (it.svg){ figH = await addFig(s, it.svg, 6.67, 3.8, 6, 1.1); yOpts2 = 5.3; }
+          var pw = 2.9, gap = 0.25, totalW = pw*4 + gap*3, x0 = (13.33-totalW)/2;
+          it.opts.forEach(function(o,idx){
+            optBox(s, x0 + idx*(pw+gap), yOpts2, pw, 0.7, ["ক","খ","গ","ঘ"][idx], o, idx===solIdx);
+          });
+        } else if (L===3){
+          s.addText(qText, { x:2.5, y:1.5, w:10.2, h:2.2, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
+          var yOpts3 = 3.9, oH3 = 0.6, oGap3 = 0.75;
+          if (it.svg){ figH = await addFig(s, it.svg, 2.5+5.1, 3.15, 6, 0.9); yOpts3 = 4.25; oGap3 = 0.7; }
+          it.opts.forEach(function(o,idx){
+            var y = yOpts3 + idx*oGap3;
+            optBox(s, 2.5, y, 10.2, oH3, ["ক","খ","গ","ঘ"][idx], o, idx===solIdx);
+          });
+        } else { // L4
+          s.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:0.6, y:1.5, w:12.13, h:2.2, fill:{color:cardBg}, line:{color:cardBd} });
+          s.addText(qText, { x:1.0, y:1.65, w:11.3, h:1.9, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
+          var yOpts4 = 4.1;
+          if (it.svg){ figH = await addFig(s, it.svg, 6.67, 3.85, 6, 1.1); yOpts4 = 5.0; }
+          it.opts.forEach(function(o,idx){
+            var gx = (idx%2===0) ? 0.6 : 6.85, gy = yOpts4 + Math.floor(idx/2)*1.05;
+            optBox(s, gx, gy, 5.88, 0.85, ["ক","খ","গ","ঘ"][idx], o, idx===solIdx);
+          });
+        }
+      } else if (e.t==="cq"){
+        var cq = e.item;
+        var s2 = pptx.addSlide(); addHeader(s2, "সৃজনশীল", bn(cq.num)+".");
+        var sx = (L===3) ? 2.5 : 0.6, sw = (L===3) ? 10.2 : 12.13;
+        var stimY = 1.5, subY = 3.2;
+        if (L===4){
+          s2.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:0.6, y:1.5, w:12.13, h:1.8, fill:{color:cardBg}, line:{color:cardBd} });
+          s2.addText(bn(cq.num)+". "+cq.stimulus+tagTxt(cq.stimulus), { x:1.0, y:1.65, w:11.3, h:1.5, fontSize:fs(12), color:txt, valign:"top", shrinkText:true });
+          subY = 3.6;
+        } else {
+          s2.addText(bn(cq.num)+". "+cq.stimulus+tagTxt(cq.stimulus), { x:sx, y:stimY, w:sw, h:1.6, fontSize:fs(12), color:txt, valign:"top", shrinkText:true });
+        }
+        if (cq.svg){ await addFig(s2, cq.svg, sx + sw/2, subY, 6, 1.3); subY += 1.45; }
+        var subLines = e.subs.map(function(sub){ return sub.k+". "+sub.q; });
+        if (subLines.length) s2.addText(subLines.join("\n"), { x:sx, y:subY, w:sw, h:6.9-subY, fontSize:fs(13), bold:true, color:qCol, valign:"top", shrinkText:true });
+      } else if (e.t==="ans"){
+        var s3 = pptx.addSlide(); addHeader(s3, "উত্তরপত্র", "✦");
+        var ax = (L===3) ? 2.5 : 0.6, aw = (L===3) ? 10.2 : 12.13;
+        var ay = 1.5;
+        if (e.head){
+          s3.addText(e.head, { x:ax, y:ay, w:aw, h:0.5, fontSize:fs(13), bold:true, color:qCol });
+          ay += 0.55;
+        }
+        var aLines = e.items.map(function(a){ return bn(a.num)+". "+a.ans; });
+        if (aLines.length) s3.addText(aLines.join("\n"), { x:ax, y:ay, w:aw, h:6.9-ay, fontSize:fs(14), color:qCol, valign:"top", shrinkText:true });
+      }
+    }
+    await pptx.writeFile({ fileName: (current.name||"Q_Banan") + ".pptx" });
+  } catch(err){ alert("PPTX বানাতে সমস্যা হয়েছে: " + err.message); }
+  btn.disabled = false; btn.textContent = "PPTX এক্সপোর্ট";
 });
 
 /* ---------- create flow ---------- */
@@ -1147,6 +1721,8 @@ function openSettings(){
   if (st.slideSize){ var r4 = document.querySelector('input[name="setSlideSize"][value="'+st.slideSize+'"]'); if (r4) r4.checked = true; }
   $("setFileName").value = st.fileName || "Q_Banan";
   $("setTeacher").value = st.teacher || "Khayrul Sir";
+  $("setVer").textContent = "v" + APP_VERSION;
+  $("updMsg").textContent = "";
   markSwatch(st.accent || "#ffd700");
   $("setSaved").classList.add("hidden");
   show("view-settings");
@@ -1159,6 +1735,53 @@ $("btnSaveSettings").addEventListener("click", function(){
   applyAppTheme();
   if (current) renderAll(); // size applies to the open project at once, no re-Run needed
   $("setSaved").classList.remove("hidden");
+});
+/* ---------- draft backup (Settings -> ব্যাকআপ) ----------
+   Backup = ONE JSON file with every draft + the app settings, downloaded to
+   the phone. Restore merges it back: existing drafts stay, projects with
+   the same id are overwritten only after a confirm. Fully offline. */
+function backupMsg(t){ var m = $("backupMsg"); if (!m) return; m.textContent = t; m.classList.remove("hidden"); }
+$("btnBackup").addEventListener("click", function(){
+  try {
+    var data = { app:"Q_Banan", version: APP_VERSION, exportedAt: new Date().toISOString(), settings: getSettings(), projects: getProjects() };
+    var blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "Q_Banan-backup-" + new Date().toISOString().slice(0,10) + ".json";
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    backupMsg("ব্যাকআপ ডাউনলোড হয়েছে — " + data.projects.length + "টি প্রজেক্ট। ফাইলটা নিরাপদ জায়গায় রেখো।");
+  } catch(e){ backupMsg("ব্যাকআপ নেওয়া যায়নি: " + e.message); }
+});
+$("btnRestore").addEventListener("click", function(){ $("restoreFile").click(); });
+$("restoreFile").addEventListener("change", function(){
+  var f = this.files && this.files[0];
+  if (!f) return;
+  var rd = new FileReader();
+  rd.onload = function(){
+    try {
+      var data = JSON.parse(rd.result);
+      if (!data || !Array.isArray(data.projects)) throw new Error("ফাইলটা Q_Banan-এর ব্যাকআপ নয়।");
+      var existing = getProjects();
+      var byId = {};
+      existing.forEach(function(p){ byId[p.id] = p; });
+      var dup = data.projects.filter(function(p){ return byId[p.id]; }).length;
+      var add = data.projects.filter(function(p){ return !byId[p.id]; }).length;
+      if (dup && !confirm(dup+"টি প্রজেক্ট ইতিমধ্যে আছে — সেগুলো ব্যাকআপেরটা দিয়ে বদলে ফেলবে? (বাকি "+add+"টি নতুন করে যোগ হবে)")) return;
+      var merged = existing.slice();
+      data.projects.forEach(function(p){
+        var idx = merged.findIndex(function(x){ return x.id === p.id; });
+        if (idx >= 0) merged[idx] = p; else merged.push(p);
+      });
+      saveProjects(merged);
+      if (data.settings) saveSettings(data.settings);
+      backupMsg("ফেরানো হয়েছে — " + add + "টি নতুন, " + dup + "টি বদলানো হয়েছে। মোট " + merged.length + "টি প্রজেক্ট।");
+      renderHome();
+    } catch(e){ backupMsg("ব্যাকআপ ফেরানো যায়নি: " + e.message); }
+    $("restoreFile").value = "";
+  };
+  rd.onerror = function(){ backupMsg("ফাইলটা পড়া যায়নি — আবার চেষ্টা করো।"); $("restoreFile").value = ""; };
+  rd.readAsText(f);
 });
 var searchQuery = "";
 $("searchProj").addEventListener("input", function(){
@@ -1181,7 +1804,9 @@ var MASTER_PROMPT = [
 "   পরের লাইনে: ক. <প্রশ্ন> | খ. <প্রশ্ন> | গ. <প্রশ্ন> | ঘ. <প্রশ্ন>",
 "   পরের সৃজনশীল ২. দিয়ে শুরু হবে, এভাবে চলবে।",
 "5. উত্তরপত্র (ANSWER) হলে প্রতি লাইনে: ১. ক অথবা ১. <সঠিক অপশনের লেখা>",
-"6. কোনো প্রশ্ন বা অপশনের ভাষা বদলাবে না, প্রশ্ন যোগ বা বাদ দেবে না, বাংলা যেমন আছে তেমন রাখবে, সংখ্যা ও একক যেমন আছে তেমন রাখবে।"
+"6. কোনো প্রশ্ন বা অপশনের ভাষা বদলাবে না, প্রশ্ন যোগ বা বাদ দেবে না, বাংলা যেমন আছে তেমন রাখবে, সংখ্যা ও একক যেমন আছে তেমন রাখবে।",
+"7. একসাথে MCQ + সৃজনশীল + উত্তরপত্র দিতে হলে: একটার পর একটা TYPE: লাইন দিয়ে সেকশন বদলাবে — প্রথমে TYPE: MCQ দিয়ে সব MCQ, তারপর TYPE: CQ দিয়ে সব সৃজনশীল, তারপর TYPE: ANSWER দিয়ে সব উত্তর। সেকশনের ক্রম যেমন দেবে, স্লাইডও তেমনই হবে।",
+"8. কোনো প্রশ্নে চিত্র/ডায়াগ্রাম থাকলে: ডায়াগ্রামটা বইয়ের মতো হুবহু কিন্তু পরিষ্কার করে এক লাইনের SVG হিসেবে দেবে — প্রশ্নের ঠিক পরের লাইনে: SVG: <svg viewBox=\"0 0 400 260\" ...>...</svg>। SVG-তে শুধু আকৃতি (line/circle/rect/path/text) দেবে, কোনো স্ক্রিপ্ট/ছবি/লিংক দেবে না। রঙের জন্য ACCENT শব্দটা ব্যবহার করবে (অ্যাপ সেটাকে প্রজেক্টের অ্যাকসেন্ট রঙে বদলে দেবে) — যেমন stroke=\"ACCENT\"। ডায়াগ্রামটা স্লাইডে ছবি (figure) হিসেবে দেখাবে।"
 ].join("\n");
 $("btnCopyPrompt").addEventListener("click", function(){
   var done = function(){ var ok = $("copyOk"); ok.classList.remove("hidden"); setTimeout(function(){ ok.classList.add("hidden"); }, 2000); };
@@ -1205,7 +1830,7 @@ $("btnSample").addEventListener("click", function(){
    kind/qtype on `current` are NORMALISED (answer/question + MCQ/CQ) so the
    renderer, the home card label and the draft all agree. */
 var lastForce = null; // null = auto-detected, else "MCQ" | "CQ" | "ANS"
-function typeName(t){ return t==="ANS" ? "উত্তরপত্র" : t==="CQ" ? "সৃজনশীল প্রশ্ন" : "বহুনির্বাচনী প্রশ্ন"; }
+function typeName(t){ return t==="ANS" ? "উত্তরপত্র" : t==="CQ" ? "সৃজনশীল প্রশ্ন" : t==="MIX" ? "মিশ্র" : "বহুনির্বাচনী প্রশ্ন"; }
 function doRun(){
   var kindRadio = selected("kind"), qtypeRadio = selected("qtype");
   lastForce = kindRadio === "answer" ? "ANS" : (qtypeRadio === "MCQ" || qtypeRadio === "CQ" ? qtypeRadio : null);
@@ -1221,6 +1846,7 @@ function doRun(){
   errBox.classList.add("hidden");
   var prevDraftId = current ? current.draftId : null;
   var det = parsed.type;
+  var _lay = parseInt(selected("layout") || "0", 10); if (isNaN(_lay)) _lay = 0;
   current = {
     draftId: prevDraftId || editingId || null,
     kind: det === "ANS" ? "answer" : "question",
@@ -1230,12 +1856,28 @@ function doRun(){
     teacher: $("inTeacher").value.trim() || getSettings().teacher || "Khayrul Sir",
     accent: $("inAccent").value, theme: selected("theme"),
     slideSize: selected("slideSize") || getSettings().slideSize || "normal",
+    layout: _lay,
+    showTitle: $("inTitle") ? $("inTitle").checked : true,
     title: parsed.title, type: det,
-    items: parsed.items
+    items: parsed.items,
+    sections: parsed.sections
   };
   var dl = $("detectLabel");
-  if (dl) dl.textContent = (lastForce ? "ধরন: " : "শনাক্ত: ") + typeName(det);
+  if (dl){
+    if (det === "MIX"){
+      var _cnt = {MCQ:0, CQ:0, ANS:0};
+      parsed.items.forEach(function(it){ _cnt[it.t] = (_cnt[it.t]||0)+1; });
+      var _parts = [];
+      if (_cnt.MCQ) _parts.push(_cnt.MCQ+" MCQ");
+      if (_cnt.CQ) _parts.push(_cnt.CQ+" সৃজনশীল");
+      if (_cnt.ANS) _parts.push(_cnt.ANS+" উত্তর");
+      dl.textContent = (lastForce ? "ধরন: " : "শনাক্ত: ") + "মিশ্র (" + _parts.join(" • ") + ")";
+    } else {
+      dl.textContent = (lastForce ? "ধরন: " : "শনাক্ত: ") + typeName(det);
+    }
+  }
   var st2 = $("selType"); if (st2) st2.value = lastForce || "auto";
+  var sl2 = $("selLayout"); if (sl2) sl2.value = String(_lay);
   saveDraftSilent(); // auto-save draft on Run, so it survives even if the app is closed right after
   show("view-render");
   requestAnimationFrame(function(){ renderAll(); });
@@ -1248,6 +1890,13 @@ $("selType").addEventListener("change", function(){
   else if (v === "ANS"){ setRadio("kind", "answer"); setRadio("qtype", "auto"); }
   else { setRadio("kind", "question"); setRadio("qtype", v); }
   doRun();
+});
+$("selLayout").addEventListener("change", function(){
+  if (!current) return;
+  var v = parseInt($("selLayout").value, 10);
+  current.layout = isNaN(v) ? 0 : v;
+  saveDraftSilent();
+  renderAll();
 });
 $("btnSaveProj").addEventListener("click", function(){
   if (!current) return;
@@ -1267,8 +1916,16 @@ $("btnDelSel").addEventListener("click", function(){
 });
 function countQuestions(p){
   if (!p.text) return 0;
-  var n = 0;
-  p.text.split(/\r?\n/).forEach(function(l){ if (/^\s*\d+[\.\)]/.test(l)) n++; });
+  var n = 0, sec = null;
+  p.text.split(/\r?\n/).forEach(function(l){
+    var tm = l.trim().match(/^(?:TYPE|ধরন)\s*:\s*(.+)$/i);
+    if (tm) sec = mapTypeStr(tm[1]);
+    else if (/^\s*\d+[\.\)]/.test(l)){
+      // Answer lines inside a mixed file are answers, not questions.
+      if (p.kind==="answer") n++;
+      else if (sec !== "ANS") n++;
+    }
+  });
   return n;
 }
 function renderHome(){
@@ -1293,12 +1950,12 @@ function renderHome(){
     chk.checked = selectedIds.has(p.id);
     chk.onchange = function(){ if (chk.checked) selectedIds.add(p.id); else selectedIds.delete(p.id); updateSelBar(); };
     var body = document.createElement("div"); body.className="pbody";
-    var typeLabel = p.kind==="answer" ? "উত্তরপত্র" : (p.qtype==="CQ" ? "সৃজনশীল" : "বহুনির্বাচনী");
+    var typeLabel = p.kind==="answer" ? "উত্তরপত্র" : (p.qtype==="CQ" ? "সৃজনশীল" : (p.qtype==="MIX" ? "মিশ্র" : "বহুনির্বাচনী"));
     var unit = p.kind==="answer" ? "টি উত্তর" : "টি প্রশ্ন";
     body.innerHTML = '<b>'+esc(p.name)+'</b><small>'+esc(typeLabel)+' • '+bn(countQuestions(p))+unit+' • '+esc(p.date||"")+'</small>';
     var acts = document.createElement("div"); acts.className="acts";
     var bE = document.createElement("button"); bE.className="btn-w"; bE.textContent="Edit"; bE.type="button";
-    bE.onclick = function(){ current = null; editingId = p.id; $("inName").value=p.name; $("inSubject").value=p.subject||""; $("inChapter").value=p.chapter||""; $("inTeacher").value=p.teacher||"Khayrul Sir"; $("inAccent").value=p.accent||"#ffd700"; $("inText").value=p.text||""; setRadio("kind", "auto"); setRadio("qtype", "auto"); setRadio("theme", p.theme||"dark"); setRadio("slideSize", p.slideSize || getSettings().slideSize || "normal"); $("parseErr").classList.add("hidden"); show("view-create"); };
+    bE.onclick = function(){ current = null; editingId = p.id; $("inName").value=p.name; $("inSubject").value=p.subject||""; $("inChapter").value=p.chapter||""; $("inTeacher").value=p.teacher||"Khayrul Sir"; $("inAccent").value=p.accent||"#ffd700"; $("inText").value=p.text||""; setRadio("kind", "auto"); setRadio("qtype", "auto"); setRadio("theme", p.theme||"dark"); setRadio("slideSize", p.slideSize || getSettings().slideSize || "normal"); setRadio("layout", String(p.layout==null?0:p.layout)); var _t2=$("inTitle"); if (_t2) _t2.checked = p.showTitle !== false; $("parseErr").classList.add("hidden"); show("view-create"); };
     var menuWrap = document.createElement("div"); menuWrap.className="menu-wrap";
     var mBtn = document.createElement("button"); mBtn.className="btn-w menu-btn"; mBtn.textContent="\u22ee"; mBtn.type="button"; mBtn.setAttribute("aria-label","\u0986\u09b0\u09cb \u0985\u09aa\u09b6\u09a8");
     var menu = document.createElement("div"); menu.className="menu hidden";
@@ -1318,10 +1975,114 @@ function renderHome(){
 }
 
 document.addEventListener("click", function(){ document.querySelectorAll(".menu").forEach(function(m){ m.classList.add("hidden"); }); });
+/* ---------- app updates (version visible + check button + auto-check) -----
+   Why this exists: after a push the new version used to take forever to
+   reach his phone (cache-first SW + weak Wi-Fi failing the update check).
+   Now: the version is visible on Home + Settings; Settings has a manual
+   check button; the app auto-checks on open and shows a tap-to-refresh
+   banner when an update is ready. A reload NEVER happens without his tap
+   (the banner or the check button) — drafts live in localStorage and are
+   never lost by a reload. */
+var swReg = null, hadController = false;
+function showUpdBanner(){ $("updBanner").classList.remove("hidden"); }
+function hideUpdBanner(){ $("updBanner").classList.add("hidden"); }
+function armUpdateWatch(reg){
+  if (!reg) return;
+  swReg = reg;
+  if (reg.waiting) showUpdBanner();
+  reg.addEventListener("updatefound", function(){
+    var w = reg.installing;
+    if (!w) return;
+    w.addEventListener("statechange", function(){
+      if (w.state === "installed" && navigator.serviceWorker.controller) showUpdBanner();
+    });
+  });
+}
+function waitControllerChange(ms){
+  return new Promise(function(res){
+    var done = false;
+    function ok(){ if (!done){ done = true; res(true); } }
+    navigator.serviceWorker.addEventListener("controllerchange", ok, {once:true});
+    setTimeout(function(){ if (!done){ done = true; res(false); } }, ms || 20000);
+  });
+}
+async function checkForUpdate(){
+  var msg = $("updMsg");
+  if (!("serviceWorker" in navigator)){ if (msg) msg.textContent = "এই ব্রাউজারে আপডেট চেক চলে না।"; return false; }
+  if (navigator.onLine === false){ if (msg) msg.textContent = "ইন্টারনেট নেই — পরে চেষ্টা করো।"; return false; }
+  var btn = $("btnCheckUpd");
+  try {
+    var reg = swReg || await navigator.serviceWorker.getRegistration();
+    if (!reg){ if (msg) msg.textContent = "সার্ভিস ওয়ার্কার চালু হয়নি — অ্যাপটা আবার খুলে দেখো।"; return false; }
+    swReg = reg;
+    if (btn){ btn.disabled = true; }
+    if (msg) msg.textContent = "চেক করা হচ্ছে…";
+    var timedOut = false;
+    var to = setTimeout(function(){ timedOut = true; }, 15000);
+    var updP = reg.update();
+    await Promise.race([updP, new Promise(function(r){ setTimeout(r, 15000); })]);
+    clearTimeout(to);
+    if (timedOut){ if (msg) msg.textContent = "চেক করা যায়নি — ইন্টারনেট দুর্বল হতে পারে, পরে চেষ্টা করো।"; return false; }
+    // Ground truth: the live sw.js version vs this page's version. The
+    // page itself may be stale (old SW served it from cache) even after
+    // the new worker has already taken over — SW state alone cannot tell
+    // the page that, so without this check the button would wrongly say
+    // "up to date" while still showing the old version. If the fetch
+    // fails the comparison is skipped and the SW-state check below
+    // still applies.
+    var newer = false;
+    try {
+      var vr = await fetch("sw.js", {cache:"no-store"});
+      if (vr && vr.ok){
+        var vtxt = await vr.text();
+        var vm = vtxt.match(/APP_VERSION\s*=\s*"([^"]+)"/);
+        if (vm && vm[1] && vm[1] !== APP_VERSION) newer = true;
+      }
+    } catch(e){}
+    // A new worker found? Wait for it to take over (the SW skips waiting
+    // on install, so controllerchange is the signal), then reload.
+    var changed = false;
+    if (reg.waiting || reg.installing) changed = await waitControllerChange(20000);
+    else if (navigator.serviceWorker.controller && reg.active && reg.active !== navigator.serviceWorker.controller) changed = true;
+    if (changed || newer){
+      if (msg) msg.textContent = "নতুন ভার্সন এসেছে — রিফ্রেশ করছি…";
+      location.reload();
+      return true;
+    }
+    if (reg.waiting){ reg.waiting.postMessage({type:"SKIP_WAITING"}); changed = await waitControllerChange(10000); if (changed){ location.reload(); return true; } }
+    if (msg) msg.textContent = "তুমি সর্বশেষ ভার্সনে আছো (v" + APP_VERSION + ")।";
+    return false;
+  } catch(e){
+    if (msg) msg.textContent = (navigator.onLine === false) ? "ইন্টারনেট নেই — পরে চেষ্টা করো।" : "চেক করা যায়নি — পরে চেষ্টা করো।";
+    return false;
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+$("updReload").addEventListener("click", function(){ location.reload(); });
+$("updDismiss").addEventListener("click", hideUpdBanner);
+$("btnCheckUpd").addEventListener("click", checkForUpdate);
+
 applyAppTheme();
 renderHome();
 clearCreateForm();
-if ("serviceWorker" in navigator){ window.addEventListener("load", function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); }); }
+$("appVer").textContent = "v" + APP_VERSION;
+if ("serviceWorker" in navigator){
+  hadController = !!navigator.serviceWorker.controller;
+  // A new SW took over while the page is open: show the banner, never
+  // reload on our own (he may be typing in the create form).
+  navigator.serviceWorker.addEventListener("controllerchange", function(){
+    if (hadController) showUpdBanner();
+    hadController = true;
+  });
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("sw.js").then(function(reg){
+      armUpdateWatch(reg);
+      // Auto-check on open — silent on failure (weak Wi-Fi must never hang the app).
+      reg.update().catch(function(){});
+    }).catch(function(){});
+  });
+}
 </script>
 </body>
 </html>
