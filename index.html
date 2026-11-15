@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#222222">
+<title>Q_Banan — প্রশ্ন-উত্তর স্লাইড মেকার</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<style>
+/* Fonts embedded locally (same as locked template files) — offline-safe */
+@font-face{font-family:'Hind Siliguri';font-weight:400;src:url(fonts/hind-siliguri-400-bengali.woff2) format('woff2');unicode-range:U+0980-09FF}
+@font-face{font-family:'Hind Siliguri';font-weight:400;src:url(fonts/hind-siliguri-400-latin.woff2) format('woff2');unicode-range:U+0000-00FF}
+@font-face{font-family:'Hind Siliguri';font-weight:700;src:url(fonts/hind-siliguri-700-bengali.woff2) format('woff2');unicode-range:U+0980-09FF}
+@font-face{font-family:'Hind Siliguri';font-weight:700;src:url(fonts/hind-siliguri-700-latin.woff2) format('woff2');unicode-range:U+0000-00FF}
+@font-face{font-family:'Work Sans';font-weight:800;src:url(fonts/work-sans-800-latin.woff2) format('woff2')}
+*{box-sizing:border-box}
+body{margin:0;padding:0;font-family:'Hind Siliguri',Arial,sans-serif;background:#f2f4f2;color:#111}
+header{background:#222;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
+header b{font-size:20px;color:#ffd700}
+header span{font-size:13px;color:#ccc}
+button{font-family:inherit;cursor:pointer;border:none;border-radius:10px;padding:10px 16px;font-size:15px;font-weight:700}
+.btn-y{background:#ffd700;color:#000}
+.btn-w{background:#fff;color:#111;border:1px solid #ccc}
+.btn-d{background:#222;color:#fff}
+.btn-danger{background:#c0392b;color:#fff}
+main{max-width:960px;margin:0 auto;padding:14px}
+.card{background:#fff;border:1px solid #ddd;border-radius:12px;padding:14px;margin:10px 0}
+h1{font-size:20px;margin:6px 0}
+h2{font-size:17px;margin:4px 0}
+.note{font-size:14px;line-height:1.55;background:#fff;border:1px solid #d8d8d8;border-left:6px solid #ffd700;border-radius:10px;padding:10px 12px}
+.err{background:#fdecea;border:1px solid #e57373;border-left:6px solid #c0392b;border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.6}
+label{display:block;font-size:14px;font-weight:700;margin:10px 0 4px}
+input[type=text],textarea,select{width:100%;font-family:inherit;font-size:15px;padding:10px;border:1px solid #bbb;border-radius:10px}
+textarea{min-height:220px;line-height:1.6}
+.radio-row{display:flex;gap:8px;flex-wrap:wrap}
+.radio-row label{border:1px solid #bbb;border-radius:10px;padding:10px 14px;font-weight:400;margin:0;cursor:pointer}
+.radio-row input{accent-color:#b8860b}
+.proj{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border:1px solid #ddd;border-radius:12px;padding:12px;margin:8px 0}
+.proj b{font-size:16px}
+.proj small{color:#666;display:block}
+.proj .acts{display:flex;gap:6px;flex-wrap:wrap}
+.proj .acts button{padding:7px 10px;font-size:13px}
+.fab{position:fixed;right:16px;bottom:16px;width:64px;height:64px;border-radius:50%;background:#ffd700;color:#000;font-size:32px;line-height:1;box-shadow:0 4px 16px rgba(0,0,0,.3);z-index:20}
+.hidden{display:none !important}
+/* ===== ARK slide template (locked, v5) ===== */
+.slides{display:flex;flex-direction:column;gap:14px}
+.slide{aspect-ratio:16/9;width:100%;max-width:920px;margin:0 auto;border-radius:6px;overflow:hidden;display:flex;flex-direction:column;background:#222;color:#fff;box-shadow:0 4px 18px rgba(0,0,0,.25)}
+.top{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:start;padding:9px 18px}
+.logo{line-height:1;text-align:left}
+.logo .a{font-family:'Work Sans',Arial,sans-serif;font-weight:800;font-size:17px;line-height:.95;color:#ffd700}
+.logo .p{font-size:8px;font-weight:700;color:#fff;line-height:1;margin-top:0}
+.logo .c{font-size:6px;letter-spacing:1.5px;color:#cfcfcf;line-height:1;margin-top:0}
+.top .mid{text-align:center}
+.top .mid span{display:inline-block;background:#ffd700;color:#000;font-size:15px;font-weight:700;border-radius:20px;padding:3px 18px}
+.top .right{text-align:right;color:#fff;font-size:12px;font-weight:700;padding-top:2px}
+.body{flex:1;padding:6px 20px 8px;display:flex;flex-direction:row;gap:20px;min-height:0}
+.qwrap{flex:1.5;min-width:0}
+.q{font-size:16px;line-height:1.35;font-weight:700;color:#ffd700;text-align:left;margin:4px 0}
+.q .tag{font-size:10px;font-weight:400;color:#fff;white-space:nowrap}
+.q .arr{color:#ffd700}
+.opts{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;padding-bottom:6px}
+.opt{background:#fff3d6;color:#111;border-radius:8px;padding:5px 10px;font-size:11px;line-height:1.3;text-align:left}
+.opt b{color:#b8860b;margin-right:6px}
+.foot{padding:5px 18px;font-size:10px;color:#cfcfcf;display:flex;justify-content:space-between}
+.titlewrap{flex:1;display:flex;flex-direction:column;justify-content:center;padding:8px 20px}
+.title{font-size:28px;line-height:1.25;font-weight:700;color:#ffd700}
+.sub{font-size:15px;margin-top:7px;color:#fff}
+.stim{color:#fff;font-size:10px;line-height:1.4;margin:4px 0 8px}
+.stim .tag{font-size:9px;font-weight:400;color:#fff;white-space:nowrap}
+.cq{flex:1;display:flex;flex-direction:column;gap:5px;min-width:0}
+.cqcol{flex:1;display:flex;flex-direction:column;gap:0;min-width:0}
+.cqrow{display:flex;gap:8px;font-size:11px;line-height:1.35;color:#ffd700;text-align:left}
+.cqrow b{color:#ffd700}
+.ansrow{font-size:14px;line-height:1.5;color:#ffd700;padding:3px 0}
+.ansrow b{color:#ffd700}
+/* white theme slides */
+.slides.light .slide{background:#fff;color:#111}
+.slides.light .logo .p{color:#111}
+.slides.light .logo .c{color:#666}
+.slides.light .top .right{color:#111}
+.slides.light .q{color:#8a6d00}
+.slides.light .q .tag{color:#111}
+.slides.light .title{color:#8a6d00}
+.slides.light .sub{color:#111}
+.slides.light .stim{color:#111}
+.slides.light .cqrow{color:#8a6d00}
+.slides.light .ansrow{color:#8a6d00}
+.slides.light .foot{color:#666}
+.slides.light .opt{background:#fff3d6;border:1px solid #d8c27a}
+@media (max-width:700px){
+ .logo .a{font-size:14px}.logo .p{font-size:8px}.logo .c{font-size:5px}
+ .top .mid span{font-size:12px;padding:2px 12px}
+ .top .right{font-size:10px}
+ .body{padding:4px 12px 6px;gap:12px}
+ .q{font-size:11px}.q .tag{font-size:9px}
+ .opts{gap:4px}.opt{font-size:10px;padding:4px 8px}
+ .foot{padding:4px 12px;font-size:9px}
+ .title{font-size:20px}.sub{font-size:13px}
+ .stim{font-size:9px}.cqrow{font-size:10px}
+}
+@media print{
+ @page{size:13.33in 7.5in landscape;margin:0}
+ body{background:#fff}
+ header,main>.card,.toolbar,.fab,#view-home,#view-create,#view-settings{display:none !important}
+ #view-render{display:block !important}
+ .slides{gap:0}
+ .slide{max-width:none;width:13.33in;height:7.5in;border-radius:0;box-shadow:none;page-break-after:always;break-after:page}
+}
+</style>
+</head>
+<body>
+<header><div><b>Q_Banan</b><br><span>প্রশ্ন-উত্তর স্লাইড মেকার • ARK টেমপ্লেট</span></div><button class="btn-w" id="btnSettings" type="button">সেটিংস</button></header>
+<main>
+<!-- HOME -->
+<section id="view-home">
+  <h1>আমার প্রজেক্ট</h1>
+  <p class="note">টেক্সট বসিয়ে Run দিলেই ARK টেমপ্লেটে স্লাইড বানাবে — MCQ এক পেজে, সৃজনশীল আলাদা আলাদা স্লাইডে। PDF আর PPTX — দুটোই ফ্রি, অফলাইনে চলে।</p>
+  <div id="projList"></div>
+  <div id="selBar" class="hidden" style="margin:8px 0"><button class="btn-danger" id="btnDelSel" type="button">সিলেক্ট করা ডিলিট করো (<span id="selCount">0</span>টি)</button></div>
+  <p id="noProj" class="note">এখনো কোনো প্রজেক্ট নেই — নিচের + চাপো।</p>
+</section>
+<button class="fab" id="btnNew" type="button" title="Create New">+</button>
+
+<!-- CREATE -->
+<section id="view-create" class="hidden">
+  <button class="btn-w" id="btnBackHome" type="button">← ফিরে যাও</button>
+  <h1>Create New</h1>
+  <div class="card">
+    <label>১. কী তৈরি করবে?</label>
+    <div class="radio-row">
+      <label><input type="radio" name="kind" value="question" checked> প্রশ্ন</label>
+      <label><input type="radio" name="kind" value="answer"> উত্তরপত্র (Answer Sheet)</label>
+    </div>
+    <label>২. কোন ধরন?</label>
+    <div class="radio-row">
+      <label><input type="radio" name="qtype" value="MCQ" checked> বহুনির্বাচনী (MCQ)</label>
+      <label><input type="radio" name="qtype" value="CQ"> সৃজনশীল (CQ)</label>
+    </div>
+    <label>ফাইলের / প্রজেক্টের নাম</label>
+    <input type="text" id="inName" placeholder="যেমন: Physics Ch 11 MCQ">
+    <label>বিষয়</label>
+    <input type="text" id="inSubject" placeholder="যেমন: পদার্থবিজ্ঞান">
+    <label>অধ্যায়</label>
+    <input type="text" id="inChapter" placeholder="যেমন: অধ্যায় ১১: চল বিদ্যুৎ">
+    <label>অ্যাকসেন্ট রং (হলুদ ডিফল্ট)</label>
+    <input type="color" id="inAccent" value="#ffd700" style="height:44px;padding:4px">
+    <label>থিম</label>
+    <div class="radio-row">
+      <label><input type="radio" name="theme" value="dark" checked> কালো</label>
+      <label><input type="radio" name="theme" value="light"> সাদা</label>
+    </div>
+    <label>স্পেশাল টেক্সট (TOM-এর দেওয়া)</label>
+    <textarea id="inText" placeholder="TITLE: ...&#10;TYPE: MCQ&#10;1. প্রশ্ন? | অপশন ১ | অপশন ২ | অপশন ৩ | অপশন ৪"></textarea>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <button class="btn-w" id="btnSample" type="button">নমুনা টেক্সট বসাও</button>
+      <button class="btn-y" id="btnRun" type="button">Run / তৈরি করো ▶</button>
+    </div>
+    <div id="parseErr" class="err hidden" style="margin-top:10px"></div>
+  </div>
+  <div class="card">
+    <h2>ফরম্যাট কেমন হবে?</h2>
+    <p class="note" style="font-size:13px">MCQ: <b>1. প্রশ্ন? | অপশন ১ | অপশন ২ | অপশন ৩ | অপশন ৪</b><br>
+    CQ: <b>1. উদ্দীপক...</b> তারপর <b>ক. ... | খ. ... | গ. ... | ঘ. ...</b> (এক লাইনে বা আলাদা আলাদা লাইনে)<br>
+    উত্তরপত্র: <b>1. ক</b> বা <b>1. অ্যাম্পিয়ার</b></p>
+  </div>
+</section>
+
+<!-- SETTINGS -->
+<section id="view-settings" class="hidden">
+  <button class="btn-w" id="btnBackHome2" type="button">← ফিরে যাও</button>
+  <h1>সেটিংস</h1>
+  <div class="card">
+    <label>ডিফল্ট অ্যাকসেন্ট রং</label>
+    <input type="color" id="setAccent" value="#ffd700" style="height:44px;padding:4px">
+    <label>ডিফল্ট থিম</label>
+    <div class="radio-row">
+      <label><input type="radio" name="setTheme" value="dark" checked> কালো</label>
+      <label><input type="radio" name="setTheme" value="light"> সাদা</label>
+    </div>
+    <button class="btn-y" id="btnSaveSettings" type="button" style="margin-top:12px">সেভ করো</button>
+    <p id="setSaved" class="note hidden" style="margin-top:10px">সেভ হয়েছে।</p>
+  </div>
+</section>
+
+<!-- RENDER -->
+<section id="view-render" class="hidden">
+  <div class="toolbar card" style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn-w" id="btnBackRender" type="button">← ফিরে যাও</button>
+    <button class="btn-y" id="btnPdf" type="button">PDF এক্সপোর্ট</button>
+    <button class="btn-d" id="btnPptx" type="button">PPTX এক্সপোর্ট</button>
+    <button class="btn-w" id="btnSaveProj" type="button">প্রজেক্ট সেভ করো</button>
+    <span id="slideCount" style="align-self:center;font-size:14px"></span>
+  </div>
+  <div id="slides" class="slides"></div>
+</section>
+</main>
+<script src="pptxgen.bundle.js"></script>
+<script>
+"use strict";
+/* ---------- helpers ---------- */
+var BN = {"0":"০","1":"১","2":"২","3":"৩","4":"৪","5":"৫","6":"৬","7":"৭","8":"৮","9":"৯"};
+function bn(n){ return String(n).split("").map(function(c){ return BN[c] || c; }).join(""); }
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function getSettings(){ try{ return JSON.parse(localStorage.getItem("qbanan_settings")||"{}"); }catch(e){ return {}; } }
+function saveSettings(s){ localStorage.setItem("qbanan_settings", JSON.stringify(s)); }
+function getProjects(){ try{ return JSON.parse(localStorage.getItem("qbanan_projects")||"[]"); }catch(e){ return []; } }
+function saveProjects(p){ localStorage.setItem("qbanan_projects", JSON.stringify(p)); }
+function show(id){ ["view-home","view-create","view-render","view-settings"].forEach(function(v){ $(v).classList.toggle("hidden", v!==id); }); $("btnNew").classList.toggle("hidden", id!=="view-home"); window.scrollTo(0,0); }
+
+/* ---------- parser ---------- */
+function parseSpecialText(text){
+  var rawLines = text.split(/\r?\n/);
+  var title = "", type = "", items = [], errors = [];
+  var i, line, m, cur = null;
+  for (i=0;i<rawLines.length;i++){
+    var ln = i+1;
+    line = rawLines[i].trim();
+    if (!line) continue;
+    m = line.match(/^(?:TITLE|শিরোনাম)\s*:\s*(.+)$/i);
+    if (m){ title = m[1].trim(); continue; }
+    m = line.match(/^(?:TYPE|ধরন)\s*:\s*(.+)$/i);
+    if (m){ var t = m[1].trim().toUpperCase(); if (/MCQ/.test(t)) type="MCQ"; else if (/CQ|সৃজনশীল/.test(t)) type="CQ"; else if (/ANS|ANSWER|উত্তর/.test(t)) type="ANS"; else type = m[1].trim(); continue; }
+    // MCQ / stimulus / answer numbered line
+    m = line.match(/^(\d+)[\.\)]\s*(.+)$/);
+    if (m){
+      var num = parseInt(m[1],10), rest = m[2].trim();
+      if (type==="ANS" || (!type && /^[কখগঘ]\s*$/.test(rest))){
+        items.push({num:num, ans:rest}); cur=null; continue;
+      }
+      if (type==="CQ" || (!type && cur && cur.subs)){
+        cur = {num:num, stimulus:rest, subs:[]};
+        items.push(cur); continue;
+      }
+      // MCQ line: question | opt1 | opt2 | opt3 | opt4
+      if (type==="MCQ" || !type){
+        var parts = rest.split("|").map(function(s){ return s.trim(); }).filter(function(s){ return s.length>0; });
+        if (parts.length < 5){
+          errors.push("লাইন "+ln+": MCQ-তে প্রশ্ন + ৪টি অপশন লাগবে (| দিয়ে আলাদা করো) — পাওয়া গেছে "+(parts.length-1)+"টি অপশন।");
+          continue;
+        }
+        items.push({num:num, q:parts[0], opts:parts.slice(1,5)}); cur=null; continue;
+      }
+      // CQ stimulus (type already CQ, handled above) fallback
+      cur = {num:num, stimulus:rest, subs:[]}; items.push(cur); continue;
+    }
+    // CQ sub-question line(s): ক. ... | খ. ... | গ. ... | ঘ. ...
+    var subParts = line.split("|").map(function(s){ return s.trim(); }).filter(function(s){ return s.length>0; });
+    var subs = [];
+    var ok = true;
+    subParts.forEach(function(p){
+      var sm = p.match(/^([কখগঘ])[\.\)]\s*(.+)$/);
+      if (sm) subs.push({k:sm[1], q:sm[2].trim()});
+      else ok = false;
+    });
+    if (subs.length && ok && cur && cur.subs){
+      cur.subs = cur.subs.concat(subs); continue;
+    }
+    // single sub-question line
+    var sm2 = line.match(/^([কখগঘ])[\.\)]\s*(.+)$/);
+    if (sm2 && cur && cur.subs){ cur.subs.push({k:sm2[1], q:sm2[2].trim()}); continue; }
+    errors.push("লাইন "+ln+": এই লাইনটা বোঝা যায়নি — \""+line.slice(0,60)+"\"");
+  }
+  if (!type){
+    if (items.length && items[0].subs !== undefined) type="CQ";
+    else if (items.length && items[0].ans !== undefined) type="ANS";
+    else type="MCQ";
+  }
+  if (type==="CQ"){
+    items.forEach(function(cq){
+      if (!cq.subs || cq.subs.length!==4) errors.push("প্রশ্ন "+cq.num+": সৃজনশীলে ক খ গ ঘ — ৪টি লাগবে, পাওয়া গেছে "+(cq.subs?cq.subs.length:0)+"টি।");
+    });
+  }
+  if (!items.length && !errors.length) errors.push("কোনো প্রশ্ন পাওয়া যায়নি — টেক্সটটা ঠিক আছে কিনা দেখো।");
+  return {title:title, type:type, items:items, errors:errors};
+}
+
+/* ---------- renderer ---------- */
+var current = null; // {kind,qtype,name,subject,chapter,accent,theme,title,type,items}
+function headerHTML(meta, pillText){
+  return '<div class="top"><div class="logo"><div class="a" style="color:'+meta.accent+'">ARK</div><div class="p">PLUS POINT</div><div class="c">COACHING CENTER</div></div>'+
+  '<div class="mid"><span style="background:'+meta.accent+';color:#000">'+esc(pillText)+'</span></div>'+
+  '<div class="right">SSC 2027</div></div>';
+}
+function footerHTML(meta){
+  return '<div class="foot"><span>Khayrul Sir</span><span>'+esc(meta.subject||"")+' • '+esc(meta.chapter||"")+'</span></div>';
+}
+function isBoard(q){ return /\[.*বো\.?\s*\d/.test(q); }
+function tagHTML(q){ return isBoard(q) ? "" : ' <span class="tag">[নমুনা প্রশ্ন]</span>'; }
+
+function renderAll(){
+  var box = $("slides");
+  box.innerHTML = "";
+  box.classList.toggle("light", current.theme==="light");
+  var meta = current;
+  // title slide (title line shown only when it adds something beyond subject+chapter)
+  var t = document.createElement("div");
+  t.className = "slide";
+  var titleLine = (meta.title && meta.title !== (meta.subject||"") && meta.title !== (meta.chapter||"") && meta.title !== ((meta.subject||"")+" "+(meta.chapter||"")).trim()) ? '<div class="sub" style="font-size:13px;color:#cfcfcf">'+esc(meta.title)+'</div>' : "";
+  t.innerHTML = headerHTML(meta, meta.qtype==="CQ" ? "সৃজনশীল প্রশ্ন" : (meta.kind==="answer" ? "উত্তরপত্র" : "বহুনির্বাচনী")) +
+    '<div class="titlewrap"><div class="title" style="color:'+(meta.theme==="light"?"#8a6d00":meta.accent)+'">'+esc(meta.subject||meta.title||"")+'</div>'+
+    '<div class="sub">'+esc(meta.chapter||"")+'</div>'+ titleLine +'</div>' + footerHTML(meta);
+  box.appendChild(t);
+  var count = 1;
+  if (meta.kind==="answer"){
+    var s = document.createElement("div"); s.className="slide";
+    var rows = meta.items.map(function(a){ return '<div class="ansrow"><b>'+bn(a.num)+'.</b> '+esc(a.ans)+'</div>'; }).join("");
+    s.innerHTML = headerHTML(meta, "উত্তরপত্র") + '<div class="body" style="flex-direction:column"><div class="cqcol">'+rows+'</div></div>' + footerHTML(meta);
+    box.appendChild(s); count++;
+  } else if (meta.type==="MCQ"){
+    meta.items.forEach(function(it){
+      var s = document.createElement("div"); s.className="slide";
+      var opts = it.opts.map(function(o,idx){ return '<div class="opt"><b>'+["ক","খ","গ","ঘ"][idx]+'</b> '+esc(o)+'</div>'; }).join("");
+      s.innerHTML = headerHTML(meta, "বহুনির্বাচনী") +
+        '<div class="body"><div class="qwrap"><div class="q"><span class="arr">'+bn(it.num)+'.</span> <span class="arr">»</span> '+esc(it.q)+tagHTML(it.q)+'</div></div>'+
+        '<div class="opts">'+opts+'</div></div>' + footerHTML(meta);
+      box.appendChild(s); count++;
+      fitMcq(s);
+    });
+  } else if (meta.type==="CQ"){
+    meta.items.forEach(function(cq){
+      var s = document.createElement("div"); s.className="slide";
+      var body = document.createElement("div"); body.className="body"; body.style.flexDirection="column"; body.style.gap="0";
+      body.innerHTML = '<div class="stim">'+bn(cq.num)+'. '+esc(cq.stimulus)+tagHTML(cq.stimulus)+'</div><div class="cq"></div>';
+      s.innerHTML = headerHTML(meta, "সৃজনশীল প্রশ্ন");
+      s.appendChild(body);
+      s.insertAdjacentHTML("beforeend", footerHTML(meta));
+      box.appendChild(s); count++;
+      var col = body.querySelector(".cq");
+      cq.subs.forEach(function(sub){
+        var row = document.createElement("div"); row.className="cqrow";
+        row.innerHTML = '<span><b>'+sub.k+'.</b> '+esc(sub.q)+'</span>';
+        col.appendChild(row);
+        // overflow -> move to a fresh slide for THIS CQ only (never mix CQs)
+        if (s.scrollHeight > s.clientHeight + 2){
+          col.removeChild(row);
+          s = document.createElement("div"); s.className="slide";
+          var b2 = document.createElement("div"); b2.className="body"; b2.style.flexDirection="column"; b2.style.gap="0";
+          b2.innerHTML = '<div class="cq"></div>';
+          s.innerHTML = headerHTML(meta, "সৃজনশীল প্রশ্ন");
+          s.appendChild(b2);
+          s.insertAdjacentHTML("beforeend", footerHTML(meta));
+          box.appendChild(s); count++;
+          col = b2.querySelector(".cq");
+          col.appendChild(row);
+        }
+      });
+    });
+  }
+  $("slideCount").textContent = "মোট স্লাইড: " + count;
+}
+function fitMcq(slide){
+  // auto-shrink MCQ until it fits ONE slide, never overflow.
+  // Start from the template's own computed sizes (16px desktop / 11px phone),
+  // so a short question never renders bigger than the locked template.
+  var q = slide.querySelector(".q"), opts = slide.querySelectorAll(".opt");
+  var qSize = q ? parseFloat(getComputedStyle(q).fontSize) : 16;
+  var oSize = opts.length ? parseFloat(getComputedStyle(opts[0]).fontSize) : 11, guard = 0;
+  while (slide.scrollHeight > slide.clientHeight + 2 && qSize > 9 && guard < 12){
+    qSize -= 1; oSize -= 1; guard++;
+    if (q) q.style.fontSize = qSize + "px";
+    opts.forEach(function(o){ o.style.fontSize = Math.max(8,oSize) + "px"; });
+  }
+}
+
+/* ---------- export: PDF ---------- */
+$("btnPdf").addEventListener("click", function(){ document.title = current.name || "Q_Banan"; window.print(); });
+
+/* ---------- export: PPTX (real editable text) ---------- */
+$("btnPptx").addEventListener("click", function(){
+  if (typeof PptxGenJS === "undefined"){ alert("PPTX লাইব্রেরি লোড হয়নি — অফলাইনে ফাইলটা আছে কিনা দেখো (pptxgen.bundle.js)।"); return; }
+  var pptx = new PptxGenJS();
+  pptx.defineLayout({ name:"W", width:13.33, height:7.5 });
+  pptx.layout = "W";
+  var dark = current.theme !== "light";
+  var bg = dark ? "222222" : "FFFFFF";
+  var txt = dark ? "FFFFFF" : "111111";
+  var qCol = dark ? current.accent.replace("#","") : "8A6D00";
+  var acc = current.accent.replace("#","");
+  function addHeader(slide, pill){
+    slide.background = { color: bg };
+    slide.addText("ARK", { x:0.4, y:0.25, w:2.2, h:0.5, fontSize:20, bold:true, color:qCol, fontFace:"Arial Black" });
+    slide.addText("PLUS POINT", { x:0.4, y:0.75, w:2.2, h:0.3, fontSize:10, bold:true, color:txt });
+    slide.addText("COACHING CENTER", { x:0.4, y:1.0, w:2.2, h:0.25, fontSize:7, color: dark?"CFCFCF":"666666" });
+    slide.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:5.4, y:0.25, w:2.5, h:0.5, fill:{color:acc}, line:{color:acc} });
+    slide.addText(pill, { x:5.4, y:0.25, w:2.5, h:0.5, fontSize:14, bold:true, color:"000000", align:"center", valign:"middle" });
+    slide.addText("SSC 2027", { x:11.4, y:0.3, w:1.5, h:0.4, fontSize:12, bold:true, color:txt, align:"right" });
+    slide.addText("Khayrul Sir", { x:0.4, y:7.05, w:3, h:0.3, fontSize:9, color: dark?"CFCFCF":"666666" });
+    slide.addText((current.subject||"")+" • "+(current.chapter||""), { x:8.5, y:7.05, w:4.4, h:0.3, fontSize:9, color: dark?"CFCFCF":"666666", align:"right" });
+  }
+  var s0 = pptx.addSlide(); addHeader(s0, current.qtype==="CQ"?"সৃজনশীল প্রশ্ন":"বহুনির্বাচনী");
+  s0.addText(current.subject||current.title||"", { x:0.6, y:2.6, w:12, h:1, fontSize:28, bold:true, color:qCol });
+  s0.addText(current.chapter||"", { x:0.6, y:3.6, w:12, h:0.6, fontSize:16, color:txt });
+  if (current.kind==="answer"){
+    var s = pptx.addSlide(); addHeader(s, "উত্তরপত্র");
+    var lines = current.items.map(function(a){ return bn(a.num)+". "+a.ans; });
+    s.addText(lines.join("\n"), { x:0.6, y:1.6, w:12, h:5, fontSize:14, color:qCol, valign:"top" });
+  } else if (current.type==="MCQ"){
+    current.items.forEach(function(it){
+      var s = pptx.addSlide(); addHeader(s, "বহুনির্বাচনী");
+      s.addText(bn(it.num)+". » "+it.q + (isBoard(it.q)?"":" [নমুনা প্রশ্ন]"), { x:0.6, y:1.5, w:7.2, h:2.6, fontSize:16, bold:true, color:qCol, valign:"top" });
+      it.opts.forEach(function(o,idx){
+        var y = 1.6 + idx*0.85;
+        s.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:8.4, y:y, w:4.3, h:0.65, fill:{color:"FFF3D6"}, line:{color:"D8C27A"} });
+        s.addText(["ক","খ","গ","ঘ"][idx]+"  "+o, { x:8.6, y:y, w:4.0, h:0.65, fontSize:12, color:"111111", valign:"middle" });
+      });
+    });
+  } else {
+    current.items.forEach(function(cq){
+      var s = pptx.addSlide(); addHeader(s, "সৃজনশীল প্রশ্ন");
+      s.addText(bn(cq.num)+". "+cq.stimulus + (isBoard(cq.stimulus)?"":" [নমুনা প্রশ্ন]"), { x:0.6, y:1.5, w:12, h:1.6, fontSize:12, color:txt, valign:"top" });
+      var lines = cq.subs.map(function(sub){ return sub.k+". "+sub.q; });
+      s.addText(lines.join("\n"), { x:0.6, y:3.2, w:12, h:3.6, fontSize:13, bold:true, color:qCol, valign:"top" });
+    });
+  }
+  pptx.writeFile({ fileName: (current.name||"Q_Banan") + ".pptx" });
+});
+
+/* ---------- create flow ---------- */
+function selected(name){ var r = document.querySelector('input[name="'+name+'"]:checked'); return r ? r.value : null; }
+$("btnNew").addEventListener("click", function(){
+  var st = getSettings();
+  if (st.accent) $("inAccent").value = st.accent;
+  show("view-create");
+});
+$("btnBackHome").addEventListener("click", function(){ show("view-home"); });
+$("btnBackHome2").addEventListener("click", function(){ show("view-home"); });
+$("btnBackRender").addEventListener("click", function(){ show("view-home"); });
+$("btnSettings").addEventListener("click", function(){
+  var st = getSettings();
+  if (st.accent) $("setAccent").value = st.accent;
+  if (st.theme){ var r = document.querySelector('input[name="setTheme"][value="'+st.theme+'"]'); if (r) r.checked = true; }
+  show("view-settings");
+});
+$("btnSaveSettings").addEventListener("click", function(){
+  saveSettings({ accent: $("setAccent").value, theme: selected("setTheme") });
+  $("setSaved").classList.remove("hidden");
+});
+$("btnSample").addEventListener("click", function(){
+  $("inText").value = "TITLE: পদার্থবিজ্ঞান অধ্যায় ১১: চল বিদ্যুৎ\nTYPE: MCQ\n1. কোনটি তড়িৎ প্রবাহের একক? | অ্যাম্পিয়ার | ভোল্ট | ওয়াট | জুল\n2. কোনো পরিবাহীর প্রস্থচ্ছেদ দিয়ে 6 s-এ 54 C আধান প্রবাহিত হলে, তড়িৎ প্রবাহ কত? | 6 A | 9 A | 12 A | 54 A";
+});
+$("btnRun").addEventListener("click", function(){
+  var parsed = parseSpecialText($("inText").value);
+  var errBox = $("parseErr");
+  if (parsed.errors.length){
+    errBox.classList.remove("hidden");
+    errBox.innerHTML = "<b>টেক্সটে সমস্যা আছে — কোনো প্রশ্ন বাদ দেওয়া হয়নি:</b><br>" + parsed.errors.map(esc).join("<br>");
+    return;
+  }
+  errBox.classList.add("hidden");
+  current = {
+    kind: selected("kind"), qtype: selected("qtype"),
+    name: $("inName").value.trim() || "Q_Banan",
+    subject: $("inSubject").value.trim(), chapter: $("inChapter").value.trim(),
+    accent: $("inAccent").value, theme: selected("theme"),
+    title: parsed.title, type: selected("kind")==="answer" ? "ANS" : parsed.type,
+    items: parsed.items
+  };
+  if (current.kind==="answer") current.type = "ANS";
+  show("view-render");
+  requestAnimationFrame(function(){ renderAll(); });
+});
+$("btnSaveProj").addEventListener("click", function(){
+  if (!current) return;
+  var ps = getProjects();
+  ps.push({ id: Date.now(), name: current.name, kind: current.kind, qtype: current.qtype,
+    subject: current.subject, chapter: current.chapter, accent: current.accent, theme: current.theme,
+    text: $("inText").value, date: new Date().toLocaleDateString("bn-BD") });
+  saveProjects(ps); renderHome(); alert("সেভ হয়েছে।");
+});
+var selectedIds = new Set();
+function updateSelBar(){
+  $("selCount").textContent = selectedIds.size;
+  $("selBar").classList.toggle("hidden", selectedIds.size===0);
+}
+$("btnDelSel").addEventListener("click", function(){
+  if (!selectedIds.size) return;
+  if (!confirm(selectedIds.size+"টি প্রজেক্ট ডিলিট করবে?")) return;
+  saveProjects(getProjects().filter(function(x){ return !selectedIds.has(x.id); }));
+  selectedIds.clear(); renderHome();
+});
+function renderHome(){
+  var ps = getProjects();
+  var box = $("projList"); box.innerHTML = "";
+  $("noProj").classList.toggle("hidden", ps.length>0);
+  ps.forEach(function(p){
+    var d = document.createElement("div"); d.className="proj";
+    d.innerHTML = '<div style="flex:1;min-width:0"><b>'+esc(p.name)+'</b><small>'+esc(p.kind==="answer"?"উত্তরপত্র":(p.qtype==="CQ"?"সৃজনশীল":"বহুনির্বাচনী"))+' • '+esc(p.date||"")+'</small></div>';
+    var chk = document.createElement("input"); chk.type="checkbox"; chk.style.cssText="width:20px;height:20px;accent-color:#b8860b;flex:none";
+    chk.checked = selectedIds.has(p.id);
+    chk.onchange = function(){ if (chk.checked) selectedIds.add(p.id); else selectedIds.delete(p.id); updateSelBar(); };
+    d.insertBefore(chk, d.firstChild);
+    var acts = document.createElement("div"); acts.className="acts";
+    var bE = document.createElement("button"); bE.className="btn-w"; bE.textContent="Edit";
+    bE.onclick = function(){ $("inName").value=p.name; $("inSubject").value=p.subject||""; $("inChapter").value=p.chapter||""; $("inAccent").value=p.accent||"#ffd700"; $("inText").value=p.text||""; show("view-create"); };
+    var bD = document.createElement("button"); bD.className="btn-w"; bD.textContent="Duplicate";
+    bD.onclick = function(){ var c = Object.assign({}, p, {id:Date.now(), name:p.name+" (কপি)"}); var all=getProjects(); all.push(c); saveProjects(all); renderHome(); };
+    var bX = document.createElement("button"); bX.className="btn-danger"; bX.textContent="Delete";
+    bX.onclick = function(){ if (confirm("ডিলিট করবে?")){ saveProjects(getProjects().filter(function(x){ return x.id!==p.id; })); renderHome(); } };
+    acts.appendChild(bE); acts.appendChild(bD); acts.appendChild(bX);
+    d.appendChild(acts); box.appendChild(d);
+  });
+  updateSelBar();
+}
+renderHome();
+if ("serviceWorker" in navigator){ window.addEventListener("load", function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); }); }
+</script>
+</body>
+</html>
