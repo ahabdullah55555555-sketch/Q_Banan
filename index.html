@@ -753,7 +753,7 @@ body.app-dark .sw.on{border-color:#fff}
 /* App version — the ONE version string shown to the user (Home + Settings).
    The service worker cache is "qbanan-" + this version (same literal in
    sw.js) — bump both together on every release. */
-var APP_VERSION = "2.8";
+var APP_VERSION = "2.9";
 /* ---------- helpers ---------- */
 var BN = {"0":"০","1":"১","2":"২","3":"৩","4":"৪","5":"৫","6":"৬","7":"৭","8":"৮","9":"৯"};
 function bn(n){ return String(n).split("").map(function(c){ return BN[c] || c; }).join(""); }
@@ -2332,7 +2332,19 @@ function buildPdfClone(src, stage){
   for (var n=0;n<clNodes.length;n++){
     var cs = getComputedStyle(clNodes[n]);
     var vals = {};
-    for (var p=0;p<PROPS.length;p++) vals[PROPS[p]] = scalePxList(cs[PROPS[p]], K);
+    // v2.9 (Bug A): SVG text sizes are in SVG user units, NOT CSS px — the
+    // figure's display scale (sr.width/viewBox.width) already grows them in
+    // the 960-wide clone, and vecDrawSvgAt multiplies by that scale again.
+    // Scaling fontSize/letterSpacing/lineHeight by K here double-counts
+    // (K≈2.9x on a phone), so figure labels came out ~3x too big in the
+    // PDF while the shapes (PNG) were exactly right. Skip those three
+    // props for SVG-namespace elements; maxHeight still scales (it sizes
+    // the figure itself).
+    var _inSvg = clNodes[n].namespaceURI === "http://www.w3.org/2000/svg";
+    for (var p=0;p<PROPS.length;p++){
+      if (_inSvg && (PROPS[p]==="fontSize" || PROPS[p]==="letterSpacing" || PROPS[p]==="lineHeight")) continue;
+      vals[PROPS[p]] = scalePxList(cs[PROPS[p]], K);
+    }
     comp.push(vals);
   }
   for (var n2=0;n2<clNodes.length;n2++){
@@ -2350,6 +2362,21 @@ function buildPdfClone(src, stage){
     var _oh = parseFloat(getComputedStyle(_osvgs[_oi]).height) || 0;
     if (_oh > 0) _osvgs[_oi].style.height = (_oh * K) + "px";
   }
+  // v2.9 (Bug A): freeze each question figure at its exact preview geometry
+  // (×K). The clone's flex column can squeeze the figure — its min-height
+  // is the unscaled phone value, so the PDF figure height drifted from the
+  // preview (CQ: 176px vs 217px at 960 scale). Width/height come from the
+  // SOURCE slide's measured rect, so the PDF figure matches the preview
+  // exactly, including fitFig's floor.
+  var _srcFigs = src.querySelectorAll(".fig svg");
+  var _clFigs = clone.querySelectorAll(".fig svg");
+  for (var _fi=0; _fi<_clFigs.length && _fi<_srcFigs.length; _fi++){
+    var _fr = _srcFigs[_fi].getBoundingClientRect();
+    if (_fr.width > 0){
+      _clFigs[_fi].style.width = (_fr.width * K) + "px";
+      _clFigs[_fi].style.height = (_fr.height * K) + "px";
+    }
+  }
   clone.style.borderRadius = "0"; // after scaling: the slide itself stays square in the PDF
   // HARDENING (the yellow-PDF bug): the clone carries the PROJECT accent as
   // its own inline vars, so export can never fall back to the app-level
@@ -2364,7 +2391,7 @@ function buildPdfClone(src, stage){
 }
 
 /* --- vector text engine (HarfBuzz shaping + glyph outlines) --- */
-var VEC = { inited:false, initPromise:null, fonts:null, glyphCache:{}, covCache:{} };
+var VEC = { inited:false, initPromise:null, fonts:null, glyphCache:{}, covCache:{}, shapeCache:{} };
 /* hhea/typo ascent+descent in font units (upm 1000). A word Range rect is
    the font's em box, so the baseline is rect top + ascent (no half-leading). */
 /* Baseline metrics per family (asc/desc per 1000 upm) — the vector PDF
@@ -2458,11 +2485,26 @@ function vecCovers(fontKey, ch){
    and spliced in. Returns [{f:fontKey, g:gid, a:advance, xo:xOff, yo:yOff}]
    in font units, in drawing order. */
 function vecShape(text, primaryKey){
+  // v2.9 (Bug B): cache shaped words — a deck repeats the same words on
+  // many slides (বন্ধন, আয়নিক, সৃজনশীল, option words...), and re-shaping
+  // each one (new HB buffer + shape call per word) was pure repeat work.
+  // The glyph array is only read by vecDrawGlyphs, never mutated, so the
+  // cached array is safe to reuse.
+  var _ck = primaryKey + "\u0000" + text;
+  var _hit = VEC.shapeCache[_ck];
+  if (_hit) return _hit;
   var runs = [], cur = null;
   for (var ci=0; ci<text.length; ){
     var cp = text.codePointAt(ci);
     var ch = String.fromCodePoint(cp);
-    var key = (ch===" " || vecCovers(primaryKey, ch)) ? primaryKey : "fb";
+    // v2.9 (Bug A): the old "fb" fallback (a 7KB DejaVu subset in
+    // vec-fonts.js) is broken — HarfBuzz shapes EVERY char to .notdef with
+    // it, so any text that fell back to it vanished from the PDF (English
+    // titles, the "PLUS POINT"/"COACHING CENTER" logo lines — only A/R
+    // survived, from the ARK-only "ark" face). Hind Siliguri covers Latin
+    // + Bengali, so it is the safe fallback; nothing that rendered before
+    // can disappear, since fb rendered nothing.
+    var key = (ch===" " || vecCovers(primaryKey, ch)) ? primaryKey : "reg";
     if (!cur || cur.f!==key){ cur={f:key, t:""}; runs.push(cur); }
     cur.t += ch;
     ci += ch.length;
@@ -2474,6 +2516,7 @@ function vecShape(text, primaryKey){
     var infos=b.getGlyphInfos(), pos=b.getGlyphPositions();
     for (var i=0;i<infos.length;i++) out.push({f:runs[r].f, g:infos[i].codepoint, a:pos[i].xAdvance, xo:pos[i].xOffset, yo:pos[i].yOffset});
   }
+  VEC.shapeCache[_ck] = out;
   return out;
 }
 /* Parse a HarfBuzz SVG glyph path (M/L/Q/C/Z, font units, y-up) into segments,
@@ -2559,14 +2602,19 @@ function vecTextLines(el, slideRect){
     }
   }
   walk(el, el);
+  // v2.9 (Bug B): one shared Range + one computed style per element — the
+  // old code created a Range AND called getComputedStyle for every word,
+  // but all words in an element share the same style.
+  var _range = document.createRange();
+  var _styleCache = new Map();
+  function _cs(elm){ var s = _styleCache.get(elm); if (!s){ s = getComputedStyle(elm); _styleCache.set(elm, s); } return s; }
   var lines = [], cur = null;
   words.forEach(function(w){
-    var range = document.createRange();
-    range.setStart(w.node, w.start); range.setEnd(w.node, w.end);
-    var rects = range.getClientRects();
+    _range.setStart(w.node, w.start); _range.setEnd(w.node, w.end);
+    var rects = _range.getClientRects();
     if (!rects.length) return;
     var r = rects[0];
-    var st = getComputedStyle(w.el);
+    var st = _cs(w.el);
     var fs = parseFloat(st.fontSize);
     // Which font did the browser actually use for THIS word? The stack's
     // first family covers Bengali (unicode-range), the second covers Latin
@@ -2641,6 +2689,15 @@ async function vecDrawSvgAt(doc, pageH, ox, oy, k, svgEl, sRect, bgCss){
   var vb = svgEl.viewBox && svgEl.viewBox.baseVal;
   if (!vb || !vb.width || !vb.height) return;
   var sx = sr.width / vb.width, sy = sr.height / vb.height;
+  // v2.9 (Bug A): the figure uses preserveAspectRatio="meet", so when the
+  // display aspect differs from the viewBox (a floored CQ figure is much
+  // wider than its viewBox) the SHAPES letterbox inside the PNG — but the
+  // text positions above used the full-box sx/sy, so labels landed far
+  // from their shapes (Na/Cl outside their circles). Use the same meet
+  // transform for the text: one content scale + centred offsets. When the
+  // aspects match (the common case) this is identical to sx/sy.
+  var _cs2 = Math.min(sx, sy);
+  var _ox2 = (sr.width - vb.width * _cs2) / 2, _oy2 = (sr.height - vb.height * _cs2) / 2;
   svgEl.querySelectorAll("text").forEach(function(t){
     if (t.querySelector("tspan")) return;
     var txt = (t.textContent||"").trim();
@@ -2653,9 +2710,9 @@ async function vecDrawSvgAt(doc, pageH, ox, oy, k, svgEl, sRect, bgCss){
     // The SVG text's y attribute IS its baseline; fall back to the bbox.
     var yAttr = parseFloat(t.getAttribute("y"));
     var baseUser = isNaN(yAttr) ? (bb.y + bb.height*0.85) : yAttr;
-    var xPt = ox + (rx + bb.x*sx)*k;
-    var basePt = oy + (ry + baseUser*sy)*k;
-    var fsPt = fsAttr * sx * k;
+    var xPt = ox + (rx + _ox2 + bb.x*_cs2)*k;
+    var basePt = oy + (ry + _oy2 + baseUser*_cs2)*k;
+    var fsPt = fsAttr * _cs2 * k;
     var fill = cs.fill && cs.fill !== "none" ? cs.fill : "#000000";
     if (fill === "currentColor") fill = cs.color || "#000000";
     try {
@@ -2743,7 +2800,15 @@ async function exportPdfVector(){
   try {
     for (var i=0;i<els.length;i++){
       var clone = buildPdfClone(els[i], stage);
-      await new Promise(function(r){ requestAnimationFrame(function(){ requestAnimationFrame(r); }); });
+      // v2.9 (Bug B): yield to the event loop so the "PDF বানানো হচ্ছে…"
+      // button paints — a plain setTimeout(0), NOT a double
+      // requestAnimationFrame. The old double-rAF cost ~33ms per slide in
+      // the foreground and stalls for seconds per slide when the tab is
+      // backgrounded (rAF stops firing), which alone could stretch an
+      // 18-slide export toward a minute on a phone. Layout is forced
+      // synchronously by getBoundingClientRect/getComputedStyle, so no
+      // frame wait is needed for correctness.
+      await new Promise(function(r){ setTimeout(r, 0); });
       if (i>0) pdf.addPage([PW, PH], "landscape");
       await vecDrawSlide(pdf, pageH, ox, oy, k, clone);
       stage.removeChild(clone);
@@ -2769,7 +2834,9 @@ async function exportPdfRaster(){
   try {
     for (var i=0;i<els.length;i++){
       var clone = buildPdfClone(els[i], stage);
-      await new Promise(function(r){ requestAnimationFrame(function(){ requestAnimationFrame(r); }); });
+      // v2.9 (Bug B): setTimeout(0) yield instead of double-rAF — same
+      // reason as the vector path (rAF stalls when the tab is backgrounded).
+      await new Promise(function(r){ setTimeout(r, 0); });
       // html2canvas handles inline SVG unreliably — swap every diagram
       // (question figures AND option diagrams) for its 3x PNG first
       // (keeps the labels, since this is the raster path). Each PNG is
