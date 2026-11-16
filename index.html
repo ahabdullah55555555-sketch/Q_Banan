@@ -120,7 +120,7 @@ textarea{min-height:220px;line-height:1.6}
 .q sup, .opt sup, .stim sup, .cqrow sup, .ansrow sup, .title sup, .sub sup{font-size:.68em;line-height:0;vertical-align:super}
 .q sub, .opt sub, .stim sub, .cqrow sub, .ansrow sub, .title sub, .sub sub{font-size:.68em;line-height:0;vertical-align:sub}
 .msqrt{white-space:nowrap}
-.msqrt .mover{border-top:.09em solid currentColor;padding:0 .06em;margin-left:.03em}
+.msqrt .mover{display:inline-block;vertical-align:middle;border-top:.09em solid currentColor;padding:.14em .06em 0;margin-left:.03em}
 .mfrac{display:inline-block;vertical-align:middle;text-align:center;line-height:1.15;margin:0 .12em}
 .mfrac .mnum, .mfrac .mden{display:block;font-size:.82em;padding:0 .18em;line-height:1.15}
 .mfrac .mbar{display:block;border-top:.09em solid currentColor;height:0}
@@ -224,6 +224,10 @@ textarea{min-height:220px;line-height:1.6}
 .slides.light .slide.l4 .titlewrap{background:#f2f2f2;border-color:#ddd}
 /* Diagram / figure inside a question (SVG: marker in the special text) */
 .fig{display:flex;justify-content:center;margin:6px 0;min-height:0}
+/* v3.3 photos: book-page photos, same figure treatment as SVG diagrams. */
+.pfig{display:flex;justify-content:center;margin:6px 0;min-height:0}
+.pfig img{max-width:100%;display:block;border-radius:6px}
+.opt .optfig img{height:calc(var(--szf,.78)*30px);width:auto;max-width:100%;display:block;border-radius:4px}
 .fig svg{max-width:100%;display:block}
 /* MCQ solution slide: the SAME slide repeated right after the question,
    only the correct option is green. */
@@ -785,6 +789,8 @@ body.app-dark .sw.on{border-color:#fff}
     <label for="selTheme" style="align-self:center;font-size:14px;margin:0">থিম:</label>
     <select id="selTheme" style="width:auto;max-width:190px;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-family:inherit;font-size:14px"></select>
   </div>
+  <div id="photoBar" class="card hidden" style="margin:10px 0;padding:10px 12px"></div>
+  <input type="file" id="photoFile" accept="image/*" class="hidden">
   <div id="slides" class="slides"></div>
 </section>
 <!-- v3.0 sheets: theme picker grid + font picker (both bottom sheets). -->
@@ -814,7 +820,7 @@ body.app-dark .sw.on{border-color:#fff}
 /* App version — the ONE version string shown to the user (Home + Settings).
    The service worker cache is "qbanan-" + this version (same literal in
    sw.js) — bump both together on every release. */
-var APP_VERSION = "3.2";
+var APP_VERSION = "3.3";
 /* ---------- helpers ---------- */
 var BN = {"0":"০","1":"১","2":"২","3":"৩","4":"৪","5":"৫","6":"৬","7":"৭","8":"৮","9":"৯"};
 function bn(n){ return String(n).split("").map(function(c){ return BN[c] || c; }).join(""); }
@@ -1630,6 +1636,7 @@ function clearCreateForm(){
   $("parseErr").classList.add("hidden");
   editingId = null;
   current = null;
+  pendingPhotos = {};
   syncLayoutPicker();
 }
 /* ---------- visual layout picker (Excel-style gallery) ----------
@@ -1924,6 +1931,7 @@ function saveDraftSilent(bumpTs){
       footCol: current.footCol || "", tx2Col: current.tx2Col || "", optBdW: current.optBdW || 1,      fonts: current.fonts || getFontDefaults(),
       slideSize: current.slideSize || getSettings().slideSize || "normal",
       layout: (current.layout==null?0:current.layout), showTitle: current.showTitle !== false,
+      photos: current.photos || {},
       text: $("inText").value, date: new Date().toLocaleDateString("bn-BD") };
     current.draftId = upsertDraft(rec);
     return true;
@@ -1946,6 +1954,7 @@ function saveDraftSilent(bumpTs){
     slideSize: selected("slideSize") || getSettings().slideSize || "normal",
     layout: parseInt(selected("layout") || "0", 10) || 0,
     showTitle: $("inTitle") ? $("inTitle").checked : true,
+    photos: pendingPhotos || {},
     text: text, date: new Date().toLocaleDateString("bn-BD") };
   upsertDraft(rec2);
   return true;
@@ -2013,7 +2022,7 @@ function isSvgLine(line){ return /^SVG\s*:/i.test(line); }
 function parseSpecialText(text, force){
   var rawLines = text.split(/\r?\n/);
   var title = "", items = [], errors = [];
-  var i, line, m, cur = null, pendingSvg = null, started = false;
+  var i, line, m, cur = null, pendingSvg = null, pendingPhoto = null, photoSeq = 0, started = false;
   var hint = force || null; // current TYPE: hint (null = auto-detect per block)
   function hasSubsAhead(from){
     for (var j=from;j<rawLines.length;j++){
@@ -2043,6 +2052,18 @@ function parseSpecialText(text, force){
       started = true;
       continue;
     }
+    // Photo line: PHOTO: <caption> — marks the place for a book-page
+    // photo (v3.3). Attaches to the question above it (or the next one),
+    // exactly like SVG:. The photo itself is attached in the app
+    // (gallery/camera); this line only marks the slot.
+    m = line.match(/^PHOTO\s*:\s*(.*)$/i);
+    if (m){
+      var _ph = {id:"ph"+(++photoSeq), caption:m[1].trim()};
+      if (cur) cur.photo = _ph;
+      else pendingPhoto = _ph;
+      started = true;
+      continue;
+    }
     // Numbered line: MCQ / CQ stimulus / answer
     m = line.match(/^([0-9০-৯]+)[\.\)]\s*(.+)$/);
     if (m){
@@ -2062,14 +2083,25 @@ function parseSpecialText(text, force){
         }
         cur = {num:num, t:"MCQ", q:parts[0], opts:parts.slice(1,5)};
         if (pendingSvg){ cur.svg = pendingSvg; pendingSvg = null; }
+        // v3.3 photos: an option that is exactly "PHOTO: <caption>" IS a
+        // photo option — it gets a slot id and empty text (the photo is
+        // attached in the app, not in the text).
+        cur.optPhotos = {};
+        cur.opts.forEach(function(_o, _oi){
+          var _pm = String(_o).match(/^PHOTO\s*:\s*(.*)$/i);
+          if (_pm){ cur.optPhotos[_oi] = {id:"ph"+(++photoSeq), caption:_pm[1].trim()}; cur.opts[_oi] = ""; }
+        });
+        if (pendingPhoto){ cur.photo = pendingPhoto; pendingPhoto = null; }
         items.push(cur);
       } else if (want==="CQ"){
         cur = {num:num, t:"CQ", stimulus:rest, subs:[]};
         if (pendingSvg){ cur.svg = pendingSvg; pendingSvg = null; }
+        if (pendingPhoto){ cur.photo = pendingPhoto; pendingPhoto = null; }
         items.push(cur);
       } else {
         cur = {num:num, t:"ANS", ans:rest};
         if (pendingSvg){ cur.svg = pendingSvg; pendingSvg = null; }
+        if (pendingPhoto){ cur.photo = pendingPhoto; pendingPhoto = null; }
         items.push(cur);
       }
       started = true;
@@ -2095,6 +2127,7 @@ function parseSpecialText(text, force){
     errors.push("লাইন "+ln+": এই লাইনটা বোঝা যায়নি — \""+line.slice(0,60)+"\"");
   }
   if (pendingSvg) errors.push("একটা SVG লাইন কোনো প্রশ্নের সাথে জোড়া লাগেনি — SVG: লাইনটা প্রশ্নের ঠিক পরের লাইনে দাও।");
+  if (pendingPhoto) errors.push("একটা PHOTO: লাইন কোনো প্রশ্নের সাথে জোড়া লাগেনি — PHOTO: লাইনটা প্রশ্নের ঠিক পরের লাইনে দাও।");
   // MCQ solution matching: an answer line whose number matches an MCQ and
   // whose text is a single option letter (ক/খ/গ/ঘ) or exactly one of that
   // MCQ's options marks the MCQ's correct option (item.sol = option index)
@@ -2221,6 +2254,39 @@ function pillFor(t){ return t==="CQ" ? "সৃজনশীল" : t==="ANS" ? "�
 /* Diagram figure: the SVG markup from the special text, with the literal
    word ACCENT replaced by the project accent (ACCENT-DARK = darkened) so
    TOM's diagrams follow the project colour. */
+/* ---------- v3.3 photos: book-page photos in slides ---------- */
+/* A photo is stored in current.photos by slot id: {data, w, h} — data is a
+   JPEG dataURL (downscaled to max 1600px wide on attach, q 0.85), so it
+   survives in localStorage with the draft. The pasted text only MARKS the
+   slot (PHOTO: line / PHOTO: option); the photo itself is attached in the
+   app from gallery/camera. */
+var pendingPhotos = {}; // photos of a draft opened for editing (fillCreateForm)
+var _photoPickId = null; // slot id waiting for the file picker
+function photoData(id){ return (current && current.photos) ? current.photos[id] : null; }
+function optPhotoOf(it, idx){ return (it && it.optPhotos && it.optPhotos[idx]) ? it.optPhotos[idx] : null; }
+function photoHTML(photo){
+  var d = photo ? photoData(photo.id) : null;
+  if (!photo || !d || !d.data) return "";
+  return '<div class="pfig"><img class="pimg" src="'+d.data+'" alt="'+esc(photo.caption||"ছবি")+'"></div>';
+}
+/* Slots in document order — only slots that RENDER (MCQ question, CQ
+   stimulus, photo options). A PHOTO: on an answer line renders nowhere,
+   so it is not listed. */
+function photoSlots(){
+  var out = [];
+  if (!current || !current.items) return out;
+  current.items.forEach(function(it){
+    if (it.t === "ANS") return;
+    if (it.photo) out.push({id:it.photo.id, caption:it.photo.caption, label:"প্রশ্ন "+bn(it.num)+(it.t==="CQ" ? " (সৃজনশীল)" : "")});
+    if (it.t === "MCQ" && it.optPhotos){
+      Object.keys(it.optPhotos).forEach(function(k){
+        var p = it.optPhotos[k];
+        out.push({id:p.id, caption:p.caption, label:"প্রশ্ন "+bn(it.num)+" — অপশন "+["ক","খ","গ","ঘ"][+k]});
+      });
+    }
+  });
+  return out;
+}
 function figHTML(svg){
   if (!svg) return "";
   var s = String(svg).replace(/\bACCENT-DARK\b/g, darkenHex(current.accent, 0.55)).replace(/\bACCENT\b/g, current.accent);
@@ -2231,10 +2297,17 @@ function figHTML(svg){
    figure and never as a text approximation of the symbol. Returns the
    sanitized SVG markup or null. */
 function optSvgOf(o){ return sanitizeSvg(String(o||"").trim()); }
-function optHTML(o, idx, solIdx){
+function optHTML(o, idx, solIdx, optPhoto){
   var svg = optSvgOf(o);
   var L = ["ক","খ","গ","ঘ"][idx];
   var correct = (solIdx != null && idx === solIdx);
+  if (optPhoto){
+    // v3.3 photo option: letter + the attached photo (or a hint when the
+    // slot is still empty — the photo is attached from the ছবি bar above).
+    var _pd = photoData(optPhoto.id);
+    if (_pd && _pd.data) return '<div class="opt optphoto'+(correct?' correct':'')+'"><b>'+L+'</b><span class="optfig"><img class="pimg" src="'+_pd.data+'" alt="'+esc(optPhoto.caption||"ছবি")+'"></span></div>';
+    return '<div class="opt optphoto'+(correct?' correct':'')+'"><b>'+L+'</b><span class="optfig" style="color:#888;font-size:11px">📷 ছবি বসাও</span></div>';
+  }
   if (svg){
     // v2.8 (Bug 1): the diagram strokes follow the EFFECTIVE option
     // background — darkened accent on a light box, the accent itself on a
@@ -2340,6 +2413,133 @@ function fitFig(slide){
   svg.style.minHeight = _floor + "px";
   if (svg.parentElement) svg.parentElement.style.minHeight = _floor + "px";
 }
+/* v3.3 photos: same cap+floor treatment as diagrams — a photo must never
+   push a question into the footer, and never be crushed to a blob. */
+function fitPhoto(slide){
+  var img = slide.querySelector(".pfig img");
+  if (!img) return;
+  var cap = Math.round(slide.clientHeight * 0.42);
+  if (cap > 40) img.style.maxHeight = cap + "px";
+  img.style.width = "auto";
+  img.style.maxWidth = "100%";
+  var _szf = {small:0.65, normal:0.78, large:0.95}[current.slideSize || getSettings().slideSize || "normal"] || 0.78;
+  var _floor = Math.min(Math.round(96 * _szf), cap > 40 ? cap : Math.round(96 * _szf));
+  img.style.minHeight = _floor + "px";
+  if (img.parentElement) img.parentElement.style.minHeight = _floor + "px";
+}
+/* v3.3 (overline join): a book radical is ONE shape — the √'s top arm
+   flows into the overline above the radicand. A text √ cannot stretch in
+   CSS, so after layout each .msqrt is measured and its .mrad font-size is
+   raised (as % of the question font) until the √'s ink top reaches the
+   overline. Deepest sqrts first (an inner stretch raises the outer bar).
+   The ink-top ratio is measured at runtime with a canvas in the exact
+   font the browser uses for the √ (cached per font string) — never
+   guessed. fitMcq runs after this, so its font shrink scales the √ along
+   with the question (the join is proportional, it survives). */
+var _sqrtInkRatio = {};
+function sqrtInkRatio(fontStr){
+  if (_sqrtInkRatio[fontStr]) return _sqrtInkRatio[fontStr];
+  var r = 0.75;
+  try {
+    var cv = document.createElement("canvas"); cv.width = 120; cv.height = 120;
+    var cx = cv.getContext("2d");
+    cx.font = "100px " + fontStr; cx.fillStyle = "#000"; cx.fillText("\u221a", 10, 100);
+    var d = cx.getImageData(0, 0, 120, 120).data, top = -1;
+    for (var y=0;y<120 && top<0;y++) for (var x=0;x<120;x++){ if (d[(y*120+x)*4+3] > 10){ top = y; break; } }
+    if (top >= 0) r = Math.max(0.5, Math.min(0.95, (100 - top)/100));
+  } catch(e){}
+  _sqrtInkRatio[fontStr] = r;
+  return r;
+}
+function fitSqrt(root){
+  if (!root || !root.querySelectorAll) return;
+  var list = Array.prototype.slice.call(root.querySelectorAll(".msqrt"));
+  if (!list.length) return;
+  function depth(el){ var d = 0, p = el.parentElement; while (p){ if (p.classList && p.classList.contains("msqrt")) d++; p = p.parentElement; } return d; }
+  list.sort(function(a,b){ return depth(b) - depth(a); });
+  list.forEach(function(ms){
+    var mover = ms.querySelector(".mover"), mrad = ms.querySelector(".mrad");
+    if (!mover || !mrad) return;
+    var cs = getComputedStyle(mrad);
+    var fs = parseFloat(cs.fontSize) || 0;
+    if (fs <= 0) return;
+    // Baseline of the √'s line — same formula as the vector PDF
+    // (vecTextLines): Range rect top + ascent of the font that renders √.
+    var fams = (cs.fontFamily||"").split(",").map(function(s){ return s.trim().replace(/^['"]|['"]$/g, ""); });
+    var famName = fams[1] || fams[0] || "Hind Siliguri";
+    var asc = vecMetricsFor(famName).asc;
+    var rg = document.createRange(); rg.selectNodeContents(mrad);
+    var tr = rg.getBoundingClientRect();
+    if (!tr || tr.height <= 0) return;
+    var baseline = tr.top + asc*fs/1000;
+    var barY = mover.getBoundingClientRect().top;
+    var need = baseline - barY;
+    if (need <= 0) return;
+    var ratio = sqrtInkRatio(cs.fontFamily || "");
+    var scale = need / (ratio * fs);
+    if (scale > 1.02) mrad.style.fontSize = Math.min(300, Math.round(scale*100)) + "%";
+  });
+}
+/* v3.3 photos: the ছবি bar above the slides lists every photo slot in
+   this project (question / CQ stimulus / option). "ছবি বাছো" opens the
+   gallery/camera picker; the photo is downscaled on attach (max 1600px
+   wide, JPEG 0.85) so it stays localStorage-safe, and a very low-res
+   source (<800px wide) warns — it would look soft on the 75" board. */
+function renderPhotoBar(){
+  var bar = $("photoBar");
+  if (!bar) return;
+  var slots = photoSlots();
+  if (!slots.length){ bar.classList.add("hidden"); bar.innerHTML = ""; return; }
+  bar.classList.remove("hidden");
+  var html = '<div style="font-weight:700">📷 ছবি <span style="font-weight:400;font-size:13px;color:#888">— বইয়ের পাতার ছবি বসাও (গ্যালারি/ক্যামেরা)</span></div>';
+  slots.forEach(function(s){
+    var ph = photoData(s.id);
+    html += '<div style="display:flex;align-items:center;gap:8px;margin-top:8px">'
+      + (ph ? '<img src="'+ph.data+'" style="width:48px;height:36px;object-fit:cover;border-radius:6px;border:1px solid var(--border)">' : '<span style="width:48px;height:36px;display:flex;align-items:center;justify-content:center;border:1px dashed var(--border);border-radius:6px;font-size:18px">📷</span>')
+      + '<span style="flex:1;font-size:14px">'+esc(s.label)+(s.caption ? ' — <span style="color:#888">'+esc(s.caption)+'</span>' : '')+'</span>'
+      + '<button type="button" class="btn-w" data-ph-pick="'+s.id+'" style="padding:8px 10px">'+(ph ? 'বদলাও' : 'ছবি বাছো')+'</button>'
+      + (ph ? '<button type="button" class="plain-ic" data-ph-del="'+s.id+'" aria-label="ছবি সরাও">✕</button>' : '')
+      + '</div>';
+  });
+  bar.innerHTML = html;
+}
+function attachPhoto(id, file){
+  if (!file || !current) return;
+  var rd = new FileReader();
+  rd.onload = function(){
+    var im = new Image();
+    im.onload = function(){
+      var sw = im.naturalWidth || im.width, sh = im.naturalHeight || im.height;
+      if (sw < 800) alert("ছবিটা একটু ছোট ("+sw+"px) — ৭৫ ইঞ্চি বোর্ডে একটু নরম দেখাতে পারে। পারলে পাতাটা কাছ থেকে আবার তোলো।");
+      var sc = Math.min(1, 1600 / sw);
+      var cv = document.createElement("canvas");
+      cv.width = Math.max(1, Math.round(sw * sc)); cv.height = Math.max(1, Math.round(sh * sc));
+      var cx = cv.getContext("2d");
+      cx.fillStyle = "#ffffff"; cx.fillRect(0, 0, cv.width, cv.height);
+      cx.drawImage(im, 0, 0, cv.width, cv.height);
+      if (!current.photos) current.photos = {};
+      current.photos[id] = {data: cv.toDataURL("image/jpeg", 0.85), w: cv.width, h: cv.height};
+      saveDraftSilent(true);
+      renderAll();
+    };
+    im.onerror = function(){ alert("ছবিটা পড়া যায়নি — অন্য একটা ছবি বাছো।"); };
+    im.src = rd.result;
+  };
+  rd.readAsDataURL(file);
+}
+$("photoBar").addEventListener("click", function(ev){
+  var t = ev.target;
+  var pick = t.getAttribute && t.getAttribute("data-ph-pick");
+  var del = t.getAttribute && t.getAttribute("data-ph-del");
+  if (pick){ _photoPickId = pick; var fi = $("photoFile"); if (fi) fi.click(); }
+  else if (del){ if (current && current.photos){ delete current.photos[del]; saveDraftSilent(true); renderAll(); } }
+});
+$("photoFile").addEventListener("change", function(){
+  var f = this.files && this.files[0];
+  if (f && _photoPickId) attachPhoto(_photoPickId, f);
+  _photoPickId = null;
+  this.value = "";
+});
 function renderAll(){
   var box = $("slides");
   box.innerHTML = "";
@@ -2427,6 +2627,7 @@ function renderAll(){
           else if (_ab){ _pre += '<b>'+_ab[1]+'</b>'; _body = ''; }
           row.innerHTML = _pre + (_body ? langHtml(_body) : '');
           col.appendChild(row);
+          fitSqrt(row);
           plan[plan.length-1].items.push(a);
           if (curBody.scrollHeight > curBody.clientHeight + 2){
             col.removeChild(row);
@@ -2444,8 +2645,8 @@ function renderAll(){
         function mcqSlideEl(solIdx){
           var r = slideEl("বহুনির্বাচনী", bn(it.num)+".");
           if (solIdx != null) r.slide.classList.add("sol");
-          var opts = it.opts.map(function(o,idx){ return optHTML(o, idx, solIdx); }).join("");
-          r.body.innerHTML = '<div class="qwrap"><div class="q">'+(showNum?'<span class="arr">'+bn(it.num)+'.</span> ':'')+langHtml(it.q)+tagHTML(it.q)+'</div>'+figHTML(it.svg)+'</div>'+
+          var opts = it.opts.map(function(o,idx){ return optHTML(o, idx, solIdx, optPhotoOf(it, idx)); }).join("");
+          r.body.innerHTML = '<div class="qwrap"><div class="q">'+(showNum?'<span class="arr">'+bn(it.num)+'.</span> ':'')+langHtml(it.q)+tagHTML(it.q)+'</div>'+figHTML(it.svg)+photoHTML(it.photo)+'</div>'+
             '<div class="opts">'+opts+'</div>';
           return r;
         }
@@ -2453,6 +2654,8 @@ function renderAll(){
         box.appendChild(r.slide); count++;
         plan.push({t:"mcq", item:it});
         fitFig(r.slide);
+        fitPhoto(r.slide);
+        fitSqrt(r.slide);
         fitMcq(r.slide);
         // Solution slide immediately after its question — only when the
         // answer key says which option is correct.
@@ -2461,6 +2664,8 @@ function renderAll(){
           box.appendChild(rs.slide); count++;
           plan.push({t:"mcq", item:it, sol:true});
           fitFig(rs.slide);
+          fitPhoto(rs.slide);
+          fitSqrt(rs.slide);
           fitMcq(rs.slide);
         }
       });
@@ -2470,9 +2675,11 @@ function renderAll(){
         var body = r.body;
         body.style.flexDirection = "column";
         body.style.gap = "0";
-        body.innerHTML = '<div class="stim">'+(showNum?bn(cq.num)+'. ':'')+langHtml(cq.stimulus)+tagHTML(cq.stimulus)+'</div>'+figHTML(cq.svg)+'<div class="cq"></div>';
+        body.innerHTML = '<div class="stim">'+(showNum?bn(cq.num)+'. ':'')+langHtml(cq.stimulus)+tagHTML(cq.stimulus)+'</div>'+figHTML(cq.svg)+photoHTML(cq.photo)+'<div class="cq"></div>';
         box.appendChild(r.slide); count++;
         fitFig(r.slide);
+        fitPhoto(r.slide);
+        fitSqrt(body);
         var entry = {t:"cq", item:cq, subs:[]};
         plan.push(entry);
         var col = body.querySelector(".cq");
@@ -2481,6 +2688,7 @@ function renderAll(){
           var row = document.createElement("div"); row.className="cqrow";
           row.innerHTML = '<span><b>'+sub.k+'.</b> '+langHtml(sub.q)+'</span>';
           col.appendChild(row);
+          fitSqrt(row);
           entry.subs.push(sub);
           // overflow -> move to a fresh slide for THIS CQ only (never mix CQs)
           // Check the BODY's scrollHeight, NOT the slide's: the slide is a
@@ -2502,6 +2710,7 @@ function renderAll(){
             col = b2.querySelector(".cq");
             curBody = b2;
             col.appendChild(row);
+            fitSqrt(row);
             entry.subs.push(sub);
           }
         });
@@ -2510,6 +2719,7 @@ function renderAll(){
   });
   current._plan = plan;
   $("slideCount").textContent = "মোট স্লাইড: " + count;
+  renderPhotoBar();
 }
 function fitMcq(slide){
   // auto-shrink MCQ until it fits ONE slide, never overflow.
@@ -2548,9 +2758,14 @@ function fitMcq(slide){
   // fitFig set (never crush it to a blob); fall back to 24px only if
   // fitFig never ran (no figure styles at all).
   var figFloor = svg ? (parseFloat(svg.style.minHeight) || 24) : 24;
+  // v3.3 photos: the question photo is lever 3 too (after the figure).
+  var pimg = slide.querySelector(".pfig img");
+  var photoCap = pimg ? (parseFloat(pimg.style.maxHeight) || pimg.getBoundingClientRect().height) : 0;
+  var photoFloor = pimg ? (parseFloat(pimg.style.minHeight) || 24) : 24;
   // Diagram options: their SVG height is the next lever after the fonts —
   // shrink the diagrams (floor 20px) before compacting the layout.
-  var optSvgs = slide.querySelectorAll(".opt svg");
+  // v3.3 photos: option photos shrink exactly like diagram options.
+  var optSvgs = slide.querySelectorAll(".opt svg, .opt img.pimg");
   var optSvgH = optSvgs.length ? Math.round(optSvgs[0].getBoundingClientRect().height) : 0;
   var compacted = false;
   // v2.8 (Bug 2): the options column spilling above the body (flex-end
@@ -2574,6 +2789,9 @@ function fitMcq(slide){
     } else if (svg && figCap > figFloor){
       figCap = Math.max(figFloor, figCap - 8);
       svg.style.maxHeight = figCap + "px";
+    } else if (pimg && photoCap > photoFloor){
+      photoCap = Math.max(photoFloor, photoCap - 8);
+      pimg.style.maxHeight = photoCap + "px";
     } else if (optSvgs.length && optSvgH > 20){
       optSvgH = Math.max(20, optSvgH - 4);
       optSvgs.forEach(function(s){ s.style.height = optSvgH + "px"; });
@@ -2683,7 +2901,7 @@ function buildPdfClone(src, stage){
   // preview px height (23px) while its box scaled up — phone-exported PDFs
   // drew the diagram ~3x too small vs the preview. Scale each .opt svg's
   // height by K (the .fig svg is already scaled via maxHeight in PROPS).
-  var _osvgs = clone.querySelectorAll(".opt svg");
+  var _osvgs = clone.querySelectorAll(".opt svg, .opt img.pimg");
   for (var _oi=0; _oi<_osvgs.length; _oi++){
     var _oh = parseFloat(getComputedStyle(_osvgs[_oi]).height) || 0;
     if (_oh > 0) _osvgs[_oi].style.height = (_oh * K) + "px";
@@ -2701,6 +2919,18 @@ function buildPdfClone(src, stage){
     if (_fr.width > 0){
       _clFigs[_fi].style.width = (_fr.width * K) + "px";
       _clFigs[_fi].style.height = (_fr.height * K) + "px";
+    }
+  }
+  // v3.3 photos: same freeze for book-page photos — width/height from the
+  // SOURCE slide's measured rect, so the PDF photo matches the preview
+  // exactly (the clone's flex column can squeeze the figure otherwise).
+  var _srcPimgs = src.querySelectorAll(".pfig img");
+  var _clPimgs = clone.querySelectorAll(".pfig img");
+  for (var _pi=0; _pi<_clPimgs.length && _pi<_srcPimgs.length; _pi++){
+    var _pr = _srcPimgs[_pi].getBoundingClientRect();
+    if (_pr.width > 0){
+      _clPimgs[_pi].style.width = (_pr.width * K) + "px";
+      _clPimgs[_pi].style.height = (_pr.height * K) + "px";
     }
   }
   clone.style.borderRadius = "0"; // after scaling: the slide itself stays square in the PDF
@@ -3147,6 +3377,19 @@ async function vecDrawSlide(doc, pageH, ox, oy, k, clone){
     doc.line((ox + mx*k)/72, (oy + (my + bw/2)*k)/72, (ox + (mx + mr.width)*k)/72, (oy + (my + bw/2)*k)/72);
   });
   await vecDrawFig(doc, pageH, ox, oy, k, clone, sRect);
+  // v3.3 photos: a book-page photo is raster by nature — embed each as a
+  // JPEG image at its clone rect (the TEXT stays vector around it). This
+  // covers question/CQ photos (.pfig) and option photos (.opt img.pimg);
+  // the option box above was already drawn by the text pass.
+  var pImgs = clone.querySelectorAll("img.pimg");
+  for (var _pi2=0; _pi2<pImgs.length; _pi2++){
+    try {
+      var _pr2 = pImgs[_pi2].getBoundingClientRect();
+      if (_pr2.width < 1 || !_pr2.height) continue;
+      var _px = _pr2.left - sRect.left, _py = _pr2.top - sRect.top;
+      doc.addImage(pImgs[_pi2].src, "JPEG", (ox + _px*k)/72, (oy + _py*k)/72, _pr2.width*k/72, _pr2.height*k/72);
+    } catch(e){}
+  }
   // Diagram options: each option's own SVG, drawn on its light option box
   // (the box was already drawn above; the PNG flattens onto it).
   var optSvgs = clone.querySelectorAll(".opt svg");
@@ -3517,7 +3760,11 @@ $("btnPptx").addEventListener("click", async function(){
           } else if (sg.t === "sqrt"){
             var el = sqrtEls[si++];
             if (el && slide && pvRect && colorHex){
-              pptxLangRuns("\u221a", bnFace, enFace, mergeOpt(_base, ex)).forEach(function(r){ target.push(r); });
+              var _rex = mergeOpt(_base, ex);
+              var _mradEl = el.querySelector(".mrad");
+              var _mf = _mradEl ? parseFloat(getComputedStyle(_mradEl).fontSize) || 0 : 0;
+              if (_mf > 0 && _pf > 0) _rex.fontSize = Math.round(_mf * _scale * scale * 10)/10;
+              pptxLangRuns("\u221a", bnFace, enFace, _rex).forEach(function(r){ target.push(r); });
               addSegs(mathSegs(sg.s), scale, mode, target);
               addBar(barRect(el, ".mover"), 0.09*fsPt*scale/72);
             } else {
@@ -3640,7 +3887,34 @@ $("btnPptx").addEventListener("click", async function(){
         return h;
       } catch(e){ return 0; }
     }
-    async function optBox(slide, x, y, w, h, letter, text, correct, svg){
+    /* v3.3 photo: a book-page photo embeds as a real picture, aspect kept
+       from the stored w/h, centred on (cx, cy) at the top — same slot as
+       the diagram figure. */
+    async function addPhoto(slide, photo, cx, cy, maxW, maxH){
+      if (!photo) return 0;
+      var d = (current.photos && current.photos[photo.id]) || null;
+      if (!d || !d.data) return 0;
+      try {
+        var iw = d.w || 1600, ih = d.h || 1200;
+        var w = Math.min(maxW, maxH*iw/ih), h = w*ih/iw;
+        slide.addImage({ data: d.data, x: cx - w/2, y: cy, w: w, h: h });
+        return h;
+      } catch(e){ return 0; }
+    }
+    /* Diagram and/or photo for one item: both together get half the slot
+       each, stacked (figure first, photo below it). */
+    async function addFigOrPhoto(slide, item, cx, cy, maxW, maxH){
+      if (!item) return 0;
+      if (item.svg && item.photo){
+        var h1 = await addFig(slide, item.svg, cx, cy, maxW, maxH/2);
+        var h2 = await addPhoto(slide, item.photo, cx, cy + h1 + 0.1, maxW, maxH/2);
+        return h1 + h2 + 0.1;
+      }
+      if (item.svg) return await addFig(slide, item.svg, cx, cy, maxW, maxH);
+      if (item.photo) return await addPhoto(slide, item.photo, cx, cy, maxW, maxH);
+      return 0;
+    }
+    async function optBox(slide, x, y, w, h, letter, text, correct, svg, photo){
       // Solution slide: the correct option is GREEN (white text), the rest
       // stay exactly like the question slide. Custom style: the style's own
       // option-box colours and option text size. Theme option styles
@@ -3680,6 +3954,21 @@ $("btnPptx").addEventListener("click", async function(){
             if (png) slide.addImage({ data:png, x: x+0.55+(availW-iw)/2, y: y+(h-ih)/2, w:iw, h:ih });
           }
         } catch(e){}
+        return;
+      }
+      if (photo){
+        // v3.3 photo option: letter at the left, the photo centred in the
+        // rest of the box (like a diagram option).
+        slide.addText(letter, { x:x+0.15, y:y, w:0.45, h:h, fontSize:fso(12), bold:true, color:lcol, valign:"middle", fontFace:bnBodyFace });
+        var _pd = (current.photos && current.photos[photo.id]) || null;
+        if (_pd && _pd.data){
+          try {
+            var _pw = _pd.w || 1600, _ph = _pd.h || 1200;
+            var _aW = Math.max(0.3, w - 0.75), _aH = Math.max(0.2, h - 0.12);
+            var _iw = Math.min(_aW, _aH*_pw/_ph), _ih = _iw*_ph/_pw;
+            slide.addImage({ data:_pd.data, x: x+0.55+(_aW-_iw)/2, y: y+(h-_ih)/2, w:_iw, h:_ih });
+          } catch(e){}
+        }
         return;
       }
       var _pvOpt = (_pvSlide && ["ক","খ","গ","ঘ"].indexOf(letter) >= 0) ? _pvSlide.querySelectorAll(".opt")[["ক","খ","গ","ঘ"].indexOf(letter)] : null;
@@ -3727,76 +4016,76 @@ $("btnPptx").addEventListener("click", async function(){
           if (co.optPos === "right") qW = 7.2;
           s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fsq(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), csQ, {x:qX, y:qY, w:qW, h:2.6, valign:"top", align:qAlign}), { x:qX, y:qY, w:qW, h:2.6, fontSize:fsq(16), bold:true, color:csQ, valign:"top", align:qAlign, shrinkText:true });
           var yOpts5 = qY + 2.5;
-          if (it.svg){ figH = await addFig(s, it.svg, qX+qW/2, qY+1.9, Math.min(qW,6), 1.1); yOpts5 = qY + 3.1; }
+          if (it.svg || it.photo){ figH = await addFigOrPhoto(s, it, qX+qW/2, qY+1.9, Math.min(qW,6), 1.1); yOpts5 = qY + 3.1; }
           if (co.optPos === "right"){
             for (var oi=0; oi<it.opts.length; oi++){
               var o = it.opts[oi];
               var y = 1.6 + oi*0.85;
-              await optBox(s, 8.4, y, 4.3, 0.65, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o));
+              await optBox(s, 8.4, y, 4.3, 0.65, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o), optPhotoOf(it, oi));
             }
           } else if (co.optPos === "grid"){
             for (var oi=0; oi<it.opts.length; oi++){
               var o = it.opts[oi];
               var gx = (oi%2===0) ? 0.6 : 6.85, gy = yOpts5 + Math.floor(oi/2)*1.05;
-              await optBox(s, gx, gy, 5.88, 0.85, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o));
+              await optBox(s, gx, gy, 5.88, 0.85, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o), optPhotoOf(it, oi));
             }
           } else if (co.optPos === "row"){
             var pw = 2.9, gap = 0.25, totalW = pw*4 + gap*3, x0 = (13.33-totalW)/2;
             for (var oi=0; oi<it.opts.length; oi++){
               var o = it.opts[oi];
-              await optBox(s, x0 + oi*(pw+gap), yOpts5, pw, 0.7, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o));
+              await optBox(s, x0 + oi*(pw+gap), yOpts5, pw, 0.7, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o), optPhotoOf(it, oi));
             }
           } else { // stack
             for (var oi=0; oi<it.opts.length; oi++){
               var o = it.opts[oi];
               var y = yOpts5 + oi*0.75;
-              await optBox(s, 0.6, y, 12.13, 0.6, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o));
+              await optBox(s, 0.6, y, 12.13, 0.6, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o), optPhotoOf(it, oi));
             }
           }
         } else if (L===0){
           s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fs(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), qCol, {x:0.6, y:1.5, w:7.2, h:2.6, valign:"top"}), { x:0.6, y:1.5, w:7.2, h:2.6, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
-          if (it.svg) figH = await addFig(s, it.svg, 0.6+3.6, 4.3, 5.5, 1.6);
+          if (it.svg || it.photo) figH = await addFigOrPhoto(s, it, 0.6+3.6, 4.3, 5.5, 1.6);
           for (var oi=0; oi<it.opts.length; oi++){
             var o = it.opts[oi];
             var y = 1.6 + oi*0.85;
-            await optBox(s, 8.4, y, 4.3, 0.65, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o));
+            await optBox(s, 8.4, y, 4.3, 0.65, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o), optPhotoOf(it, oi));
           }
         } else if (L===1){
           s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fs(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), qCol, {x:0.6, y:1.35, w:12.13, h:1.9, valign:"top"}), { x:0.6, y:1.35, w:12.13, h:1.9, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
           var yOpts1 = 4.0;
-          if (it.svg){ figH = await addFig(s, it.svg, 6.67, 3.35, 6, 1.1); yOpts1 = 4.6; }
+          if (it.svg || it.photo){ figH = await addFigOrPhoto(s, it, 6.67, 3.35, 6, 1.1); yOpts1 = 4.6; }
           for (var oi=0; oi<it.opts.length; oi++){
             var o = it.opts[oi];
             var gx = (oi%2===0) ? 0.6 : 6.85, gy = yOpts1 + Math.floor(oi/2)*1.05;
-            await optBox(s, gx, gy, 5.88, 0.85, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o));
+            await optBox(s, gx, gy, 5.88, 0.85, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o), optPhotoOf(it, oi));
           }
         } else if (L===2){
           s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fs(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), qCol, {x:1.5, y:1.9, w:10.33, h:1.8, valign:"top", align:"center"}), { x:1.5, y:1.9, w:10.33, h:1.8, fontSize:fs(16), bold:true, color:qCol, valign:"top", align:"center", shrinkText:true });
           var yOpts2 = 4.9;
-          if (it.svg){ figH = await addFig(s, it.svg, 6.67, 3.8, 6, 1.1); yOpts2 = 5.3; }
+          if (it.svg || it.photo){ figH = await addFigOrPhoto(s, it, 6.67, 3.8, 6, 1.1); yOpts2 = 5.3; }
           var pw = 2.9, gap = 0.25, totalW = pw*4 + gap*3, x0 = (13.33-totalW)/2;
           for (var oi=0; oi<it.opts.length; oi++){
             var o = it.opts[oi];
-            await optBox(s, x0 + oi*(pw+gap), yOpts2, pw, 0.7, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o));
+            await optBox(s, x0 + oi*(pw+gap), yOpts2, pw, 0.7, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o), optPhotoOf(it, oi));
           }
         } else if (L===3){
           s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fs(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), qCol, {x:2.5, y:1.5, w:10.2, h:2.2, valign:"top"}), { x:2.5, y:1.5, w:10.2, h:2.2, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
           var yOpts3 = 3.9, oH3 = 0.6, oGap3 = 0.75;
-          if (it.svg){ figH = await addFig(s, it.svg, 2.5+5.1, 3.15, 6, 0.9); yOpts3 = 4.25; oGap3 = 0.7; }
+          if (it.svg || it.photo){ figH = await addFigOrPhoto(s, it, 2.5+5.1, 3.15, 6, 0.9); yOpts3 = 4.25; oGap3 = 0.7; }
           for (var oi=0; oi<it.opts.length; oi++){
             var o = it.opts[oi];
             var y = yOpts3 + oi*oGap3;
-            await optBox(s, 2.5, y, 10.2, oH3, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o));
+            await optBox(s, 2.5, y, 10.2, oH3, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o), optPhotoOf(it, oi));
           }
         } else { // L4
           s.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:0.6, y:1.5, w:12.13, h:2.2, fill:{color:cardBg}, line:{color:cardBd} });
           s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fs(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), qCol, {x:1.0, y:1.65, w:11.3, h:1.9, valign:"top"}), { x:1.0, y:1.65, w:11.3, h:1.9, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
           var yOpts4 = 4.1;
-          if (it.svg){ figH = await addFig(s, it.svg, 6.67, 3.85, 6, 1.1); yOpts4 = 5.0; }
+          if (it.svg || it.photo){ figH = await addFigOrPhoto(s, it, 6.67, 3.85, 6, 1.1); yOpts4 = 5.0; }
           for (var oi=0; oi<it.opts.length; oi++){
             var o = it.opts[oi];
             var gx = (oi%2===0) ? 0.6 : 6.85, gy = yOpts4 + Math.floor(oi/2)*1.05;
-            await optBox(s, gx, gy, 5.88, 0.85, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o));
+            await optBox(s, gx, gy, 5.88, 0.85, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o), optPhotoOf(it, oi));
           }
         }
       } else if (e.t==="cq"){
@@ -3813,7 +4102,7 @@ $("btnPptx").addEventListener("click", async function(){
         } else {
           s2.addText(pptxMathRuns(bn(cq.num)+". "+cq.stimulus+tagTxt(cq.stimulus), bnBodyFace, enBodyFace, null, fs(12), s2, _pvSlide ? _pvSlide.querySelector(".stim") : null, _pvRect(), txt, {x:sx, y:stimY, w:sw, h:1.6, valign:"top"}), { x:sx, y:stimY, w:sw, h:1.6, fontSize:fs(12), color:txt, valign:"top", shrinkText:true });
         }
-        if (cq.svg){ await addFig(s2, cq.svg, sx + sw/2, subY, 6, 1.3); subY += 1.45; }
+        if (cq.svg || cq.photo){ await addFigOrPhoto(s2, cq, sx + sw/2, subY, 6, 1.3); subY += 1.45; }
         var subRuns = [];
         e.subs.forEach(function(sub, si){
           pptxMathRuns(sub.k+". "+sub.q, bnBodyFace, enBodyFace, null, (L===5?fsq(13):fs(13)), s2, _pvSlide ? _pvSlide.querySelectorAll(".cqrow")[si] : null, _pvRect(), (L===5?csQ:qCol), {x:sx, y:subY, w:sw, h:6.9-subY, valign:"top"}).forEach(function(r){ subRuns.push(r); });
@@ -3991,6 +4280,7 @@ var MASTER_PROMPT = [
 "10. বিষয়/টপিক ENGLISH হলে পুরো আউটপুট ইংরেজিতে লেখো — প্রশ্ন, অপশন, উত্তর, টাইটেল, সবকিছু।",
 "11. কোনো MCQ-র অপশনগুলো নিজেই চিত্র/প্রতীক হলে (যেমন তড়িৎ প্রতীক, চিহ্ন): প্রতিটা অপশনকে আলাদা এক লাইনের SVG হিসেবে দেবে — যেমন: ২. প্রশ্ন? | <svg viewBox=\"0 0 400 120\" ...>...</svg> | <svg ...>...</svg> | <svg ...>...</svg> | <svg ...>...</svg>। চারটা অপশনকে একসাথে একটা ২×২ গ্রিড চিত্রে দেবে না, আর প্রতীকের বদলে '—' বা '—+—' জাতীয় লেখা দেবে না। অপশনের SVG-তে রঙের জন্য ACCENT-DARK ব্যবহার করবে (অপশনের বাক্স হালকা রঙের হয়, তাই গাঢ় রেখা লাগবে)।",
 "12. গাণিতিক সমীকরণ বইয়ের মতো করে লেখার জন্য এই চিহ্নগুলো ব্যবহার করবে — ঘাত (power): x^2, x^n, x^{n+1}, 2^-3; নিচের সংখ্যা (subscript): H_2O, a_1, a_{n+1}; বর্গমূল: sqrt(x+1) বা √(x+1) — মূলের উপরে দাগ থাকবে; ভগ্নাংশ: frac(1,2) — উপরে লব, নিচে হর, মাঝখানে দাগ। ভেতরে ভেতরে মেশানো যাবে — যেমন sqrt(frac(25,4)), frac(x^2, y_1)। কখনোই 'x^2' বা 'sqrt' লেখাটা এমনি ছেড়ে দেবে না, আর ভগ্নাংশকে '1/2' লিখে স্ল্যাশ দিয়ে দেবে না।",
+"13. কোনো প্রশ্ন/উদ্দীপক/অপশনে বইয়ের পাতার আসল ছবি (যেটা আঁকা যায় না — বইয়ের ছবি, মানচিত্র, আসল ফটোগ্রাফ) লাগলে: প্রশ্নের ঠিক পরের লাইনে লেখো — PHOTO: <ছবিটা কীসের, এক লাইনে>। আর অপশনটা নিজেই ছবি হলে অপশনের জায়গায় লেখো — PHOTO: <ছবিটা কীসের>। অ্যাপে ছবির জায়গাগুলো দেখাবে, সেখানে গ্যালারি/ক্যামেরা থেকে ছবি বসাতে হবে; PHOTO: লাইনটা শুধু জায়গাটা চিহ্নিত করে, ছবি নিজে থেকে আসে না।",
 ].join("\n");
 $("btnCopyPrompt").addEventListener("click", function(){
   var done = function(){ var ok = $("copyOk"); ok.classList.remove("hidden"); setTimeout(function(){ ok.classList.add("hidden"); }, 2000); };
@@ -4045,6 +4335,7 @@ function doRun(){
   }
   errBox.classList.add("hidden");
   var prevDraftId = current ? current.draftId : null;
+  var _prevPhotos = (current && current.photos) || pendingPhotos || {};
   var det = parsed.type;
   var _lay = customLayoutSel != null ? ("c:"+customLayoutSel) : (parseInt(selected("layout") || "0", 10) || 0);
   var _nm = $("inName").value.trim();
@@ -4071,6 +4362,7 @@ function doRun(){
     layout: _lay,
     showTitle: $("inTitle") ? $("inTitle").checked : true,
     title: parsed.title, type: det,
+    photos: _prevPhotos,
     items: parsed.items,
     sections: parsed.sections
   };
@@ -4218,6 +4510,7 @@ document.addEventListener("pointercancel", function(){ if (dragSel){ dragSelEnd(
 /* Fill the create form from a draft (shared by Edit and tap-to-open). */
 function fillCreateForm(p){
   current = null; editingId = p.id;
+  pendingPhotos = p.photos || {};
   $("inName").value=p.name; $("inSubject").value=p.subject||""; $("inChapter").value=p.chapter||""; $("inTeacher").value=p.teacher||"Khayrul Sir"; $("inAccent").value=p.accent||"#ffd700"; $("inText").value=p.text||"";
   setRadio("theme", p.theme||"dark");
   lastAutoName = autoFileName(p.subject||"", p.chapter||"");
