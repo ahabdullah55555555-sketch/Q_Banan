@@ -110,6 +110,20 @@ textarea{min-height:220px;line-height:1.6}
 .opts{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;padding-bottom:6px}
 .opt{background:var(--optBg,#fff3d6);color:var(--optCol,#111);border-radius:8px;padding:5px 10px;font-size:calc(var(--szf,.78)*11px);line-height:1.3;text-align:left}
 .opt b{color:var(--optLetter,var(--accD,#b8860b));margin-right:6px}
+/* ---------- math (v3.2): book-style equations ----------
+   Powers/subscripts are real <sup>/<sub> (the vector PDF reads their
+   raised/lowered rects + smaller font, so preview and PDF match).
+   Root overlines and fraction bars are CSS borders on dedicated spans —
+   the vector PDF redraws them as lines (see vecDrawSlide); the raster
+   PDF renders the borders directly. inline-block (not flex) so
+   html2canvas lays the stacked fraction out correctly. */
+.q sup, .opt sup, .stim sup, .cqrow sup, .ansrow sup, .title sup, .sub sup{font-size:.68em;line-height:0;vertical-align:super}
+.q sub, .opt sub, .stim sub, .cqrow sub, .ansrow sub, .title sub, .sub sub{font-size:.68em;line-height:0;vertical-align:sub}
+.msqrt{white-space:nowrap}
+.msqrt .mover{border-top:.09em solid currentColor;padding:0 .06em;margin-left:.03em}
+.mfrac{display:inline-block;vertical-align:middle;text-align:center;line-height:1.15;margin:0 .12em}
+.mfrac .mnum, .mfrac .mden{display:block;font-size:.82em;padding:0 .18em;line-height:1.15}
+.mfrac .mbar{display:block;border-top:.09em solid currentColor;height:0}
 /* Diagram option (v2.7): the option IS a diagram — its SVG sits INSIDE the
    option box (letter at the left, diagram centred in the rest of the box).
    Option boxes are LIGHT in both themes, so the diagram is small and dark.
@@ -800,7 +814,7 @@ body.app-dark .sw.on{border-color:#fff}
 /* App version — the ONE version string shown to the user (Home + Settings).
    The service worker cache is "qbanan-" + this version (same literal in
    sw.js) — bump both together on every release. */
-var APP_VERSION = "3.1";
+var APP_VERSION = "3.2";
 /* ---------- helpers ---------- */
 var BN = {"0":"০","1":"১","2":"২","3":"৩","4":"৪","5":"৫","6":"৬","7":"৭","8":"৮","9":"৯"};
 function bn(n){ return String(n).split("").map(function(c){ return BN[c] || c; }).join(""); }
@@ -1091,10 +1105,99 @@ function applyThemeVars(el){
    Latin, so without this the English pick never shows. Bengali runs stay
    unwrapped. Escape first, then split (esc() only touches &<>, never
    Bengali chars, so a run boundary can never fall inside an entity). */
+/* ---------- math (v3.2): book-style equations in plain text ----------
+   Notation (see MASTER_PROMPT rule 12): x^2 / x^{n+1} powers, H_2O /
+   a_{n+1} subscripts, sqrt(x+1) or \u221a(x+1) roots with an overline,
+   frac(1,2) stacked fractions. Runs on ESCAPED text (langHtml escapes
+   first), so ^ _ ( ) , and letters are all literal; the parser is
+   recursive - sqrt(frac(1,2)) and frac(x^2, y_1) both work. Anything
+   that does not match the notation stays literal text: a stray ^, a bare
+   "sqrt" with no "(", or an unclosed brace never breaks a slide. */
+function mathHtml(s){
+  var out = "", i = 0, n = s.length;
+  function balFrom(open, close){ // s[i] is the open char; inner raw text, i past the close; null if unclosed (i unchanged)
+    var depth = 0, j = i;
+    while (j < n){
+      if (s[j] === open) depth++;
+      else if (s[j] === close){ depth--; if (depth === 0){ var inner = s.slice(i+1, j); i = j+1; return inner; } }
+      j++;
+    }
+    return null;
+  }
+  function splitTopComma(str){ // first top-level comma -> [before, after]; null if none
+    var dP = 0, dB = 0;
+    for (var k=0;k<str.length;k++){
+      var c = str[k];
+      if (c==="(") dP++; else if (c===")") dP--;
+      else if (c==="{") dB++; else if (c==="}") dB--;
+      else if (c==="," && dP===0 && dB===0) return [str.slice(0,k), str.slice(k+1)];
+    }
+    return null;
+  }
+  function atom(){ // after ^ or _: optional sign, then {group} or one char; null on failure (i restored)
+    var save = i, sign = "";
+    if (i < n && (s[i]==="-" || s[i]==="+")){ sign = s[i]; i++; }
+    if (i < n && s[i]==="{"){
+      var g = balFrom("{","}");
+      if (g === null){ i = save; return null; }
+      return sign + mathHtml(g);
+    }
+    if (i < n){ var c = s[i]; i++; return sign + c; }
+    i = save; return null;
+  }
+  while (i < n){
+    var c = s[i];
+    if (c === "^" || c === "_"){
+      var tag = (c === "^") ? "sup" : "sub";
+      i++;
+      var a = atom();
+      if (a === null){ out += c; }
+      else out += "<"+tag+">"+a+"</"+tag+">";
+      continue;
+    }
+    if ((s.slice(i, i+4) === "sqrt" && s[i+4] === "(") || c === "\u221a"){
+      var word = (c !== "\u221a");
+      var j = i + (word ? 4 : 1);
+      if (s[j] === "("){
+        i = j;
+        var inner = balFrom("(", ")");
+        if (inner === null){ out += word ? "sqrt" : "\u221a"; i = j; continue; }
+        out += '<span class="msqrt"><span class="mrad">\u221a</span><span class="mover">' + mathHtml(inner) + '</span></span>';
+        continue;
+      }
+      var k = j, tok = "";
+      while (k < n && /[A-Za-z0-9]/.test(s[k])){ tok += s[k]; k++; }
+      if (tok){ i = k; out += '<span class="msqrt"><span class="mrad">\u221a</span><span class="mover">' + tok + '</span></span>'; continue; }
+      out += "\u221a"; i = j; continue;
+    }
+    if (s.slice(i, i+4) === "frac" && s[i+4] === "("){
+      i = i + 4;
+      var f = balFrom("(", ")");
+      if (f === null){ out += "frac"; continue; }
+      var parts = splitTopComma(f);
+      if (!parts){ out += "frac(" + mathHtml(f) + ")"; continue; }
+      out += '<span class="mfrac"><span class="mnum">' + mathHtml(parts[0].trim()) + '</span><span class="mbar"></span><span class="mden">' + mathHtml(parts[1].trim()) + '</span></span>';
+      continue;
+    }
+    out += c; i++;
+  }
+  return out;
+}
 function langHtml(s, cls){
-  var t = esc(s == null ? "" : s), out = "", buf = "", bufBn = null, span = cls || "en";
+  // v3.2: math first (on the escaped text), then the Bengali/Latin split.
+  // mathHtml's tags are copied verbatim below - never split or wrapped.
+  var t = mathHtml(esc(s == null ? "" : s)), out = "", buf = "", bufBn = null, span = cls || "en";
   for (var i=0;i<t.length;i++){
-    var ch = t[i], isB = /[\u0980-\u09FF]/.test(ch);
+    var ch = t[i];
+    if (ch === "<"){
+      var j = t.indexOf(">", i);
+      if (j < 0) j = t.length - 1;
+      if (buf){ out += bufBn ? buf : '<span class="'+span+'">'+buf+'</span>'; buf = ""; bufBn = null; }
+      out += t.slice(i, j+1);
+      i = j;
+      continue;
+    }
+    var isB = /[\u0980-\u09FF]/.test(ch);
     if (bufBn === null) bufBn = isB;
     else if (isB !== bufBn){
       out += bufBn ? buf : '<span class="'+span+'">'+buf+'</span>';
@@ -1136,6 +1239,84 @@ function pptxLangRuns(text, bnFace, enFace, base){
   }
   flush();
   return out.length ? out : [{text:"", options:{fontFace:bnFace}}];
+}
+/* Parse math notation into segments (PPTX runs). Same grammar as mathHtml
+   (preview) - ^/_ powers, sqrt(...)/\u221a, frac(a,b), nesting - but on raw
+   text, producing {t:"text"|"sup"|"sub"|"sqrt"|"frac", s, num, den}. */
+function mathSegs(s){
+  var segs = [], i = 0, n = s.length, buf = "";
+  function flush(){ if (buf){ segs.push({t:"text", s:buf}); buf = ""; } }
+  function balFrom(open, close){
+    var depth = 0, j = i;
+    while (j < n){
+      if (s[j] === open) depth++;
+      else if (s[j] === close){ depth--; if (depth === 0){ var inner = s.slice(i+1, j); i = j+1; return inner; } }
+      j++;
+    }
+    return null;
+  }
+  function splitTopComma(str){
+    var dP = 0, dB = 0;
+    for (var k=0;k<str.length;k++){
+      var c = str[k];
+      if (c==="(") dP++; else if (c===")") dP--;
+      else if (c==="{") dB++; else if (c==="}") dB--;
+      else if (c==="," && dP===0 && dB===0) return [str.slice(0,k), str.slice(k+1)];
+    }
+    return null;
+  }
+  function atom(){
+    var save = i, sign = "";
+    if (i < n && (s[i]==="-" || s[i]==="+")){ sign = s[i]; i++; }
+    if (i < n && s[i]==="{"){
+      var g = balFrom("{","}");
+      if (g === null){ i = save; return null; }
+      return sign + g;
+    }
+    if (i < n){ var c = s[i]; i++; return sign + c; }
+    i = save; return null;
+  }
+  while (i < n){
+    var c = s[i];
+    if (c === "^" || c === "_"){
+      var kind = (c === "^") ? "sup" : "sub";
+      i++;
+      var a = atom();
+      if (a === null){ buf += c; }
+      else { flush(); segs.push({t:kind, s:a}); }
+      continue;
+    }
+    if ((s.slice(i, i+4) === "sqrt" && s[i+4] === "(") || c === "\u221a"){
+      var word = (c !== "\u221a");
+      var j = i + (word ? 4 : 1);
+      if (s[j] === "("){
+        i = j;
+        var inner = balFrom("(", ")");
+        if (inner === null){ buf += word ? "sqrt" : "\u221a"; i = j; continue; }
+        flush(); segs.push({t:"sqrt", s:inner}); continue;
+      }
+      var k = j, tok = "";
+      while (k < n && /[A-Za-z0-9]/.test(s[k])){ tok += s[k]; k++; }
+      if (tok){ i = k; flush(); segs.push({t:"sqrt", s:tok}); continue; }
+      buf += "\u221a"; i = j; continue;
+    }
+    if (s.slice(i, i+4) === "frac" && s[i+4] === "("){
+      i = i + 4;
+      var f = balFrom("(", ")");
+      if (f === null){ buf += "frac"; continue; }
+      var parts = splitTopComma(f);
+      if (!parts){ buf += "frac(" + f + ")"; continue; }
+      flush(); segs.push({t:"frac", num:parts[0].trim(), den:parts[1].trim()}); continue;
+    }
+    buf += c; i++;
+  }
+  flush();
+  return segs;
+}
+/* Preview rect -> inches on the 13.33x7.5 PPTX slide (scale-free ratios,
+   so a phone preview maps as well as a desktop one). */
+function pvRectToIn(rect, pvRect){
+  return { x:(rect.left-pvRect.left)/pvRect.width*13.33, y:(rect.top-pvRect.top)/pvRect.height*7.5, w:rect.width/pvRect.width*13.33, h:rect.height/pvRect.height*7.5 };
 }
 var palTab = { "in": "dark", "set": "dark" };
 function renderAccentPalette(prefix){
@@ -2636,6 +2817,21 @@ function vecCovers(fontKey, ch){
   VEC.covCache[key] = ok;
   return ok;
 }
+/* v3.2: a char neither the primary font nor Hind Siliguri covers (e.g. a
+   literal ² ³ ⁄ ½ typed in a question) used to shape to .notdef and vanish
+   from the vector PDF while the preview showed it (browser font fallback).
+   Try the bundled Latin faces before giving up. A char that renders today
+   is untouched (primary/reg still win), so this only rescues chars that
+   were invisible before — nothing existing changes. */
+var VEC_FALLBACK_KEYS = ["inter","os","ns","mont","pop","sora"];
+function vecKeyFor(ch, primaryKey){
+  if (ch === " " || vecCovers(primaryKey, ch)) return primaryKey;
+  if (vecCovers("reg", ch)) return "reg";
+  for (var i=0;i<VEC_FALLBACK_KEYS.length;i++){
+    if (vecCovers(VEC_FALLBACK_KEYS[i], ch)) return VEC_FALLBACK_KEYS[i];
+  }
+  return "reg";
+}
 /* Shape a string with one primary font; characters it lacks (e.g. Omega,
    which Hind Siliguri has no glyph for) are re-shaped with the fallback font
    and spliced in. Returns [{f:fontKey, g:gid, a:advance, xo:xOff, yo:yOff}]
@@ -2660,7 +2856,7 @@ function vecShape(text, primaryKey){
     // survived, from the ARK-only "ark" face). Hind Siliguri covers Latin
     // + Bengali, so it is the safe fallback; nothing that rendered before
     // can disappear, since fb rendered nothing.
-    var key = (ch===" " || vecCovers(primaryKey, ch)) ? primaryKey : "reg";
+    var key = vecKeyFor(ch, primaryKey);
     if (!cur || cur.f!==key){ cur={f:key, t:""}; runs.push(cur); }
     cur.t += ch;
     ci += ch.length;
@@ -2930,6 +3126,26 @@ async function vecDrawSlide(doc, pageH, ox, oy, k, clone){
       });
     });
   });
+  // v3.2 math rules: fraction bars and root overlines are CSS borders -
+  // the glyph pass above cannot draw them, so each is redrawn as a true
+  // vector line at the border's exact place in the clone (a border-top
+  // sits at the top edge of the element's border box). The glyphs
+  // themselves (sup/sub, the radical sign, numerator, denominator) are
+  // already drawn above by vecTextLines - raised/lowered by their own
+  // rects - so the whole equation stays vector: no raster, no images
+  // for math. Same unit pattern as the option-box borders above.
+  var _mathBars = clone.querySelectorAll(".mfrac .mbar, .msqrt .mover");
+  _mathBars.forEach(function(mb){
+    var mr = mb.getBoundingClientRect();
+    if (mr.width < 1) return;
+    var mcs = getComputedStyle(mb);
+    var bw = parseFloat(mcs.borderTopWidth) || 1;
+    var mcol = vecRgb(mcs.color);
+    var mx = mr.left - sRect.left, my = mr.top - sRect.top;
+    doc.setDrawColor(mcol[0], mcol[1], mcol[2]);
+    doc.setLineWidth(bw * k / 72);
+    doc.line((ox + mx*k)/72, (oy + (my + bw/2)*k)/72, (ox + (mx + mr.width)*k)/72, (oy + (my + bw/2)*k)/72);
+  });
   await vecDrawFig(doc, pageH, ox, oy, k, clone, sRect);
   // Diagram options: each option's own SVG, drawn on its light option box
   // (the box was already drawn above; the PNG flattens onto it).
@@ -3091,6 +3307,12 @@ $("btnPptx").addEventListener("click", async function(){
     // sheets exactly like the preview/PDF — PPTX draws the same plan, so
     // the three outputs can never drift apart again.
     if (!current._plan || !current._plan.length) renderAll();
+    // v3.2 math in PPTX: the preview slides are the layout of record - the
+    // math bars/boxes are positioned from their real rects (pptxMathRuns).
+    // Plan order == preview slide order (title first in both).
+    var _pvSlides = $("slides").querySelectorAll(".slide");
+    var _pvSlide = null;
+    function _pvRect(){ return _pvSlide ? _pvSlide.getBoundingClientRect() : null; }
     var pptx = new PptxGenJS();
     pptx.defineLayout({ name:"W", width:13.33, height:7.5 });
     pptx.layout = "W";
@@ -3169,6 +3391,175 @@ $("btnPptx").addEventListener("click", async function(){
       return out;
     }
     function tagTxt(q){ return String(q||"").indexOf("নমুনা প্রশ্ন")>=0 ? "" : (isBoard(q)?"":" [নমুনা প্রশ্ন]"); }
+    /* ---------- math in PPTX (v3.2) ----------
+       pptxMathRuns is a drop-in for pptxLangRuns with math support:
+       powers/subscripts become real superscript/subscript runs (this
+       bundle writes baseline="30000"/"-40000"), sqrt keeps its radical +
+       radicand as text runs and gets a drawn overline, frac becomes a
+       placeholder gap plus separate numerator/denominator text boxes and
+       a drawn bar. The bars/boxes are positioned from the PREVIEW slide's
+       real rects (the preview is the layout of record), converted to
+       inches on the 13.33x7.5 slide. When no preview element is
+       available (a CQ continuation slide has no stimulus element),
+       frac/sqrt degrade to plain readable text ("a/b", "\u221a(\u2026)")
+       instead of misplaced shapes. */
+    function pptxMathRuns(text, bnFace, enFace, base, fsPt, slide, pvEl, pvRect, colorHex, box){
+      var segs = mathSegs(String(text == null ? "" : text));
+      var fracEls = [], sqrtEls = [];
+      if (pvEl && pvEl.querySelectorAll){
+        fracEls = Array.prototype.slice.call(pvEl.querySelectorAll(".mfrac"));
+        sqrtEls = Array.prototype.slice.call(pvEl.querySelectorAll(".msqrt"));
+      }
+      /* v3.2 (E8): a math piece (fraction num/den, root overline) must land
+         where the PPTX text box puts the text — NOT where the preview slide
+         had it. The PPTX question/option boxes sit at fixed coords; the
+         preview flow puts the question near the top and the options
+         bottom-anchored, so the old slide-relative mapping put fractions
+         inches from their text (Q9: the 25/4 landed above the question, the
+         option fractions far below their boxes). Reference = the preview
+         TEXT's tight box (Range over the element's contents). Multi-row
+         elements (.cqrow/.ansrow) share one PPTX box, so they use the FIRST
+         row as the reference and scale the vertical offset by the
+         PPTX/preview line-pitch ratio. `box` is the PPTX text box
+         {x,y,w,h,valign,align}; without it the old slide-relative mapping
+         applies (so an un-updated call site keeps its old behaviour). */
+      var _textRect = null, _isMulti = false, _pitchRatio = 1, _scale = 1;
+      if (pvEl && pvRect){
+        try {
+          var _refEl = pvEl;
+          if (pvEl.classList && (pvEl.classList.contains("cqrow") || pvEl.classList.contains("ansrow")) && pvEl.parentElement){
+            var _cls = pvEl.classList.contains("cqrow") ? ".cqrow" : ".ansrow";
+            var _first = pvEl.parentElement.querySelector(_cls);
+            if (_first){ _refEl = _first; _isMulti = true; }
+          }
+          var _rg = document.createRange(); _rg.selectNodeContents(_refEl);
+          var _tr = _rg.getBoundingClientRect();
+          if (_tr && _tr.width > 0) _textRect = _tr;
+          var _cs = (window.getComputedStyle) ? getComputedStyle(_refEl) : null;
+          var _pf = _cs ? parseFloat(_cs.fontSize) || 0 : 0;
+          if (_pf > 0 && fsPt > 0) _scale = fsPt / _pf;
+          if (_isMulti){
+            /* v3.2 (E8b): the row PITCH is the distance between consecutive
+               row tops, NOT the first row's height — rows have a gap between
+               them (.ansrow pitch ~35px vs height 16.5px; .cqrow pitch ~17px
+               vs height 11.6px). Using the height made the ratio ~2x too big
+               and put multi-row fractions ~2 rows too low. Take the MINIMUM
+               consecutive-row pitch (a wrapped row only makes its pitch
+               larger, so the minimum is the single-line pitch). */
+            var _rh = _refEl.getBoundingClientRect().height;
+            var _rows = pvEl.parentElement ? pvEl.parentElement.querySelectorAll(_cls) : null;
+            if (_rows && _rows.length > 1){
+              var _p = 0;
+              for (var _ri = 1; _ri < _rows.length; _ri++){
+                var _d = _rows[_ri].getBoundingClientRect().top - _rows[_ri-1].getBoundingClientRect().top;
+                if (_d > 0 && (_p === 0 || _d < _p)) _p = _d;
+              }
+              if (_p > 0) _rh = _p;
+            }
+            if (_rh > 0){
+              var _previewPitch = _rh / pvRect.height * 7.5;
+              var _pptxPitch = fsPt * 1.2 / 72;
+              if (_previewPitch > 0) _pitchRatio = _pptxPitch / _previewPitch;
+            }
+          }
+        } catch(e){ _textRect = null; }
+      }
+      /* Map a preview element rect to PPTX inches, relative to the text box. */
+      function _piecePos(r){
+        if (!r || !pvRect) return null;
+        if (!_textRect || !box) return pvRectToIn(r, pvRect);
+        var _yScale = _isMulti ? _pitchRatio : _scale;
+        var _dx = (r.left - _textRect.left) / pvRect.width * 13.33 * _scale;
+        var _dy = (r.top - _textRect.top) / pvRect.height * 7.5 * _yScale;
+        var _w = r.width / pvRect.width * 13.33 * _scale;
+        var _h = r.height / pvRect.height * 7.5 * _yScale;
+        var _textW = _textRect.width / pvRect.width * 13.33 * _scale;
+        var _x0 = box.x;
+        if (box.align === "center" && box.w) _x0 = box.x + (box.w - _textW) / 2;
+        var _x = _x0 + _dx, _y;
+        if (box.valign === "middle" && box.h){
+          var _pcy = (r.top + r.height/2 - (_textRect.top + _textRect.height/2)) / pvRect.height * 7.5 * _yScale;
+          _y = box.y + box.h/2 + _pcy - _h/2;
+        } else {
+          _y = box.y + _dy;
+        }
+        return { x:_x, y:_y, w:_w, h:_h };
+      }
+      var fi = 0, si = 0, runs = [];
+      var _base = {};
+      if (base) for (var bk in base) _base[bk] = base[bk];
+      if (colorHex) _base.color = colorHex;
+      function mergeOpt(a, b){
+        var o = {};
+        if (a) for (var k in a) o[k] = a[k];
+        if (b) for (var k2 in b) o[k2] = b[k2];
+        return o;
+      }
+      function barRect(el, sel){
+        var t = el.querySelector(sel);
+        if (!t) return null;
+        return _piecePos(t.getBoundingClientRect());
+      }
+      function addBar(r, th){
+        if (!r || !slide || !colorHex) return;
+        slide.addShape(pptx.shapes.RECTANGLE, { x:r.x, y:r.y, w:r.w, h:Math.max(0.008, th), fill:{color:colorHex}, line:{color:colorHex} });
+      }
+      function addSegs(list, scale, mode, target){
+        list.forEach(function(sg){
+          var ex = {};
+          if (scale !== 1) ex.fontSize = Math.round(fsPt*scale*10)/10;
+          if (mode === "sup") ex.superscript = true;
+          else if (mode === "sub") ex.subscript = true;
+          if (sg.t === "text"){
+            pptxLangRuns(sg.s, bnFace, enFace, mergeOpt(_base, ex)).forEach(function(r){ target.push(r); });
+          } else if (sg.t === "sup" || sg.t === "sub"){
+            addSegs(mathSegs(sg.s), scale*0.68, sg.t, target);
+          } else if (sg.t === "sqrt"){
+            var el = sqrtEls[si++];
+            if (el && slide && pvRect && colorHex){
+              pptxLangRuns("\u221a", bnFace, enFace, mergeOpt(_base, ex)).forEach(function(r){ target.push(r); });
+              addSegs(mathSegs(sg.s), scale, mode, target);
+              addBar(barRect(el, ".mover"), 0.09*fsPt*scale/72);
+            } else {
+              pptxLangRuns("\u221a(", bnFace, enFace, mergeOpt(_base, ex)).forEach(function(r){ target.push(r); });
+              addSegs(mathSegs(sg.s), scale, mode, target);
+              pptxLangRuns(")", bnFace, enFace, mergeOpt(_base, ex)).forEach(function(r){ target.push(r); });
+            }
+          } else if (sg.t === "frac"){
+            var fel = fracEls[fi++];
+            if (fel && slide && pvRect && colorHex){
+              var fr = pvRectToIn(fel.getBoundingClientRect(), pvRect);
+              var cnt = Math.max(1, Math.round(fr.w / Math.max(0.01, 0.25*fsPt*scale/72)));
+              var nbsp = "";
+              for (var q=0;q<cnt;q++) nbsp += "\u00a0";
+              pptxLangRuns(nbsp, bnFace, enFace, mergeOpt(_base, ex)).forEach(function(r){ target.push(r); });
+              var nfs = Math.round(fsPt*scale*0.82*10)/10;
+              var mnum = fel.querySelector(".mnum"), mden = fel.querySelector(".mden");
+              if (mnum){
+                var nruns = [];
+                addSegs(mathSegs(sg.num), scale*0.82, mode, nruns);
+                var rn = _piecePos(mnum.getBoundingClientRect());
+                if (rn) slide.addText(nruns, { x:rn.x, y:rn.y, w:rn.w, h:Math.max(rn.h, 0.2), fontSize:nfs, color:colorHex, align:"center", valign:"middle" });
+              }
+              if (mden){
+                var druns = [];
+                addSegs(mathSegs(sg.den), scale*0.82, mode, druns);
+                var rd = _piecePos(mden.getBoundingClientRect());
+                if (rd) slide.addText(druns, { x:rd.x, y:rd.y, w:rd.w, h:Math.max(rd.h, 0.2), fontSize:nfs, color:colorHex, align:"center", valign:"middle" });
+              }
+              addBar(barRect(fel, ".mbar"), 0.09*fsPt*scale/72);
+            } else {
+              addSegs(mathSegs(sg.num), scale, mode, target);
+              pptxLangRuns("/", bnFace, enFace, mergeOpt(_base, ex)).forEach(function(r){ target.push(r); });
+              addSegs(mathSegs(sg.den), scale, mode, target);
+            }
+          }
+        });
+      }
+      addSegs(segs, 1, null, runs);
+      return runs.length ? runs : [{text:"", options:{fontFace:bnFace}}];
+    }
+
     function addHeader(slide, pill, railNum){
       slide.background = { color: csV ? csBg : bg };
       // Gradient strips first (behind everything on the slide).
@@ -3291,32 +3682,35 @@ $("btnPptx").addEventListener("click", async function(){
         } catch(e){}
         return;
       }
-      var runs = [{text:letter+"  ", options:{color:lcol, bold:true, fontFace:bnBodyFace}}].concat(pptxLangRuns(text, bnBodyFace, enBodyFace, {color:tcol}));
+      var _pvOpt = (_pvSlide && ["ক","খ","গ","ঘ"].indexOf(letter) >= 0) ? _pvSlide.querySelectorAll(".opt")[["ক","খ","গ","ঘ"].indexOf(letter)] : null;
+      var runs = [{text:letter+"  ", options:{color:lcol, bold:true, fontFace:bnBodyFace}}].concat(pptxMathRuns(text, bnBodyFace, enBodyFace, {color:tcol}, fso(12), slide, _pvOpt, _pvRect(), tcol, {x:x+0.2, y:y, w:w-0.35, h:h, valign:"middle"}));
       slide.addText(runs, { x:x+0.2, y:y, w:w-0.35, h:h, fontSize:fso(12), valign:"middle", shrinkText:true });
     }
     var titlePill = current.type==="MIX" ? "প্রশ্নপত্র" : pillFor(current.type);
     if (current.showTitle !== false){
+      _pvSlide = _pvSlides[0] || null;
       var s0 = pptx.addSlide(); addHeader(s0, titlePill, "✦");
       var tx = (L===3) ? 2.5 : 0.6, tw = (L===3) ? 10.2 : 12.13;
       if (L===4){
         s0.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:0.6, y:1.9, w:12.13, h:3.2, fill:{color:cardBg}, line:{color:cardBd} });
-        s0.addText(pptxLangRuns(current.subject||current.title||"", bnHeadFace, enHeadFace), { x:1.0, y:2.5, w:11.3, h:1, fontSize:fs(28), bold:true, color:qCol, align:"center" });
-        s0.addText(pptxLangRuns(current.chapter||"", bnBodyFace, enBodyFace), { x:1.0, y:3.5, w:11.3, h:0.6, fontSize:fs(16), color:txt, align:"center" });
+        s0.addText(pptxMathRuns(current.subject||current.title||"", bnHeadFace, enHeadFace, null, fs(28), s0, _pvSlide ? _pvSlide.querySelector(".title") : null, _pvRect(), qCol, {x:1.0, y:2.5, w:11.3, h:1, align:"center"}), { x:1.0, y:2.5, w:11.3, h:1, fontSize:fs(28), bold:true, color:qCol, align:"center" });
+        s0.addText(pptxMathRuns(current.chapter||"", bnBodyFace, enBodyFace, null, fs(16), s0, _pvSlide ? _pvSlide.querySelector(".sub") : null, _pvRect(), txt, {x:1.0, y:3.5, w:11.3, h:0.6, align:"center"}), { x:1.0, y:3.5, w:11.3, h:0.6, fontSize:fs(16), color:txt, align:"center" });
       } else if (L===5){
         var tAlign = (cs.opts.qPos === "center" || cs.opts.qPos === "top-center") ? "center" : "left";
-        s0.addText(pptxLangRuns(current.subject||current.title||"", bnHeadFace, enHeadFace), { x:0.6, y:2.6, w:12.13, h:1, fontSize:fsq(28), bold:true, color:csQ, align:tAlign });
-        s0.addText(pptxLangRuns(current.chapter||"", bnBodyFace, enBodyFace), { x:0.6, y:3.6, w:12.13, h:0.6, fontSize:fsq(16), color:csTx, align:tAlign });
+        s0.addText(pptxMathRuns(current.subject||current.title||"", bnHeadFace, enHeadFace, null, fsq(28), s0, _pvSlide ? _pvSlide.querySelector(".title") : null, _pvRect(), csQ, {x:0.6, y:2.6, w:12.13, h:1, align:tAlign}), { x:0.6, y:2.6, w:12.13, h:1, fontSize:fsq(28), bold:true, color:csQ, align:tAlign });
+        s0.addText(pptxMathRuns(current.chapter||"", bnBodyFace, enBodyFace, null, fsq(16), s0, _pvSlide ? _pvSlide.querySelector(".sub") : null, _pvRect(), csTx, {x:0.6, y:3.6, w:12.13, h:0.6, align:tAlign}), { x:0.6, y:3.6, w:12.13, h:0.6, fontSize:fsq(16), color:csTx, align:tAlign });
       } else if (L===2){
-        s0.addText(pptxLangRuns(current.subject||current.title||"", bnHeadFace, enHeadFace), { x:0.6, y:2.6, w:12.13, h:1, fontSize:fs(28), bold:true, color:qCol, align:"center" });
-        s0.addText(pptxLangRuns(current.chapter||"", bnBodyFace, enBodyFace), { x:0.6, y:3.6, w:12.13, h:0.6, fontSize:fs(16), color:txt, align:"center" });
+        s0.addText(pptxMathRuns(current.subject||current.title||"", bnHeadFace, enHeadFace, null, fs(28), s0, _pvSlide ? _pvSlide.querySelector(".title") : null, _pvRect(), qCol, {x:0.6, y:2.6, w:12.13, h:1, align:"center"}), { x:0.6, y:2.6, w:12.13, h:1, fontSize:fs(28), bold:true, color:qCol, align:"center" });
+        s0.addText(pptxMathRuns(current.chapter||"", bnBodyFace, enBodyFace, null, fs(16), s0, _pvSlide ? _pvSlide.querySelector(".sub") : null, _pvRect(), txt, {x:0.6, y:3.6, w:12.13, h:0.6, align:"center"}), { x:0.6, y:3.6, w:12.13, h:0.6, fontSize:fs(16), color:txt, align:"center" });
       } else {
-        s0.addText(pptxLangRuns(current.subject||current.title||"", bnHeadFace, enHeadFace), { x:tx, y:2.6, w:tw, h:1, fontSize:fs(28), bold:true, color:qCol });
-        s0.addText(pptxLangRuns(current.chapter||"", bnBodyFace, enBodyFace), { x:tx, y:3.6, w:tw, h:0.6, fontSize:fs(16), color:txt });
+        s0.addText(pptxMathRuns(current.subject||current.title||"", bnHeadFace, enHeadFace, null, fs(28), s0, _pvSlide ? _pvSlide.querySelector(".title") : null, _pvRect(), qCol, {x:tx, y:2.6, w:tw, h:1}), { x:tx, y:2.6, w:tw, h:1, fontSize:fs(28), bold:true, color:qCol });
+        s0.addText(pptxMathRuns(current.chapter||"", bnBodyFace, enBodyFace, null, fs(16), s0, _pvSlide ? _pvSlide.querySelector(".sub") : null, _pvRect(), txt, {x:tx, y:3.6, w:tw, h:0.6}), { x:tx, y:3.6, w:tw, h:0.6, fontSize:fs(16), color:txt });
       }
     }
     var plan = current._plan || [];
     for (var i=0;i<plan.length;i++){
       var e = plan[i];
+      _pvSlide = _pvSlides[i] || null;
       if (e.t==="title") continue;
       if (e.t==="mcq"){
         var it = e.item;
@@ -3331,7 +3725,7 @@ $("btnPptx").addEventListener("click", async function(){
           var qAlign = co.qPos === "center" ? "center" : (co.qPos === "top-center" ? "center" : "left");
           var qX = 0.6, qW = 12.13;
           if (co.optPos === "right") qW = 7.2;
-          s.addText(pptxLangRuns(qText, bnBodyFace, enBodyFace), { x:qX, y:qY, w:qW, h:2.6, fontSize:fsq(16), bold:true, color:csQ, valign:"top", align:qAlign, shrinkText:true });
+          s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fsq(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), csQ, {x:qX, y:qY, w:qW, h:2.6, valign:"top", align:qAlign}), { x:qX, y:qY, w:qW, h:2.6, fontSize:fsq(16), bold:true, color:csQ, valign:"top", align:qAlign, shrinkText:true });
           var yOpts5 = qY + 2.5;
           if (it.svg){ figH = await addFig(s, it.svg, qX+qW/2, qY+1.9, Math.min(qW,6), 1.1); yOpts5 = qY + 3.1; }
           if (co.optPos === "right"){
@@ -3360,7 +3754,7 @@ $("btnPptx").addEventListener("click", async function(){
             }
           }
         } else if (L===0){
-          s.addText(pptxLangRuns(qText, bnBodyFace, enBodyFace), { x:0.6, y:1.5, w:7.2, h:2.6, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
+          s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fs(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), qCol, {x:0.6, y:1.5, w:7.2, h:2.6, valign:"top"}), { x:0.6, y:1.5, w:7.2, h:2.6, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
           if (it.svg) figH = await addFig(s, it.svg, 0.6+3.6, 4.3, 5.5, 1.6);
           for (var oi=0; oi<it.opts.length; oi++){
             var o = it.opts[oi];
@@ -3368,7 +3762,7 @@ $("btnPptx").addEventListener("click", async function(){
             await optBox(s, 8.4, y, 4.3, 0.65, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o));
           }
         } else if (L===1){
-          s.addText(pptxLangRuns(qText, bnBodyFace, enBodyFace), { x:0.6, y:1.35, w:12.13, h:1.9, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
+          s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fs(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), qCol, {x:0.6, y:1.35, w:12.13, h:1.9, valign:"top"}), { x:0.6, y:1.35, w:12.13, h:1.9, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
           var yOpts1 = 4.0;
           if (it.svg){ figH = await addFig(s, it.svg, 6.67, 3.35, 6, 1.1); yOpts1 = 4.6; }
           for (var oi=0; oi<it.opts.length; oi++){
@@ -3377,7 +3771,7 @@ $("btnPptx").addEventListener("click", async function(){
             await optBox(s, gx, gy, 5.88, 0.85, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o));
           }
         } else if (L===2){
-          s.addText(pptxLangRuns(qText, bnBodyFace, enBodyFace), { x:1.5, y:1.9, w:10.33, h:1.8, fontSize:fs(16), bold:true, color:qCol, valign:"top", align:"center", shrinkText:true });
+          s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fs(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), qCol, {x:1.5, y:1.9, w:10.33, h:1.8, valign:"top", align:"center"}), { x:1.5, y:1.9, w:10.33, h:1.8, fontSize:fs(16), bold:true, color:qCol, valign:"top", align:"center", shrinkText:true });
           var yOpts2 = 4.9;
           if (it.svg){ figH = await addFig(s, it.svg, 6.67, 3.8, 6, 1.1); yOpts2 = 5.3; }
           var pw = 2.9, gap = 0.25, totalW = pw*4 + gap*3, x0 = (13.33-totalW)/2;
@@ -3386,7 +3780,7 @@ $("btnPptx").addEventListener("click", async function(){
             await optBox(s, x0 + oi*(pw+gap), yOpts2, pw, 0.7, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o));
           }
         } else if (L===3){
-          s.addText(pptxLangRuns(qText, bnBodyFace, enBodyFace), { x:2.5, y:1.5, w:10.2, h:2.2, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
+          s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fs(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), qCol, {x:2.5, y:1.5, w:10.2, h:2.2, valign:"top"}), { x:2.5, y:1.5, w:10.2, h:2.2, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
           var yOpts3 = 3.9, oH3 = 0.6, oGap3 = 0.75;
           if (it.svg){ figH = await addFig(s, it.svg, 2.5+5.1, 3.15, 6, 0.9); yOpts3 = 4.25; oGap3 = 0.7; }
           for (var oi=0; oi<it.opts.length; oi++){
@@ -3396,7 +3790,7 @@ $("btnPptx").addEventListener("click", async function(){
           }
         } else { // L4
           s.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:0.6, y:1.5, w:12.13, h:2.2, fill:{color:cardBg}, line:{color:cardBd} });
-          s.addText(pptxLangRuns(qText, bnBodyFace, enBodyFace), { x:1.0, y:1.65, w:11.3, h:1.9, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
+          s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fs(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), qCol, {x:1.0, y:1.65, w:11.3, h:1.9, valign:"top"}), { x:1.0, y:1.65, w:11.3, h:1.9, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
           var yOpts4 = 4.1;
           if (it.svg){ figH = await addFig(s, it.svg, 6.67, 3.85, 6, 1.1); yOpts4 = 5.0; }
           for (var oi=0; oi<it.opts.length; oi++){
@@ -3411,18 +3805,18 @@ $("btnPptx").addEventListener("click", async function(){
         var sx = (L===3) ? 2.5 : 0.6, sw = (L===3) ? 10.2 : 12.13;
         var stimY = 1.5, subY = 3.2;
         if (L===5){
-          s2.addText(pptxLangRuns(bn(cq.num)+". "+cq.stimulus+tagTxt(cq.stimulus), bnBodyFace, enBodyFace), { x:0.6, y:1.5, w:12.13, h:1.6, fontSize:fsq(12), color:csTx, valign:"top", shrinkText:true });
+          s2.addText(pptxMathRuns(bn(cq.num)+". "+cq.stimulus+tagTxt(cq.stimulus), bnBodyFace, enBodyFace, null, fsq(12), s2, _pvSlide ? _pvSlide.querySelector(".stim") : null, _pvRect(), csTx, {x:0.6, y:1.5, w:12.13, h:1.6, valign:"top"}), { x:0.6, y:1.5, w:12.13, h:1.6, fontSize:fsq(12), color:csTx, valign:"top", shrinkText:true });
         } else if (L===4){
           s2.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:0.6, y:1.5, w:12.13, h:1.8, fill:{color:cardBg}, line:{color:cardBd} });
-          s2.addText(pptxLangRuns(bn(cq.num)+". "+cq.stimulus+tagTxt(cq.stimulus), bnBodyFace, enBodyFace), { x:1.0, y:1.65, w:11.3, h:1.5, fontSize:fs(12), color:txt, valign:"top", shrinkText:true });
+          s2.addText(pptxMathRuns(bn(cq.num)+". "+cq.stimulus+tagTxt(cq.stimulus), bnBodyFace, enBodyFace, null, fs(12), s2, _pvSlide ? _pvSlide.querySelector(".stim") : null, _pvRect(), txt, {x:1.0, y:1.65, w:11.3, h:1.5, valign:"top"}), { x:1.0, y:1.65, w:11.3, h:1.5, fontSize:fs(12), color:txt, valign:"top", shrinkText:true });
           subY = 3.6;
         } else {
-          s2.addText(pptxLangRuns(bn(cq.num)+". "+cq.stimulus+tagTxt(cq.stimulus), bnBodyFace, enBodyFace), { x:sx, y:stimY, w:sw, h:1.6, fontSize:fs(12), color:txt, valign:"top", shrinkText:true });
+          s2.addText(pptxMathRuns(bn(cq.num)+". "+cq.stimulus+tagTxt(cq.stimulus), bnBodyFace, enBodyFace, null, fs(12), s2, _pvSlide ? _pvSlide.querySelector(".stim") : null, _pvRect(), txt, {x:sx, y:stimY, w:sw, h:1.6, valign:"top"}), { x:sx, y:stimY, w:sw, h:1.6, fontSize:fs(12), color:txt, valign:"top", shrinkText:true });
         }
         if (cq.svg){ await addFig(s2, cq.svg, sx + sw/2, subY, 6, 1.3); subY += 1.45; }
         var subRuns = [];
         e.subs.forEach(function(sub, si){
-          pptxLangRuns(sub.k+". "+sub.q, bnBodyFace, enBodyFace).forEach(function(r){ subRuns.push(r); });
+          pptxMathRuns(sub.k+". "+sub.q, bnBodyFace, enBodyFace, null, (L===5?fsq(13):fs(13)), s2, _pvSlide ? _pvSlide.querySelectorAll(".cqrow")[si] : null, _pvRect(), (L===5?csQ:qCol), {x:sx, y:subY, w:sw, h:6.9-subY, valign:"top"}).forEach(function(r){ subRuns.push(r); });
           if (si < e.subs.length-1) subRuns[subRuns.length-1].options.breakLine = true;
         });
         if (subRuns.length) s2.addText(subRuns, { x:sx, y:subY, w:sw, h:6.9-subY, fontSize:(L===5?fsq(13):fs(13)), bold:true, color:(L===5?csQ:qCol), valign:"top", shrinkText:true });
@@ -3453,7 +3847,7 @@ $("btnPptx").addEventListener("click", async function(){
           else if (_ab){ aRuns.push({text:_ab[1], options:{color:ansPre, bold:true, fontFace:bnBodyFace}}); _body = ""; }
           var _last = (ai === e.items.length - 1);
           if (_body){
-            var _br = pptxLangRuns(_body, bnBodyFace, enBodyFace, {color:(csV ? csTx : txt)});
+            var _br = pptxMathRuns(_body, bnBodyFace, enBodyFace, {color:(csV ? csTx : txt)}, fs(9), s3, _pvSlide ? _pvSlide.querySelectorAll(".ansrow")[ai] : null, _pvRect(), (csV ? csTx : txt), {x:ax, y:ay, w:aw, h:6.9-ay, valign:"top"});
             _br[_br.length-1].options.breakLine = !_last;
             _br.forEach(function(r){ aRuns.push(r); });
           }
@@ -3595,7 +3989,8 @@ var MASTER_PROMPT = [
 "8. কোনো প্রশ্নে চিত্র/ডায়াগ্রাম থাকলে: ডায়াগ্রামটা বইয়ের মতো হুবহু কিন্তু পরিষ্কার করে এক লাইনের SVG হিসেবে দেবে — প্রশ্নের ঠিক পরের লাইনে: SVG: <svg viewBox=\"0 0 400 260\" ...>...</svg>। SVG-তে শুধু আকৃতি (line/circle/rect/path/text) দেবে, কোনো স্ক্রিপ্ট/ছবি/লিংক দেবে না। রঙের জন্য ACCENT শব্দটা ব্যবহার করবে (অ্যাপ সেটাকে প্রজেক্টের অ্যাকসেন্ট রঙে বদলে দেবে) — যেমন stroke=\"ACCENT\"। ডায়াগ্রামটা স্লাইডে ছবি (figure) হিসেবে দেখাবে।",
 "9. MCQ-র উত্তর দিলে: প্রতিটা MCQ-র ঠিক পরে তার সল্যুশন স্লাইড হবে — একই প্রশ্ন আবার দেখাবে, শুধু সঠিক অপশনটা সবুজ রঙে থাকবে। উত্তর আলাদা কোনো শেষের সেকশনে জমা হবে না। তাই MCQ-র উত্তর সবসময় TYPE: ANSWER সেকশনে MCQ-র নম্বর মিলিয়ে দেবে।",
 "10. বিষয়/টপিক ENGLISH হলে পুরো আউটপুট ইংরেজিতে লেখো — প্রশ্ন, অপশন, উত্তর, টাইটেল, সবকিছু।",
-"11. কোনো MCQ-র অপশনগুলো নিজেই চিত্র/প্রতীক হলে (যেমন তড়িৎ প্রতীক, চিহ্ন): প্রতিটা অপশনকে আলাদা এক লাইনের SVG হিসেবে দেবে — যেমন: ২. প্রশ্ন? | <svg viewBox=\"0 0 400 120\" ...>...</svg> | <svg ...>...</svg> | <svg ...>...</svg> | <svg ...>...</svg>। চারটা অপশনকে একসাথে একটা ২×২ গ্রিড চিত্রে দেবে না, আর প্রতীকের বদলে '—' বা '—+—' জাতীয় লেখা দেবে না। অপশনের SVG-তে রঙের জন্য ACCENT-DARK ব্যবহার করবে (অপশনের বাক্স হালকা রঙের হয়, তাই গাঢ় রেখা লাগবে)।"
+"11. কোনো MCQ-র অপশনগুলো নিজেই চিত্র/প্রতীক হলে (যেমন তড়িৎ প্রতীক, চিহ্ন): প্রতিটা অপশনকে আলাদা এক লাইনের SVG হিসেবে দেবে — যেমন: ২. প্রশ্ন? | <svg viewBox=\"0 0 400 120\" ...>...</svg> | <svg ...>...</svg> | <svg ...>...</svg> | <svg ...>...</svg>। চারটা অপশনকে একসাথে একটা ২×২ গ্রিড চিত্রে দেবে না, আর প্রতীকের বদলে '—' বা '—+—' জাতীয় লেখা দেবে না। অপশনের SVG-তে রঙের জন্য ACCENT-DARK ব্যবহার করবে (অপশনের বাক্স হালকা রঙের হয়, তাই গাঢ় রেখা লাগবে)।",
+"12. গাণিতিক সমীকরণ বইয়ের মতো করে লেখার জন্য এই চিহ্নগুলো ব্যবহার করবে — ঘাত (power): x^2, x^n, x^{n+1}, 2^-3; নিচের সংখ্যা (subscript): H_2O, a_1, a_{n+1}; বর্গমূল: sqrt(x+1) বা √(x+1) — মূলের উপরে দাগ থাকবে; ভগ্নাংশ: frac(1,2) — উপরে লব, নিচে হর, মাঝখানে দাগ। ভেতরে ভেতরে মেশানো যাবে — যেমন sqrt(frac(25,4)), frac(x^2, y_1)। কখনোই 'x^2' বা 'sqrt' লেখাটা এমনি ছেড়ে দেবে না, আর ভগ্নাংশকে '1/2' লিখে স্ল্যাশ দিয়ে দেবে না।",
 ].join("\n");
 $("btnCopyPrompt").addEventListener("click", function(){
   var done = function(){ var ok = $("copyOk"); ok.classList.remove("hidden"); setTimeout(function(){ ok.classList.add("hidden"); }, 2000); };
