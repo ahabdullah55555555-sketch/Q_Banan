@@ -739,6 +739,8 @@ body.app-dark .sw.on{border-color:#fff}
   <div class="card set-group">
     <h2>অ্যাপ ভার্সন</h2>
     <p class="set-hint">এখন চলছে: <b id="setVer"></b></p>
+    <p class="set-hint">শেষ PDF: <b id="pdfDiag">—</b></p>
+    <p class="set-hint">ভেক্টর ইঞ্জিন: <b id="vecDiag">—</b></p>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
       <button class="btn-w" id="btnCheckUpd" type="button">নতুন ভার্সন চেক করো</button>
       <span id="updMsg" style="font-size:13px"></span>
@@ -798,7 +800,7 @@ body.app-dark .sw.on{border-color:#fff}
 /* App version — the ONE version string shown to the user (Home + Settings).
    The service worker cache is "qbanan-" + this version (same literal in
    sw.js) — bump both together on every release. */
-var APP_VERSION = "3.0";
+var APP_VERSION = "3.1";
 /* ---------- helpers ---------- */
 var BN = {"0":"০","1":"১","2":"২","3":"৩","4":"৪","5":"৫","6":"৬","7":"৭","8":"৮","9":"৯"};
 function bn(n){ return String(n).split("").map(function(c){ return BN[c] || c; }).join(""); }
@@ -2534,7 +2536,7 @@ function buildPdfClone(src, stage){
 }
 
 /* --- vector text engine (HarfBuzz shaping + glyph outlines) --- */
-var VEC = { inited:false, initPromise:null, fonts:null, glyphCache:{}, covCache:{}, shapeCache:{} };
+var VEC = { inited:false, initPromise:null, fonts:null, glyphCache:{}, covCache:{}, shapeCache:{}, lastFail:null };
 /* hhea/typo ascent+descent in font units (upm 1000). A word Range rect is
    the font's em box, so the baseline is rect top + ascent (no half-leading). */
 /* Baseline metrics per family (asc/desc per 1000 upm) — the vector PDF
@@ -2559,8 +2561,13 @@ async function vecInit(){
   VEC.initPromise = (async function(){
     try {
       var t0 = Date.now();
-      while (!window.HB && Date.now()-t0 < 8000){ await new Promise(function(r){ setTimeout(r,100); }); }
-      if (!window.HB || !window.VEC_FONTS_B64 || !window.HB_WASM_BIN) return false;
+      // v3.1: wait for ALL THREE prerequisites (HB module, font bundle,
+      // wasm binary) — on a cold cache with weak Wi-Fi the module can take
+      // >8s, and the old code only waited for HB, then gave up.
+      while ((!window.HB || !window.VEC_FONTS_B64 || !window.HB_WASM_BIN) && Date.now()-t0 < 30000){ await new Promise(function(r){ setTimeout(r,100); }); }
+      if (!window.HB){ VEC.lastFail = "HB"; return false; }
+      if (!window.VEC_FONTS_B64){ VEC.lastFail = "FONTS"; return false; }
+      if (!window.HB_WASM_BIN){ VEC.lastFail = "WASM"; return false; }
       var hb = window.HB;
       function mk(b64){
         var font = new hb.Font(new hb.Face(new hb.Blob(b64ToBuf(b64))));
@@ -2569,10 +2576,16 @@ async function vecInit(){
       }
       VEC.fonts = { reg:mk(window.VEC_FONTS_B64.reg), bold:mk(window.VEC_FONTS_B64.bold), ark:mk(window.VEC_FONTS_B64.ark), fb:mk(window.VEC_FONTS_B64.fb) };
       VEC.inited = true;
+      VEC.lastFail = null;
       return true;
-    } catch(e){ return false; }
+    } catch(e){ VEC.lastFail = "ERR"; return false; }
   })();
-  return VEC.initPromise;
+  var ok = await VEC.initPromise;
+  // v3.1: NEVER memoize a failure. One transient miss (module still
+  // loading when he tapped export right after updating) used to disable
+  // the vector path for the whole page session.
+  if (!ok) VEC.initPromise = null;
+  return ok;
 }
 /* Lazy HarfBuzz face for a v2.7 font key: only the fonts actually used in
    the project are parsed (31 faces would take seconds on his phone if all
@@ -3015,23 +3028,42 @@ $("btnPdf").addEventListener("click", async function(){
   if (!current) return;
   if (typeof window.jspdf === "undefined"){ alert("PDF লাইব্রেরি লোড হয়নি — অফলাইনে ফাইল আছে কিনা দেখো (jspdf.umd.min.js)।"); return; }
   var btn = $("btnPdf");
-  btn.disabled = true; btn.textContent = "PDF বানানো হচ্ছে…";
+  btn.disabled = true; btn.textContent = "ভেক্টর ইঞ্জিন চালু হচ্ছে…";
   try {
-    var pdf = null;
+    var pdf = null, usedVector = false;
     try {
-      if (await vecInit()) pdf = await exportPdfVector();
+      if (await vecInit()){ pdf = await exportPdfVector(); usedVector = true; }
     } catch(e){ pdf = null; }
-    if (!pdf) pdf = await exportPdfRaster();
+    if (!pdf){
+      btn.textContent = "PDF বানানো হচ্ছে…";
+      pdf = await exportPdfRaster();
+      if (pdf) recordPdfDiag("raster", VEC.lastFail || "vecInit");
+    } else if (usedVector){ recordPdfDiag("vector", ""); }
     if (pdf) pdf.save(exportBaseName() + ".pdf");
   } catch(e){ alert("PDF বানাতে সমস্যা হয়েছে: " + e.message); }
   btn.disabled = false; btn.textContent = "PDF এক্সপোর্ট";
 });
+/* ---------- v3.1 PDF diagnostic (Settings shows the last export path) ---------- */
+function getPdfDiag(){ try { return JSON.parse(localStorage.getItem("qbanan_pdf_diag") || "null"); } catch(e){ return null; } }
+function recordPdfDiag(kind, why){
+  var d = { kind: kind, why: why || "", at: new Date().toISOString() };
+  window.__qbananPdfDiag = d;
+  try { localStorage.setItem("qbanan_pdf_diag", JSON.stringify(d)); } catch(e){}
+  renderPdfDiag();
+}
+function renderPdfDiag(){
+  var d = window.__qbananPdfDiag || getPdfDiag();
+  var p = $("pdfDiag"), v = $("vecDiag");
+  if (p) p.textContent = d ? (d.kind === "vector" ? "ভেক্টর" : "রাস্টার") + (d.at ? " (" + new Date(d.at).toLocaleString("bn-BD") + ")" : "") : "—";
+  if (v) v.textContent = d ? (d.kind === "vector" ? "চালু আছে" : "চালু হয়নি" + (d.why ? " — " + d.why : "")) : "—";
+}
 /* Test hook (used by automated checks): returns the vector PDF as base64,
    or null when the vector engine cannot start. */
 /* Test hook for the raster fallback path. */
 window.__qbananExportPdfRaster = async function(){
   if (!current) return null;
   var pdf = await exportPdfRaster();
+  if (pdf) recordPdfDiag("raster", VEC.lastFail || "raster-hook");
   if (!pdf) return null;
   var ab = pdf.output("arraybuffer");
   var bytes = new Uint8Array(ab), bin = "";
@@ -3041,6 +3073,7 @@ window.__qbananExportPdfRaster = async function(){
 window.__qbananExportPdfVector = async function(){
   if (!current) return null;
   if (!await vecInit()) return null;
+  recordPdfDiag("vector", "");
   var pdf = await exportPdfVector();
   var ab = pdf.output("arraybuffer");
   var bytes = new Uint8Array(ab), bin = "";
@@ -3468,6 +3501,7 @@ function openSettings(){
   wireAccentPalette("set");
   renderAccentPalette("set");
   $("setVer").textContent = "v" + APP_VERSION;
+  renderPdfDiag(); // v3.1: show the last export path (vector / raster + why)
   $("updMsg").textContent = "";
   markSwatch(st.accent || "#ffd700");
   $("setSaved").classList.add("hidden");
@@ -4007,6 +4041,9 @@ $("btnUpdHome").addEventListener("click", checkForUpdate);
 
 applyAppTheme();
 renderHome();
+// v3.1: warm the vector engine on app open (never blocks the UI) — so an
+// export tapped seconds later finds HB already ready instead of racing it.
+setTimeout(function(){ vecInit(); }, 600);
 renderCustomTiles();
 clearCreateForm();
 $("appVer").textContent = "v" + APP_VERSION;
