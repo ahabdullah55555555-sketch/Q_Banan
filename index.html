@@ -112,10 +112,13 @@ textarea{min-height:220px;line-height:1.6}
 .opt b{color:var(--optLetter,var(--accD,#b8860b));margin-right:6px}
 /* Diagram option (v2.7): the option IS a diagram — its SVG sits INSIDE the
    option box (letter at the left, diagram centred in the rest of the box).
-   Option boxes are LIGHT in both themes, so the diagram is small and dark. */
-.opt.optsvg{display:flex;align-items:center;gap:8px}
+   Option boxes are LIGHT in both themes, so the diagram is small and dark.
+   v2.8 (Bug 2): compact — 30px base (~23px at default size) + tight
+   vertical padding, so 4 diagram options fit a narrow phone body instead
+   of filling the whole slide. */
+.opt.optsvg{display:flex;align-items:center;gap:8px;padding-top:2px;padding-bottom:2px}
 .opt .optfig{flex:1;min-width:0;display:flex;align-items:center;justify-content:center}
-.opt .optfig svg{height:calc(var(--szf,.78)*36px);width:auto;max-width:100%;display:block}
+.opt .optfig svg{height:calc(var(--szf,.78)*30px);width:auto;max-width:100%;display:block}
 .foot{padding:6px 26px;font-size:calc(var(--szf,.78)*5px);color:var(--footCol,#8a8a8a);display:flex;justify-content:space-between}
 .titlewrap{flex:1;display:flex;flex-direction:column;justify-content:center;padding:10px 26px}
 .title{font-size:calc(var(--szf,.78)*28px);line-height:1.25;font-weight:700;color:var(--acc,#ffd700)}
@@ -340,7 +343,7 @@ textarea{min-height:220px;line-height:1.6}
 .slide.l5 .foot{color:var(--cs-tx2,#cfcfcf)}
 .slide.l5 .opt{background:var(--cs-optbg,#fff3d6);color:var(--cs-optcol,#111);border:1px solid var(--cs-optbd,#d8c27a);font-size:calc(var(--szf,.78)*11px*var(--cs-of,1))}
 .slide.l5 .opt b{color:var(--cs-optcol,#111)}
-.slide.l5 .opt .optfig svg{height:calc(var(--szf,.78)*36px*var(--cs-of,1))}
+.slide.l5 .opt .optfig svg{height:calc(var(--szf,.78)*30px*var(--cs-of,1))}
 /* options position */
 .slide.l5.cs-opt-right .body{flex-direction:row;gap:20px}
 .slide.l5.cs-opt-right .qwrap{flex:1.5;min-width:0}
@@ -750,7 +753,7 @@ body.app-dark .sw.on{border-color:#fff}
 /* App version — the ONE version string shown to the user (Home + Settings).
    The service worker cache is "qbanan-" + this version (same literal in
    sw.js) — bump both together on every release. */
-var APP_VERSION = "2.7";
+var APP_VERSION = "2.8";
 /* ---------- helpers ---------- */
 var BN = {"0":"০","1":"১","2":"২","3":"৩","4":"৪","5":"৫","6":"৬","7":"৭","8":"৮","9":"৯"};
 function bn(n){ return String(n).split("").map(function(c){ return BN[c] || c; }).join(""); }
@@ -918,6 +921,10 @@ function effTheme(){
   if (current.optBgC) t.optBg = current.optBgC;
   else if (t.optStyle === "box") t.optBg = tintHex(acc, 0.13);
   else t.optBg = "transparent";
+  // v2.8 (Bug 1): "none"/"lines" never show a box — a theme's stale box
+  // colour must not drive the text-colour guards below, or dark text lands
+  // on a dark slide (x3 + none gave #111111 on #000000, contrast 1.11).
+  if (t.optStyle !== "box") t.optBg = "transparent";
   if (current.optColC) t.optCol = current.optColC;
   else if (t.optBg !== "transparent" && hexLum(t.optBg) > 0.45) t.optCol = "#111111";
   else t.optCol = light ? "#111111" : "#ffffff";
@@ -925,7 +932,14 @@ function effTheme(){
   else if (t.optStyle === "box") t.optBd = light ? tintHex(acc, 0.35) : "transparent";
   else if (t.optStyle === "lines") t.optBd = light ? "#d8d8d8" : "#333333";
   else t.optBd = "transparent";
+  // v2.8 (Bug 1): a "lines" style whose theme left a transparent divider
+  // shows no lines at all — fall back to the default divider colour.
+  if (t.optStyle === "lines" && (!t.optBd || t.optBd === "transparent")) t.optBd = light ? "#d8d8d8" : "#333333";
   t.optLetter = (t.optStyle === "box") ? darkenHex(acc, 0.55) : acc;
+  // v2.8 (Bug 1): diagram strokes inside option boxes. On a light box (box
+  // style) the darkened accent; with no box (none/lines) the strokes sit on
+  // the slide itself — the accent on dark slides, darkened on light slides.
+  t.optSvg = (t.optStyle === "box") ? darkenHex(acc, 0.55) : (light ? darkenHex(acc, 0.55) : acc);
   t.pillBg = (t.pill === "filled") ? acc : "transparent";
   t.pillCol = (t.pill === "filled") ? accOnText(acc) : (light ? darkenHex(acc, 0.55) : acc);
   if (current.pillColC) t.pillCol = current.pillColC; // custom theme's own pill colour
@@ -1896,9 +1910,13 @@ function optHTML(o, idx, solIdx){
   var L = ["ক","খ","গ","ঘ"][idx];
   var correct = (solIdx != null && idx === solIdx);
   if (svg){
-    // Option boxes are LIGHT in both themes: ACCENT-DARK is the darkened
-    // accent (the prompt tells TOM to use it for option diagrams).
-    var s = svg.replace(/\bACCENT-DARK\b/g, darkenHex(current.accent, 0.55)).replace(/\bACCENT\b/g, current.accent);
+    // v2.8 (Bug 1): the diagram strokes follow the EFFECTIVE option
+    // background — darkened accent on a light box, the accent itself on a
+    // dark slide with no box (none/lines). The correct (green) option keeps
+    // the darkened accent on its green box.
+    var _thO = effTheme();
+    var _stroke = correct ? darkenHex(current.accent, 0.55) : _thO.optSvg;
+    var s = svg.replace(/\bACCENT-DARK\b/g, _stroke).replace(/\bACCENT\b/g, current.accent);
     return '<div class="opt optsvg'+(correct?' correct':'')+'"><b>'+L+'</b><span class="optfig">'+s+'</span></div>';
   }
   return '<div class="opt'+(correct?' correct':'')+'"><b>'+L+'</b> '+langHtml(o)+'</div>';
@@ -1975,6 +1993,26 @@ function fitFig(slide){
   svg.style.width = "100%";
   svg.style.height = "auto";
   if (!svg.getAttribute("preserveAspectRatio")) svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+  // v2.8 (Bug 3): the figure must never be crushed to a blob — on a crowded
+  // CQ slide the column flex used to squeeze .fig (min-height:0) to 0px,
+  // hiding the diagram while all 4 subs stayed on slide 1. Floor it at
+  // ~96px of text size (75px at default), never above its own intended
+  // height, so a crowded CQ flows its subs onto a continuation slide
+  // instead of crushing the diagram. Same floor for MCQ figures (fitMcq
+  // reads it back as its shrink floor).
+  // NOTE: the intended height is computed from the viewBox + the figure
+  // width — NOT measured, because the column flex may already have shrunk
+  // the figure by the time fitFig runs (the Chem CQ figure measured 58px
+  // here, not its capped 79px, so a measured floor would bake in the crush).
+  var _szf = {small:0.65, normal:0.78, large:0.95}[current.slideSize || getSettings().slideSize || "normal"] || 0.78;
+  var _vb = (svg.getAttribute("viewBox") || "").split(/[\s,]+/);
+  var _vw = parseFloat(_vb[2]) || 0, _vh = parseFloat(_vb[3]) || 0;
+  var _figW = svg.parentElement ? svg.parentElement.clientWidth : 0;
+  var _nat = (_vw > 0 && _vh > 0 && _figW > 0) ? Math.round(_figW * _vh / _vw) : Math.round(svg.getBoundingClientRect().height);
+  var _intended = _nat > 0 ? (cap > 40 ? Math.min(_nat, cap) : _nat) : (cap > 40 ? cap : Math.round(96 * _szf));
+  var _floor = Math.min(Math.round(96 * _szf), _intended);
+  svg.style.minHeight = _floor + "px";
+  if (svg.parentElement) svg.parentElement.style.minHeight = _floor + "px";
 }
 function renderAll(){
   var box = $("slides");
@@ -2156,11 +2194,18 @@ function fitMcq(slide){
   // clientHeight even when the question overflows into the footer (same
   // latent bug as the CQ row split — the body's scrollHeight is the one
   // that grows).
+  // v2.8 (Bug 2): scrollHeight is ALSO blind to the options column spilling
+  // UPWARD (justify-content:flex-end) — 4 diagram options total ~159px in
+  // a 129px phone body, yet scrollHeight read 129. So the loop also checks
+  // the first/last option box against the body rect (optsOver()).
   // Levers, in order (each only when the previous one is exhausted):
-  //  1. text (question + option fonts, floor 6px) — keeps the diagram whole;
-  //  2. the diagram's max-height (floor 24px) — a smaller figure beats a
-  //     hidden one on a small phone screen;
-  //  3. compaction (tighter option padding + gaps + card padding).
+  //  1. diagram options first when the OPTIONS column is the overflow
+  //     (floor 20px) — shrinking the question font cannot fix the options;
+  //  2. text (question + option fonts, floor 6px) — keeps the diagram whole;
+  //  3. the question figure's max-height — never below fitFig's floor
+  //     (v2.8 Bug 3: ~75px at default size), a smaller figure beats a
+  //     hidden one, but a crushed one is unreadable;
+  //  4. compaction (tighter option padding + gaps + card padding).
   // On a stacked layout (1-4) the options sit BELOW the question, so a very
   // long question or a diagram can still overflow a small phone body after
   // the fonts hit the floor — levers 2 and 3 are what save those slides.
@@ -2173,18 +2218,35 @@ function fitMcq(slide){
   var qSize = q ? parseFloat(getComputedStyle(q).fontSize) : 16;
   var oSize = opts.length ? parseFloat(getComputedStyle(opts[0]).fontSize) : 11, guard = 0;
   var figCap = svg ? (parseFloat(svg.style.maxHeight) || svg.getBoundingClientRect().height) : 0;
+  // v2.8 (Bug 3): the question figure's shrink floor is the min-height
+  // fitFig set (never crush it to a blob); fall back to 24px only if
+  // fitFig never ran (no figure styles at all).
+  var figFloor = svg ? (parseFloat(svg.style.minHeight) || 24) : 24;
   // Diagram options: their SVG height is the next lever after the fonts —
   // shrink the diagrams (floor 20px) before compacting the layout.
   var optSvgs = slide.querySelectorAll(".opt svg");
   var optSvgH = optSvgs.length ? Math.round(optSvgs[0].getBoundingClientRect().height) : 0;
   var compacted = false;
-  while (bd.scrollHeight > bd.clientHeight + 2 && guard < 30){
+  // v2.8 (Bug 2): the options column spilling above the body (flex-end
+  // overflow) is invisible to scrollHeight — measure the first/last box.
+  function optsOver(){
+    if (!optsBox) return false;
+    var br = bd.getBoundingClientRect();
+    var first = optsBox.querySelector(".opt"), last = optsBox.querySelector(".opt:last-child");
+    if (!first || !last) return false;
+    var fr = first.getBoundingClientRect(), lr = last.getBoundingClientRect();
+    return fr.top < br.top - 1 || lr.bottom > br.bottom + 1;
+  }
+  while ((bd.scrollHeight > bd.clientHeight + 2 || optsOver()) && guard < 30){
     guard++;
-    if (qSize > 6 || oSize > 6){
+    if (optSvgs.length && optsOver() && optSvgH > 20){
+      optSvgH = Math.max(20, optSvgH - 4);
+      optSvgs.forEach(function(s){ s.style.height = optSvgH + "px"; });
+    } else if (qSize > 6 || oSize > 6){
       if (qSize > 6){ qSize -= 1; if (q) q.style.fontSize = qSize + "px"; }
       if (oSize > 6){ oSize -= 1; opts.forEach(function(o){ o.style.fontSize = Math.max(6,oSize) + "px"; }); }
-    } else if (svg && figCap > 24){
-      figCap = Math.max(24, figCap - 8);
+    } else if (svg && figCap > figFloor){
+      figCap = Math.max(figFloor, figCap - 8);
       svg.style.maxHeight = figCap + "px";
     } else if (optSvgs.length && optSvgH > 20){
       optSvgH = Math.max(20, optSvgH - 4);
@@ -2278,6 +2340,15 @@ function buildPdfClone(src, stage){
     for (var p2=0;p2<PROPS.length;p2++){
       if (comp[n2][PROPS[p2]]) st[PROPS[p2]] = comp[n2][PROPS[p2]];
     }
+  }
+  // v2.8 (Bug 2): "height" is not in PROPS, so an option diagram kept its
+  // preview px height (23px) while its box scaled up — phone-exported PDFs
+  // drew the diagram ~3x too small vs the preview. Scale each .opt svg's
+  // height by K (the .fig svg is already scaled via maxHeight in PROPS).
+  var _osvgs = clone.querySelectorAll(".opt svg");
+  for (var _oi=0; _oi<_osvgs.length; _oi++){
+    var _oh = parseFloat(getComputedStyle(_osvgs[_oi]).height) || 0;
+    if (_oh > 0) _osvgs[_oi].style.height = (_oh * K) + "px";
   }
   clone.style.borderRadius = "0"; // after scaling: the slide itself stays square in the PDF
   // HARDENING (the yellow-PDF bug): the clone carries the PROJECT accent as
@@ -2807,6 +2878,9 @@ $("btnPptx").addEventListener("click", async function(){
     var optBd = (_thP.optBd === "transparent" ? "" : _thP.optBd.replace("#",""));
     var optLetter = _thP.optLetter.replace("#","");
     var optCol = _thP.optCol.replace("#","");
+    // v2.8 (Bug 1): diagram strokes inside option boxes (optSvg from
+    // effTheme) — the accent itself on a dark slide with no box.
+    var optSvgP = _thP.optSvg.replace("#","");
     var pillBg = _thP.pillBg.replace("#","");
     var pillCol = _thP.pillCol.replace("#","");
     var optStyleP = _thP.optStyle;
@@ -2955,7 +3029,11 @@ $("btnPptx").addEventListener("click", async function(){
         // and centred in the rest of the box (like question figures).
         slide.addText(letter, { x:x+0.15, y:y, w:0.45, h:h, fontSize:fso(12), bold:true, color:lcol, valign:"middle", fontFace:bnBodyFace });
         try {
-          var markup = String(svg).replace(/\bACCENT-DARK\b/g, csV ? ("#"+csAcc) : darkenHex(current.accent, 0.55)).replace(/\bACCENT\b/g, csV ? ("#"+csAcc) : current.accent);
+          // v2.8 (Bug 1): diagram strokes follow the effective option
+          // background (optSvgP) — the accent itself on a dark slide with
+          // no box; the correct (green) option keeps the darkened accent.
+          var _strokeP = correct ? darkenHex(current.accent, 0.55) : (csV ? ("#"+csAcc) : ("#"+optSvgP));
+          var markup = String(svg).replace(/\bACCENT-DARK\b/g, _strokeP).replace(/\bACCENT\b/g, csV ? ("#"+csAcc) : current.accent);
           var tmp = document.createElement("div");
           tmp.innerHTML = markup;
           var el = tmp.querySelector("svg");
