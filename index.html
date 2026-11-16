@@ -419,6 +419,29 @@ textarea{min-height:220px;line-height:1.6}
 .theme-tile .th-sw i{flex:1;display:block}
 .theme-tile b{font-size:13px;display:block;line-height:1.25}
 .theme-tile small{font-size:11px;color:var(--text-2)}
+/* v3.0 theme dropdown (item 1): the preset grid lives in a sheet; the form
+   shows only the picked theme. */
+.theme-dd-btn{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);cursor:pointer;font-size:15px;font-weight:700;text-align:left}
+.theme-dd-btn .th-sw{flex:none;width:74px;height:26px;display:flex;border-radius:6px;overflow:hidden;border:1px solid rgba(0,0,0,.15)}
+.theme-dd-btn .th-sw i{flex:1;display:block}
+.theme-dd-btn b{flex:1}
+.theme-dd-btn .dd-chev{font-size:13px;color:var(--text-2)}
+.theme-tile.new{border-style:dashed;align-items:center;justify-content:center;min-height:86px;text-align:center}
+.theme-tile.new .lp-plus{font-size:30px;line-height:1;color:var(--accD);display:block}
+/* v3.0 sheets (theme picker + font picker): bottom sheet on phone, centred
+   card on desktop. */
+.sheet{position:fixed;inset:0;z-index:60}
+.sheet-bg{position:absolute;inset:0;background:rgba(0,0,0,.45)}
+.sheet-card{position:absolute;left:0;right:0;bottom:0;max-width:640px;margin:0 auto;max-height:85vh;overflow-y:auto;background:var(--surface);color:var(--text);border-radius:16px 16px 0 0;padding:14px 14px 22px;box-shadow:0 -8px 32px rgba(0,0,0,.3)}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.sheet-head b{font-size:17px}
+/* v3.0 font dropdown (item 3): the native <select> stays hidden as the value
+   store; the visible button + sheet render each name in its own font. */
+.font-dd-btn{display:block;width:100%;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);cursor:pointer;font-size:16px;text-align:left}
+.font-dd-btn::after{content:"▾";float:right;color:var(--text-2);font-size:13px}
+.font-opt{display:block;width:100%;text-align:left;background:none;color:var(--text);border:none;border-bottom:1px solid var(--border);padding:14px 8px;font-size:17px;cursor:pointer}
+.font-opt.on{font-weight:700}
+.font-opt .f-chk{float:right;color:var(--accD)}
 .ct-row{display:flex;gap:8px;align-items:center;margin:6px 0}
 .ct-row label{flex:1;margin:0;font-weight:400}
 .ct-row input[type=color]{flex:none;width:52px;height:36px;padding:2px}
@@ -478,26 +501,12 @@ body.app-dark .sw.on{border-color:#fff}
       <label><input type="radio" name="theme" value="light"> সাদা</label>
     </div>
     <label>কালার থিম — প্রিসেট (চাপ দিলেই স্লাইডের রং বদলে যাবে)</label>
-    <div class="theme-grid" id="themeGrid"></div>
+    <button type="button" class="theme-dd-btn" id="themeDropBtn"><span class="th-sw" id="themeDropSw"></span><b id="themeDropName">বর্তমান থিম (লকড)</b><span class="dd-chev">▾</span></button>
     <label>অপশনের স্টাইল</label>
     <div class="radio-row">
       <label><input type="radio" name="optStyle" value="box" checked> বাক্সে</label>
       <label><input type="radio" name="optStyle" value="none"> ব্যাকগ্রাউন্ড ছাড়া</label>
       <label><input type="radio" name="optStyle" value="lines"> দাগে আলাদা</label>
-    </div>
-    <label>নিজের কালার থিম বানাও</label>
-    <div id="ctForm">
-      <div class="ct-row"><label>থিমের নাম</label><input type="text" id="ctName" placeholder="যেমন: আমার হলুদ থিম" style="flex:2"></div>
-      <div class="ct-row"><label>ব্যাকগ্রাউন্ড</label><input type="color" id="ctBg" value="#000000"></div>
-      <div class="ct-row"><label>প্রশ্নের লেখা</label><input type="color" id="ctQ" value="#ffd700"></div>
-      <div class="ct-row"><label>অপশনের ব্যাকগ্রাউন্ড</label><input type="color" id="ctOptBg" value="#fff3d6"></div>
-      <div class="ct-row"><label>অপশনের লেখা</label><input type="color" id="ctOptCol" value="#222222"></div>
-      <div class="ct-row"><label>অ্যাকসেন্ট</label><input type="color" id="ctAcc" value="#ffd700"></div>
-      <div class="ct-row"><label>পিল (উপরের ট্যাগ)</label><input type="color" id="ctPill" value="#ffd700"></div>
-      <div class="ct-row"><label>ফুটার</label><input type="color" id="ctFoot" value="#aaaaaa"></div>
-      <div class="ct-row"><label>অপশনের স্টাইল</label><select id="ctOptStyle"><option value="box">বাক্সে</option><option value="none">ব্যাকগ্রাউন্ড ছাড়া</option><option value="lines">দাগে আলাদা</option></select></div>
-      <div style="display:flex;gap:8px;margin-top:8px;align-items:center"><button class="btn-y" id="btnSaveTheme" type="button">থিম সেভ করো</button><span id="ctMsg" style="font-size:13px"></span></div>
-      <div id="ctList" style="margin-top:8px"></div>
     </div>
     <!-- v2.7 slide background colour (item 6): per-project bg, "" = theme default. -->
     <label style="display:flex;gap:8px;align-items:center;margin-top:10px"><input type="checkbox" id="inBgCustom" style="width:20px;height:20px;accent-color:var(--accD)"> স্লাইডের ব্যাকগ্রাউন্ড রং নিজের মতো (না টিকলে থিমের ডিফল্ট রং চলবে)</label>
@@ -610,6 +619,27 @@ body.app-dark .sw.on{border-color:#fff}
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
       <button class="btn-y" id="btnCsSave" type="button">স্টাইল সেভ করো</button>
       <button class="btn-w hidden" id="btnCsDelete" type="button">স্টাইল ডিলিট করো</button>
+    </div>
+  </div>
+</section>
+
+<!-- THEME CREATOR (v3.0, item 2): separate screen, opened from the "+" tile
+     at the end of the theme grid. Same fields as the old inline form. -->
+<section id="view-theme" class="hidden">
+  <div class="ws-bar"><button class="plain-ic" id="btnBackTheme" type="button" aria-label="ফিরে যাও">←</button><h1 style="margin:0;align-self:center">নিজের কালার থিম বানাও</h1></div>
+  <div class="card">
+    <div id="ctForm">
+      <div class="ct-row"><label>থিমের নাম</label><input type="text" id="ctName" placeholder="যেমন: আমার হলুদ থিম" style="flex:2"></div>
+      <div class="ct-row"><label>ব্যাকগ্রাউন্ড</label><input type="color" id="ctBg" value="#000000"></div>
+      <div class="ct-row"><label>প্রশ্নের লেখা</label><input type="color" id="ctQ" value="#ffd700"></div>
+      <div class="ct-row"><label>অপশনের ব্যাকগ্রাউন্ড</label><input type="color" id="ctOptBg" value="#fff3d6"></div>
+      <div class="ct-row"><label>অপশনের লেখা</label><input type="color" id="ctOptCol" value="#222222"></div>
+      <div class="ct-row"><label>অ্যাকসেন্ট</label><input type="color" id="ctAcc" value="#ffd700"></div>
+      <div class="ct-row"><label>পিল (উপরের ট্যাগ)</label><input type="color" id="ctPill" value="#ffd700"></div>
+      <div class="ct-row"><label>ফুটার</label><input type="color" id="ctFoot" value="#aaaaaa"></div>
+      <div class="ct-row"><label>অপশনের স্টাইল</label><select id="ctOptStyle"><option value="box">বাক্সে</option><option value="none">ব্যাকগ্রাউন্ড ছাড়া</option><option value="lines">দাগে আলাদা</option></select></div>
+      <div style="display:flex;gap:8px;margin-top:8px;align-items:center"><button class="btn-y" id="btnSaveTheme" type="button">থিম সেভ করো</button><span id="ctMsg" style="font-size:13px"></span></div>
+      <div id="ctList" style="margin-top:8px"></div>
     </div>
   </div>
 </section>
@@ -741,6 +771,21 @@ body.app-dark .sw.on{border-color:#fff}
   </div>
   <div id="slides" class="slides"></div>
 </section>
+<!-- v3.0 sheets: theme picker grid + font picker (both bottom sheets). -->
+<div id="themeSheet" class="sheet hidden">
+  <div class="sheet-bg" id="themeSheetBg"></div>
+  <div class="sheet-card">
+    <div class="sheet-head"><b>কালার থিম বাছো</b><button class="plain-ic" type="button" id="themeSheetX" aria-label="বন্ধ করো">✕</button></div>
+    <div class="theme-grid" id="themeGrid"></div>
+  </div>
+</div>
+<div id="fontSheet" class="sheet hidden">
+  <div class="sheet-bg" id="fontSheetBg"></div>
+  <div class="sheet-card">
+    <div class="sheet-head"><b id="fontSheetTitle">ফন্ট বাছো</b><button class="plain-ic" type="button" id="fontSheetX" aria-label="বন্ধ করো">✕</button></div>
+    <div id="fontSheetList"></div>
+  </div>
+</div>
 </main>
 <script src="pptxgen.bundle.js"></script>
 <script src="html2canvas.min.js"></script>
@@ -753,7 +798,7 @@ body.app-dark .sw.on{border-color:#fff}
 /* App version — the ONE version string shown to the user (Home + Settings).
    The service worker cache is "qbanan-" + this version (same literal in
    sw.js) — bump both together on every release. */
-var APP_VERSION = "2.9";
+var APP_VERSION = "3.0";
 /* ---------- helpers ---------- */
 var BN = {"0":"০","1":"১","2":"২","3":"৩","4":"৪","5":"৫","6":"৬","7":"৭","8":"৮","9":"৯"};
 function bn(n){ return String(n).split("").map(function(c){ return BN[c] || c; }).join(""); }
@@ -837,6 +882,7 @@ function fillFontSelect(sel, cat, value){
     sel.appendChild(op);
   });
   sel.value = value || FONT_DEFAULTS[cat];
+  syncFontBtn(sel);
 }
 function readFontSelects(prefix){
   return {
@@ -850,6 +896,69 @@ function setFontSelects(prefix, fonts){
   fillFontSelect($(prefix+"BnHead"), "bnHead", f.bnHead);
   fillFontSelect($(prefix+"EnBody"), "enBody", f.enBody);
   fillFontSelect($(prefix+"EnHead"), "enHead", f.enHead);
+}
+/* ---------- custom font dropdowns (v3.0, item 3) ----------
+   A native <select> cannot style its options, so on phones every font name
+   showed in the system font. The selects stay (hidden) as the value store
+   — readFontSelects / setFontSelects / fillFontSelect are untouched — and a
+   button + one shared sheet render each name in its own font. */
+var fontSheetSel = null, fontSheetCat = null;
+function fontLabel(o){ return o.bn ? o.bn + " (" + o.en + ")" : o.en; }
+function fontOptById(cat, id){
+  var l = FONT_OPTIONS[cat];
+  for (var i=0;i<l.length;i++) if (l[i].id === id) return l[i];
+  return l[0];
+}
+function syncFontBtn(sel){
+  if (!sel || !sel._fontBtn) return;
+  var o = fontOptById(sel._fontCat, sel.value);
+  sel._fontBtn.textContent = fontLabel(o);
+  sel._fontBtn.style.fontFamily = "'" + o.css + "', sans-serif";
+}
+function openFontSheet(selId, cat){
+  var sel = $(selId); if (!sel) return;
+  fontSheetSel = selId; fontSheetCat = cat;
+  var titles = {bnBody:"বাংলা বডি ফন্ট বাছো", bnHead:"বাংলা হেডলাইন ফন্ট বাছো", enBody:"ইংরেজি বডি ফন্ট বাছো", enHead:"ইংরেজি হেডলাইন ফন্ট বাছো"};
+  $("fontSheetTitle").textContent = titles[cat] || "ফন্ট বাছো";
+  var html = "";
+  FONT_OPTIONS[cat].forEach(function(o){
+    var on = sel.value === o.id;
+    html += '<button type="button" class="font-opt'+(on?' on':'')+'" data-font="'+o.id+'" style="font-family:\''+esc(o.css)+'\', sans-serif">'+esc(fontLabel(o))+(on?' <span class="f-chk">✓</span>':'')+'</button>';
+  });
+  $("fontSheetList").innerHTML = html;
+  $("fontSheet").classList.remove("hidden");
+}
+function closeFontSheet(){ var s = $("fontSheet"); if (s) s.classList.add("hidden"); }
+function wireFontDropdowns(){
+  var map = [["inBnBody","bnBody"],["inBnHead","bnHead"],["inEnBody","enBody"],["inEnHead","enHead"],
+             ["setBnBody","bnBody"],["setBnHead","bnHead"],["setEnBody","enBody"],["setEnHead","enHead"]];
+  map.forEach(function(pair){
+    var sel = $(pair[0]); if (!sel || sel._fontBtn) return;
+    sel._fontCat = pair[1];
+    sel.style.display = "none";
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "font-dd-btn"; b.setAttribute("data-for", pair[0]);
+    b.addEventListener("click", function(){ openFontSheet(pair[0], pair[1]); });
+    sel.parentNode.insertBefore(b, sel.nextSibling);
+    sel._fontBtn = b;
+    syncFontBtn(sel);
+  });
+  var fl = $("fontSheetList");
+  if (fl && !fl._wired){
+    fl._wired = true;
+    fl.addEventListener("click", function(e){
+      var b = e.target && e.target.closest ? e.target.closest(".font-opt") : null;
+      if (!b) return;
+      var sel = $(fontSheetSel); if (!sel) return;
+      sel.value = b.getAttribute("data-font");
+      syncFontBtn(sel);
+      closeFontSheet();
+    });
+  }
+  var fx = $("fontSheetX");
+  if (fx && !fx._wired){ fx._wired = true; fx.addEventListener("click", closeFontSheet); }
+  var fb = $("fontSheetBg");
+  if (fb && !fb._wired){ fb._wired = true; fb.addEventListener("click", closeFontSheet); }
 }
 /* ---------- accent palettes (v2.7, item 4) ----------
    One renderer for both pickers ("in" = Create New, "set" = Settings).
@@ -1093,8 +1202,22 @@ function renderThemePicker(){
       '<span class="th-sw"><i style="background:'+esc(t.bg)+'"></i><i style="background:'+esc(t.q)+'"></i><i style="background:'+esc(t.acc)+'"></i><i style="background:'+esc(obg)+'"></i></span>'+
       '<b>'+esc(t.name)+'</b><small>'+(String(t.id).charAt(0)==="c" ? 'নিজের থিম' : 'প্রিসেট')+'</small></button>';
   });
+  // v3.0 (item 2): "+" tile LAST — opens the creator on its own screen.
+  html += '<button type="button" class="theme-tile new" data-theme="__new__"><span class="lp-plus">＋</span><b>নিজের তৈরি করা</b><small>নতুন থিম বানাও</small></button>';
   grid.innerHTML = html;
+  syncThemeDropBtn();
 }
+/* v3.0 (item 1): the dropdown button shows the picked theme only. */
+function syncThemeDropBtn(){
+  var b = $("themeDropBtn"); if (!b) return;
+  var cur = formTheme ? formTheme.themeId : "locked";
+  var t = themeById(cur) || THEMES[0];
+  var obg = (t.optBg && t.optBg !== "transparent") ? t.optBg : t.bg;
+  $("themeDropName").textContent = t.name;
+  $("themeDropSw").innerHTML = '<i style="background:'+esc(t.bg)+'"></i><i style="background:'+esc(t.q)+'"></i><i style="background:'+esc(t.acc)+'"></i><i style="background:'+esc(obg)+'"></i>';
+}
+function openThemeSheet(){ renderThemePicker(); $("themeSheet").classList.remove("hidden"); }
+function closeThemeSheet(){ var s = $("themeSheet"); if (s) s.classList.add("hidden"); }
 function renderCustomThemeList(){
   var box = $("ctList"); if (!box) return;
   var list = getCustomThemes();
@@ -1112,9 +1235,25 @@ function wireThemePicker(){
     g.addEventListener("click", function(e){
       var b = e.target && e.target.closest ? e.target.closest(".theme-tile") : null;
       if (!b) return;
+      if (b.getAttribute("data-theme") === "__new__"){ closeThemeSheet(); show("view-theme"); return; }
       var t = themeById(b.getAttribute("data-theme"));
-      if (t) applyThemeToForm(t);
+      if (t){ applyThemeToForm(t); closeThemeSheet(); }
     });
+  }
+  var db = $("themeDropBtn");
+  if (db && !db._thWired){
+    db._thWired = true;
+    db.addEventListener("click", function(){ openThemeSheet(); });
+  }
+  var sx = $("themeSheetX");
+  if (sx && !sx._thWired){
+    sx._thWired = true;
+    sx.addEventListener("click", function(){ closeThemeSheet(); });
+  }
+  var sbg = $("themeSheetBg");
+  if (sbg && !sbg._thWired){
+    sbg._thWired = true;
+    sbg.addEventListener("click", function(){ closeThemeSheet(); });
   }
   var sb = $("btnSaveTheme");
   if (sb && !sb._thWired){
@@ -1128,6 +1267,8 @@ function wireThemePicker(){
       applyThemeToForm(t);
       renderCustomThemeList();
       var m = $("ctMsg"); if (m) m.textContent = "সেভ হয়েছে — \""+name+"\" থিম বাছা আছে।";
+      history.back(); // back to the create form, then show the picker
+      setTimeout(openThemeSheet, 120);
     });
   }
   var cl = $("ctList");
@@ -1148,6 +1289,7 @@ function wireThemePicker(){
   });
 }
 wireThemePicker();
+wireFontDropdowns();
 function readBgColor(){ var _c = $("inBgCustom"); return (_c && _c.checked) ? $("inBgColor").value : ""; }
 function setBgColor(hex){
   var _c = $("inBgCustom"), _i = $("inBgColor");
@@ -1257,7 +1399,7 @@ function applyAppTheme(){
 var navReady = false;
 var selectMode = false; // draft selection mode (long-press); see renderHome
 function show(id, noPush){
-  ["view-home","view-create","view-render","view-settings","view-style"].forEach(function(v){ $(v).classList.toggle("hidden", v!==id); });
+  ["view-home","view-create","view-render","view-settings","view-style","view-theme"].forEach(function(v){ $(v).classList.toggle("hidden", v!==id); });
   $("appHeader").classList.toggle("hidden", id!=="view-home"); window.scrollTo(0,0);
   if (id !== "view-home" && selectMode) exitSelectionMode();
   if (navReady && !noPush){
@@ -1433,6 +1575,7 @@ function openStyleCreator(id){
   show("view-style");
 }
 $("btnBackStyle").addEventListener("click", function(){ history.back(); });
+$("btnBackTheme").addEventListener("click", function(){ history.back(); });
 $("view-style").addEventListener("input", function(e){
   var id = e.target && e.target.id;
   if (id === "csAccent"){
@@ -3309,7 +3452,7 @@ $("btnMode").addEventListener("click", function(){
   applyAppTheme();
 });
 var settingsReturn = "view-home";
-function currentView(){ var vs=["view-home","view-create","view-render","view-settings","view-style"]; for (var i=0;i<vs.length;i++){ if (!$(vs[i]).classList.contains("hidden")) return vs[i]; } return "view-home"; }
+function currentView(){ var vs=["view-home","view-create","view-render","view-settings","view-style","view-theme"]; for (var i=0;i<vs.length;i++){ if (!$(vs[i]).classList.contains("hidden")) return vs[i]; } return "view-home"; }
 function openSettings(){
   settingsReturn = currentView();
   var st = getSettings();
