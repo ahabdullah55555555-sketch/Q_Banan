@@ -239,6 +239,11 @@ textarea{min-height:220px;line-height:1.6}
 .upd-banner{position:fixed;left:12px;right:12px;bottom:16px;z-index:60;background:var(--accD,#b8860b);color:#fff;border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:14px}
 .upd-banner button{flex:none;background:#fff;color:#111;border:none;border-radius:8px;padding:8px 12px;font-weight:700;font-family:inherit}
 .upd-banner .x{background:transparent;color:#fff;padding:8px;font-size:16px}
+/* v3.6 background-safe export: progress overlay shown while a PDF is built. */
+#pdfProg{position:fixed;left:12px;right:12px;bottom:16px;z-index:70;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:14px}
+#pdfProg .pp-bar{height:8px;border-radius:4px;background:var(--border);margin-top:8px;overflow:hidden}
+#pdfProg .pp-fill{height:100%;width:0%;background:var(--acc,#ffd700);border-radius:4px}
+#pdfProg .pp-sub{font-size:12px;opacity:.75;margin-top:6px}
 /* ===== Visual layout picker (Excel-style gallery, approved proposal) =====
    Thumbnails are miniature 16:9 slides in each layout's REAL geometry
    (cqw sizing inside a container-type:inline-size slide, copied from the
@@ -487,6 +492,8 @@ body.app-dark .sw.on{border-color:#fff}
 <body>
 <header id="appHeader"><div class="brand">Q_Banan <span id="appVer" class="app-ver"></span></div><div class="head-acts"><button class="plain-ic" id="btnMode" type="button" aria-label="কালো মোডে যাও">☾</button><button class="plain-ic" id="btnUpdHome" type="button" aria-label="নতুন ভার্সন চেক করো">⟳</button><button class="plain-ic" id="btnSettings" type="button" aria-label="সেটিংস">⚙</button></div></header>
 <div id="updBanner" class="upd-banner hidden"><span style="flex:1">নতুন ভার্সন এসেছে — ট্যাপ করে রিফ্রেশ করো</span><button id="updReload" type="button">রিফ্রেশ করো</button><button id="updDismiss" class="x" type="button" aria-label="বন্ধ করো">✕</button></div>
+<div id="pdfProg" class="hidden"><b id="pdfProgText">PDF বানানো হচ্ছে…</b><div class="pp-bar"><div class="pp-fill" id="pdfProgFill"></div></div><div class="pp-sub" id="pdfProgSub">শেষ না হওয়া পর্যন্ত অ্যাপে থাকো — বের হলে ধীর হবে, তবে থামবে না।</div></div>
+<div id="pdfResumeBanner" class="upd-banner hidden"><span style="flex:1" id="pdfResumeText"></span><button id="pdfResumeGo" type="button">আবার বানাও</button><button id="pdfResumeX" class="x" type="button" aria-label="বন্ধ করো">✕</button></div>
 <main>
 <!-- HOME -->
 <section id="view-home">
@@ -838,7 +845,7 @@ body.app-dark .sw.on{border-color:#fff}
 /* App version — the ONE version string shown to the user (Home + Settings).
    The service worker cache is "qbanan-" + this version (same literal in
    sw.js) — bump both together on every release. */
-var APP_VERSION = "3.5";
+var APP_VERSION = "3.6";
 /* ---------- helpers ---------- */
 var BN = {"0":"০","1":"১","2":"২","3":"৩","4":"৪","5":"৫","6":"৬","7":"৭","8":"৮","9":"৯"};
 function bn(n){ return String(n).split("").map(function(c){ return BN[c] || c; }).join(""); }
@@ -3554,7 +3561,7 @@ async function vecDrawSlide(doc, pageH, ox, oy, k, clone){
     await vecDrawSvgAt(doc, pageH, ox, oy, k, optSvgs[oi], sRect, oBg);
   }
 }
-async function exportPdfVector(){
+async function exportPdfVector(onProg){
   await refreshBrandLogos();
   var box = $("slides");
   // Full-bleed: the slide covers the whole page, edge to edge, like the
@@ -3579,10 +3586,11 @@ async function exportPdfVector(){
       // 18-slide export toward a minute on a phone. Layout is forced
       // synchronously by getBoundingClientRect/getComputedStyle, so no
       // frame wait is needed for correctness.
-      await new Promise(function(r){ setTimeout(r, 0); });
+      await pdfYield();
       if (i>0) pdf.addPage([PW, PH], "landscape");
       await vecDrawSlide(pdf, pageH, ox, oy, k, clone);
       stage.removeChild(clone);
+      if (onProg) onProg(i+1, els.length);
     }
   } finally {
     if (stage.parentNode) stage.parentNode.removeChild(stage);
@@ -3591,7 +3599,7 @@ async function exportPdfVector(){
 }
 /* Hi-res raster fallback (v1.5): 3840x2160 per slide, non-selectable. Used
    only if the vector engine cannot start. */
-async function exportPdfRaster(){
+async function exportPdfRaster(onProg){
   if (typeof html2canvas === "undefined" || typeof window.jspdf === "undefined"){ alert("PDF লাইব্রেরি লোড হয়নি — অফলাইনে ফাইল আছে কিনা দেখো (html2canvas.min.js / jspdf.umd.min.js)।"); return null; }
   await refreshBrandLogos();
   var box = $("slides");
@@ -3608,7 +3616,7 @@ async function exportPdfRaster(){
       var clone = buildPdfClone(els[i], stage);
       // v2.9 (Bug B): setTimeout(0) yield instead of double-rAF — same
       // reason as the vector path (rAF stalls when the tab is backgrounded).
-      await new Promise(function(r){ setTimeout(r, 0); });
+      await pdfYield();
       // html2canvas handles inline SVG unreliably — swap every diagram
       // (question figures AND option diagrams) for its 3x PNG first
       // (keeps the labels, since this is the raster path). Each PNG is
@@ -3634,30 +3642,162 @@ async function exportPdfRaster(){
       if (i>0) pdf.addPage([PW, PH], "landscape");
       pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, PW, PH);
       stage.removeChild(clone);
+      if (onProg) onProg(i+1, els.length);
     }
   } finally {
     if (stage.parentNode) stage.parentNode.removeChild(stage);
   }
   return pdf;
 }
-$("btnPdf").addEventListener("click", async function(){
-  if (!current) return;
-  if (typeof window.jspdf === "undefined"){ alert("PDF লাইব্রেরি লোড হয়নি — অফলাইনে ফাইল আছে কিনা দেখো (jspdf.umd.min.js)।"); return; }
+/* ---------- v3.6 background-safe PDF export ----------
+   The user's need: start a PDF save, leave the app, and still have the
+   file land on the phone.
+   What the platform actually does (proven on v3.5, see the v3.6 report):
+   - Once pdf.save() fires, the browser download manager owns the file —
+     leaving after that is always safe. The risk window is the GENERATION
+     phase before save().
+   - A hidden tab's setTimeout is throttled to >=1s (1/min after 5 min),
+     so the old per-slide setTimeout(0) yield stretched a 15-slide vector
+     export from ~2s to ~17s, and a ~1-min raster export toward several
+     minutes — and Android may freeze/discard the renderer entirely.
+   - A Web Worker / Service Worker cannot help: the generation reads the
+     live DOM (getComputedStyle/getBoundingClientRect, html2canvas) and
+     both die with the page. showSaveFilePicker is desktop-only.
+   What v3.6 does instead (all inside the PWA, no new permission):
+   1. Hidden-aware yield: while the page is hidden the loop yields with a
+      microtask (never throttled) instead of setTimeout, so generation runs
+      at full speed even backgrounded.
+   2. Screen Wake Lock during the export, so the screen cannot time out
+      mid-export while he is in the app. It releases automatically when
+      the page hides; re-acquired on return while an export runs.
+   3. A progress overlay (slide i/N + state) so he always sees where the
+      export stands, and a clear line that leaving slows it but does not
+      stop it.
+   4. A localStorage journal: if the page dies mid-export (swiped away /
+      killed), Home shows a one-tap "আবার বানাও" banner for that project.
+   5. One export at a time — a second tap while one runs is ignored, so
+      there is never a duplicate download. */
+var pdfExportRunning = false;
+var pdfWakeLock = null;
+function pdfYield(){
+  // Visible: setTimeout(0) keeps the UI responsive and lets the progress
+  // overlay paint (the v2.9 reason). Hidden: timers are throttled, but
+  // microtasks are not — yield with one so the loop keeps full speed.
+  if (document.hidden) return Promise.resolve();
+  return new Promise(function(r){ setTimeout(r, 0); });
+}
+async function pdfWakeLockOn(){
+  try {
+    if (!("wakeLock" in navigator) || !navigator.wakeLock) return;
+    if (pdfWakeLock) return;
+    pdfWakeLock = await navigator.wakeLock.request("screen");
+    pdfWakeLock.addEventListener("release", function(){ pdfWakeLock = null; });
+  } catch(e){ pdfWakeLock = null; }
+}
+function pdfWakeLockOff(){
+  try { if (pdfWakeLock) pdfWakeLock.release(); } catch(e){}
+  pdfWakeLock = null;
+}
+function pdfProgShow(){ $("pdfProg").classList.remove("hidden"); }
+function pdfProgHide(){ $("pdfProg").classList.add("hidden"); }
+function pdfProgSet(done, total, phase){
+  var pct = total > 0 ? Math.round(done/total*100) : 0;
+  $("pdfProgFill").style.width = pct + "%";
+  $("pdfProgText").textContent = "PDF বানানো হচ্ছে… " + bn(done) + "/" + bn(total);
+  $("pdfProgSub").textContent = document.hidden
+    ? "অ্যাপ ব্যাকগ্রাউন্ডে আছে — বানানো চলছে, শেষ হলে ফোনে সেভ হবে।"
+    : "শেষ না হওয়া পর্যন্ত অ্যাপে থাকো — বের হলে ধীর হবে, তবে থামবে না।";
+}
+function pdfJournalSet(state, name){
+  try {
+    if (!state){ localStorage.removeItem("qbanan_pdf_export"); return; }
+    localStorage.setItem("qbanan_pdf_export", JSON.stringify({
+      state: state, pid: (current && current.draftId) || null,
+      name: name || (current && current.name) || "", at: new Date().toISOString()
+    }));
+  } catch(e){}
+}
+function pdfJournalGet(){ try { return JSON.parse(localStorage.getItem("qbanan_pdf_export") || "null"); } catch(e){ return null; } }
+async function startPdfExport(){
+  if (!current) return false;
+  if (pdfExportRunning) return false; // one export at a time — never a duplicate download
+  if (typeof window.jspdf === "undefined"){ alert("PDF লাইব্রেরি লোড হয়নি — অফলাইনে ফাইল আছে কিনা দেখো (jspdf.umd.min.js)।"); return false; }
+  pdfExportRunning = true;
   var btn = $("btnPdf");
+  var total = document.querySelectorAll("#slides .slide").length;
   btn.disabled = true; btn.textContent = "ভেক্টর ইঞ্জিন চালু হচ্ছে…";
+  pdfProgShow(); pdfProgSet(0, total, "vector");
+  pdfJournalSet("generating", current.name);
+  await pdfWakeLockOn();
   try {
     var pdf = null, usedVector = false;
     try {
-      if (await vecInit()){ pdf = await exportPdfVector(); usedVector = true; }
+      if (await vecInit()){
+        pdf = await exportPdfVector(function(i, n){ pdfProgSet(i, n, "vector"); });
+        usedVector = true;
+      }
     } catch(e){ pdf = null; }
     if (!pdf){
       btn.textContent = "PDF বানানো হচ্ছে…";
-      pdf = await exportPdfRaster();
+      pdf = await exportPdfRaster(function(i, n){ pdfProgSet(i, n, "raster"); });
       if (pdf) recordPdfDiag("raster", VEC.lastFail || "vecInit");
     } else if (usedVector){ recordPdfDiag("vector", ""); }
-    if (pdf) pdf.save(exportBaseName() + ".pdf");
-  } catch(e){ alert("PDF বানাতে সমস্যা হয়েছে: " + e.message); }
-  btn.disabled = false; btn.textContent = "PDF এক্সপোর্ট";
+    if (pdf){
+      // Clear the journal BEFORE save(): the download starts synchronously
+      // inside save(), so a page death after this point cannot strand a
+      // stale "unfinished" entry.
+      pdfJournalSet(null);
+      pdf.save(exportBaseName() + ".pdf");
+      $("pdfProgText").textContent = "PDF সেভ হয়েছে ✓";
+      $("pdfProgSub").textContent = "ডাউনলোড ফোল্ডারে দেখো — " + exportBaseName() + ".pdf";
+      $("pdfProgFill").style.width = "100%";
+      setTimeout(function(){ pdfProgHide(); }, 2500);
+      return true;
+    }
+    pdfJournalSet(null); // libs missing (already alerted inside the raster path) — nothing to resume
+    return false;
+  } catch(e){
+    pdfJournalSet("failed", current ? current.name : "");
+    alert("PDF বানাতে সমস্যা হয়েছে: " + e.message);
+    return false;
+  } finally {
+    pdfWakeLockOff();
+    pdfExportRunning = false;
+    btn.disabled = false; btn.textContent = "PDF এক্সপোর্ট";
+    if (!pdf) pdfProgHide(); // on failure the alert already told him; no stale overlay
+  }
+}
+$("btnPdf").addEventListener("click", function(){ startPdfExport(); });
+// Back in the app mid-export: re-acquire the wake lock (it auto-releases
+// when the page hides) so the screen stays on until the export finishes.
+document.addEventListener("visibilitychange", function(){
+  if (!document.hidden && pdfExportRunning) pdfWakeLockOn();
+});
+/* Recovery banner (Home): if the page died mid-export, the journal still
+   says "generating" (or "failed" after a real error) — offer one tap to
+   re-open that project and build the PDF again. */
+function pdfResumeShow(){
+  var j = pdfJournalGet();
+  if (!j || (j.state !== "generating" && j.state !== "failed")) return;
+  $("pdfResumeText").textContent = (j.state === "failed" ? "PDF বানাতে সমস্যা হয়েছিল — " : "গতবার PDF বানানো শেষ হয়নি — ") + (j.name || "প্রজেক্ট") + " এর PDF আবার বানাও?";
+  $("pdfResumeBanner").classList.remove("hidden");
+}
+$("pdfResumeGo").addEventListener("click", function(){
+  var j = pdfJournalGet();
+  $("pdfResumeBanner").classList.add("hidden");
+  if (!j) return;
+  var ps = getProjects();
+  var p = null;
+  if (j.pid != null) p = ps.filter(function(x){ return x.id === j.pid; })[0];
+  if (!p && j.name) p = ps.filter(function(x){ return x.name === j.name; })[0];
+  if (!p){ pdfJournalSet(null); alert("ওই প্রজেক্টটা আর পাওয়া যাচ্ছে না।"); return; }
+  openDraft(p);
+  // Let the render settle, then run the same export as the button.
+  setTimeout(function(){ startPdfExport(); }, 1200);
+});
+$("pdfResumeX").addEventListener("click", function(){
+  pdfJournalSet(null);
+  $("pdfResumeBanner").classList.add("hidden");
 });
 /* ---------- v3.1 PDF diagnostic (Settings shows the last export path) ---------- */
 function getPdfDiag(){ try { return JSON.parse(localStorage.getItem("qbanan_pdf_diag") || "null"); } catch(e){ return null; } }
@@ -4902,6 +5042,7 @@ $("btnUpdHome").addEventListener("click", checkForUpdate);
 
 applyAppTheme();
 renderHome();
+pdfResumeShow(); // v3.6: offer to redo a PDF export the page died on
 // v3.1: warm the vector engine on app open (never blocks the UI) — so an
 // export tapped seconds later finds HB already ready instead of racing it.
 setTimeout(function(){ vecInit(); }, 600);
