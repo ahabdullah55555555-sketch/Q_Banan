@@ -90,11 +90,11 @@ textarea{min-height:220px;line-height:1.6}
 .slide .title{font-family:var(--f-bn-head,'Hind Siliguri'),var(--f-en-head,'Work Sans'),'Hind Siliguri',sans-serif}
 .slide .top .mid span{font-family:var(--f-bn-head,'Hind Siliguri'),var(--f-en-head,'Work Sans'),'Hind Siliguri',sans-serif}
 .top{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:start;padding:10px 26px}
-.logo{line-height:1;text-align:left}
+.logo{line-height:1;text-align:left;min-height:calc(var(--szf,.78)*30px);display:flex;flex-direction:column;justify-content:center;align-items:flex-start}
 .logo .a{font-family:var(--f-bn-head,'Work Sans'),var(--f-en-head,'Work Sans'),'Work Sans',sans-serif;font-weight:800;font-size:calc(var(--szf,.78)*17px);line-height:.95;color:var(--arkCol,var(--acc,#ffd700))}
 .logo .p{font-size:calc(var(--szf,.78)*8px);font-weight:700;color:#fff;line-height:1;margin-top:0}
 .logo .c{font-size:calc(var(--szf,.78)*6px);letter-spacing:1.5px;color:#cfcfcf;line-height:1;margin-top:0}
-.logo img.brandlogo{height:calc(var(--szf,.78)*30px);width:auto;display:block}
+.logo img.brandlogo{height:calc(var(--szf,.78)*30px*var(--lgf,.7));width:auto;display:block}
 .top .mid{text-align:center}
 .top .mid span{display:inline-block;background:var(--pillBg,transparent);color:var(--pillCol,var(--acc,#ffd700));border:1px solid var(--pillBd,var(--acc,#ffd700));font-size:calc(var(--szf,.78)*13px);font-weight:700;border-radius:20px;padding:3px 14px}
 /* CQ pill — subtle: no yellow background (it grabbed too much attention).
@@ -330,6 +330,14 @@ textarea{min-height:220px;line-height:1.6}
 .slides{--szf:.78}
 .slides.sz-small{--szf:.65}
 .slides.sz-large{--szf:.95}
+/* ===== Header logo size (v3.5) =====
+   The Khayrul Keypoint header logo, as a multiple of its v3.4 size.
+   Default (no class) = স্বাভাবিক 0.7 — clearly smaller than v3.4, lockup
+   text still legible at 4K. ছোট = 0.55, বড় = 1 (= the v3.4 size, for
+   anyone who wants it back). App-level setting, every project. */
+.slides{--lgf:.7}
+.slides.lg-small{--lgf:.55}
+.slides.lg-large{--lgf:1}
 /* ===== Custom styles (v2.7, free-hand style creator) =====
    A custom style is layout 5 (.slide.l5). Its geometry comes from classes
    (cs-opt-* = where the options sit, cs-q-* = where the question sits,
@@ -724,6 +732,15 @@ body.app-dark .sw.on{border-color:#fff}
     </div>
   </div>
   <div class="card set-group">
+    <h2>লোগোর সাইজ</h2>
+    <p class="set-hint">স্লাইডের উপরে বাম কোণায় Khayrul Keypoint লোগোটা কত বড় হবে। ডিফল্ট: স্বাভাবিক — আগের চেয়ে ছোট।</p>
+    <div class="radio-row">
+      <label><input type="radio" name="setLogoSize" value="small"> ছোট</label>
+      <label><input type="radio" name="setLogoSize" value="normal" checked> স্বাভাবিক</label>
+      <label><input type="radio" name="setLogoSize" value="large"> বড়</label>
+    </div>
+  </div>
+  <div class="card set-group">
     <h2>ডিফল্ট ফন্ট</h2>
     <p class="set-hint">নতুন প্রজেক্টে এই ফন্টগুলোই বসবে — প্রতিটা প্রজেক্টে আলাদা করে বদলানো যায়। বাংলা লেখা বাংলা ফন্টে, ইংরেজি লেখা ইংরেজি ফন্টে — নিজে থেকেই বাছা হয়। প্রতিটা নাম সেই ফন্টেই লেখা।</p>
     <label>বাংলা বডি (প্রশ্ন, অপশন, উত্তর)</label>
@@ -821,7 +838,7 @@ body.app-dark .sw.on{border-color:#fff}
 /* App version — the ONE version string shown to the user (Home + Settings).
    The service worker cache is "qbanan-" + this version (same literal in
    sw.js) — bump both together on every release. */
-var APP_VERSION = "3.4";
+var APP_VERSION = "3.5";
 /* ---------- helpers ---------- */
 var BN = {"0":"০","1":"১","2":"২","3":"৩","4":"৪","5":"৫","6":"৬","7":"৭","8":"৮","9":"৯"};
 function bn(n){ return String(n).split("").map(function(c){ return BN[c] || c; }).join(""); }
@@ -2225,6 +2242,10 @@ function logoTinted(color){
    colour as the MCQ/CQ text) — on dark slides that IS the accent; on
    light slides it is the dark text colour, so it is never white-on-white.
    L4's yellow band keeps black, like its text. Custom styles use --cs-q. */
+/* v3.5 header logo size: app-level setting — small .55 / normal .7 (new
+   default, smaller than v3.4) / large 1 (= the v3.4 size). Preview, vector
+   PDF, raster PDF and PPTX all read the same factor. */
+function logoSizeFactor(){ return {small:0.55, normal:0.7, large:1}[getSettings().logoSize || "normal"] || 0.7; }
 function brandLogoColor(slide){
   if (slide && slide.classList.contains("l4")) return "#000000";
   if (slide && slide.classList.contains("l5")){
@@ -2651,6 +2672,10 @@ function renderAll(){
   var _sz = (current.slideSize || getSettings().slideSize || "normal");
   box.classList.toggle("sz-small", _sz==="small");
   box.classList.toggle("sz-large", _sz==="large");
+  // v3.5 header logo size (app-level): same class pattern as text size.
+  var _lg = (getSettings().logoSize || "normal");
+  box.classList.toggle("lg-small", _lg==="small");
+  box.classList.toggle("lg-large", _lg==="large");
   // v2.7 colour themes (item 40B): the effective theme drives every slide
   // colour (question, ARK, options, pill, footer) — old drafts without a
   // theme resolve to exactly the pre-theme behaviour via effTheme().
@@ -2926,7 +2951,7 @@ function scalePxList(v, k){
 }
 function buildPdfStage(box){
   var stage = document.createElement("div");
-  stage.className = "pdf-hires-stage slides" + (box.classList.contains("light") ? " light" : "") + (box.classList.contains("sz-small") ? " sz-small" : "") + (box.classList.contains("sz-large") ? " sz-large" : "");
+  stage.className = "pdf-hires-stage slides" + (box.classList.contains("light") ? " light" : "") + (box.classList.contains("sz-small") ? " sz-small" : "") + (box.classList.contains("sz-large") ? " sz-large" : "") + (box.classList.contains("lg-small") ? " lg-small" : "") + (box.classList.contains("lg-large") ? " lg-large" : "");
   // v2.7 colour themes: the PDF stage gets the same effective theme vars
   // as the preview (same effTheme(), same option-style classes).
   applyThemeVars(stage);
@@ -3941,6 +3966,7 @@ $("btnPptx").addEventListener("click", async function(){
     }
 
     function addHeader(slide, pill, railNum){
+      var _lgf = logoSizeFactor(); // v3.5: header logo size (app setting)
       slide.background = { color: csV ? csBg : bg };
       // Gradient strips first (behind everything on the slide).
       var _gbase = csV ? csBg : bg;
@@ -3954,7 +3980,7 @@ $("btnPptx").addEventListener("click", async function(){
         var co = cs.opts || {};
         if (co.header !== "none"){
           var _logoCs = logoTinted("#" + csQ);
-          if (_logoCs) slide.addImage({ data:_logoCs, x:0.4, y:0.28, w:2.17, h:0.55 });
+          if (_logoCs) slide.addImage({ data:_logoCs, x:0.4, y:0.28, w:2.17*_lgf, h:0.55*_lgf });
           else {
             slide.addText("ARK", { x:0.4, y:0.25, w:2.2, h:0.5, fontSize:fs(20), bold:true, color:csAcc, fontFace:"Arial Black" });
             slide.addText("PLUS POINT", { x:0.4, y:0.75, w:2.2, h:0.3, fontSize:fs(10), bold:true, color:csTx, fontFace:enHeadFace });
@@ -3982,7 +4008,7 @@ $("btnPptx").addEventListener("click", async function(){
         // Yellow top band: ARK + pill + SSC 2027 all on the accent band.
         slide.addShape(pptx.shapes.RECTANGLE, { x:0, y:0, w:13.33, h:1.15, fill:{color:acc}, line:{color:acc} });
         var _logoL4 = logoTinted("#000000");
-        if (_logoL4) slide.addImage({ data:_logoL4, x:0.4, y:0.3, w:2.17, h:0.55 });
+        if (_logoL4) slide.addImage({ data:_logoL4, x:0.4, y:0.3, w:2.17*_lgf, h:0.55*_lgf });
         else {
           slide.addText("ARK", { x:0.4, y:0.08, w:2.2, h:0.45, fontSize:fs(20), bold:true, color:"000000", fontFace:"Arial Black" });
           slide.addText("PLUS POINT", { x:0.4, y:0.52, w:2.2, h:0.28, fontSize:fs(10), bold:true, color:"000000", fontFace:enHeadFace });
@@ -3995,7 +4021,7 @@ $("btnPptx").addEventListener("click", async function(){
         slide.addText("SSC 2027", { x:11.4, y:0.35, w:1.5, h:0.4, fontSize:fs(12), bold:true, color:"000000", align:"right", fontFace:enHeadFace });
       } else {
         var _logoD = logoTinted("#" + qCol);
-        if (_logoD) slide.addImage({ data:_logoD, x:lx, y:0.28, w:2.17, h:0.55 });
+        if (_logoD) slide.addImage({ data:_logoD, x:lx, y:0.28, w:2.17*_lgf, h:0.55*_lgf });
         else {
           slide.addText("ARK", { x:lx, y:0.25, w:2.2, h:0.5, fontSize:fs(20), bold:true, color:arkCol, fontFace:"Arial Black" });
           slide.addText("PLUS POINT", { x:lx, y:0.75, w:2.2, h:0.3, fontSize:fs(10), bold:true, color:txt, fontFace:enHeadFace });
@@ -4322,6 +4348,7 @@ function openSettings(){
   if (st.appMode){ var r2 = document.querySelector('input[name="setAppMode"][value="'+st.appMode+'"]'); if (r2) r2.checked = true; }
   if (st.fontSize){ var r3 = document.querySelector('input[name="setFont"][value="'+st.fontSize+'"]'); if (r3) r3.checked = true; }
   if (st.slideSize){ var r4 = document.querySelector('input[name="setSlideSize"][value="'+st.slideSize+'"]'); if (r4) r4.checked = true; }
+  if (st.logoSize){ var r5 = document.querySelector('input[name="setLogoSize"][value="'+st.logoSize+'"]'); if (r5) r5.checked = true; }
   $("setFileName").value = st.fileName || "Q_Banan";
   $("setTeacher").value = st.teacher || "Khayrul Sir";
   setFontSelects("set", st.fonts || getFontDefaults());
@@ -4342,7 +4369,7 @@ $("btnSaveSettings").addEventListener("click", function(){
   // Merge into the stored settings (never a fresh object — a fresh object
   // would wipe customStyles and anything else stored in Settings).
   var _st = getSettings();
-  _st.accent = $("setAccent").value; _st.theme = selected("setTheme"); _st.appMode = selected("setAppMode"); _st.fontSize = selected("setFont"); _st.fileName = $("setFileName").value.trim() || "Q_Banan"; _st.slideSize = selected("setSlideSize"); _st.teacher = $("setTeacher").value.trim() || "Khayrul Sir"; _st.fonts = readFontSelects("set");
+  _st.accent = $("setAccent").value; _st.theme = selected("setTheme"); _st.appMode = selected("setAppMode"); _st.fontSize = selected("setFont"); _st.fileName = $("setFileName").value.trim() || "Q_Banan"; _st.slideSize = selected("setSlideSize"); _st.logoSize = selected("setLogoSize"); _st.teacher = $("setTeacher").value.trim() || "Khayrul Sir"; _st.fonts = readFontSelects("set");
   saveSettings(_st);
   applyAppTheme();
   if (current) renderAll(); // size applies to the open project at once, no re-Run needed
