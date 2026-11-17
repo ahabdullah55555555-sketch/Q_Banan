@@ -892,7 +892,7 @@ body.app-dark .sw.on{border-color:#fff}
 /* App version — the ONE version string shown to the user (Home + Settings).
    The service worker cache is "qbanan-" + this version (same literal in
    sw.js) — bump both together on every release. */
-var APP_VERSION = "3.8";
+var APP_VERSION = "3.9";
 /* ---------- helpers ---------- */
 var BN = {"0":"০","1":"১","2":"২","3":"৩","4":"৪","5":"৫","6":"৬","7":"৭","8":"৮","9":"৯"};
 function bn(n){ return String(n).split("").map(function(c){ return BN[c] || c; }).join(""); }
@@ -1233,6 +1233,19 @@ function mathHtml(s){
       else out += "<"+tag+">"+a+"</"+tag+">";
       continue;
     }
+    if (c === "*"){
+      // v3.9 italic: *...* -> <i>...</i> (scientific names, book-style:
+      // only the slant changes — same size/weight/colour as the text
+      // around it, no extra styling). A * only opens italics when it is
+      // not glued to a Latin letter/digit on either side, so old content
+      // like 2*3*4 stays literal; an unmatched * stays literal too and
+      // never breaks the slide.
+      var j = s.indexOf("*", i+1);
+      if (j > i+1 && (i === 0 || !/[A-Za-z0-9]/.test(s[i-1])) && (j+1 >= n || !/[A-Za-z0-9]/.test(s[j+1]))){
+        out += "<i>" + mathHtml(s.slice(i+1, j)) + "</i>"; i = j+1;
+      } else { out += "*"; i++; }
+      continue;
+    }
     if ((s.slice(i, i+4) === "sqrt" && s[i+4] === "(") || c === "\u221a"){
       var word = (c !== "\u221a");
       var j = i + (word ? 4 : 1);
@@ -1320,7 +1333,7 @@ function pptxLangRuns(text, bnFace, enFace, base){
 }
 /* Parse math notation into segments (PPTX runs). Same grammar as mathHtml
    (preview) - ^/_ powers, sqrt(...)/\u221a, frac(a,b), nesting - but on raw
-   text, producing {t:"text"|"sup"|"sub"|"sqrt"|"frac", s, num, den}. */
+   text, producing {t:"text"|"sup"|"sub"|"sqrt"|"frac"|"italic", s, num, den}. */
 function mathSegs(s){
   var segs = [], i = 0, n = s.length, buf = "";
   function flush(){ if (buf){ segs.push({t:"text", s:buf}); buf = ""; } }
@@ -1362,6 +1375,15 @@ function mathSegs(s){
       var a = atom();
       if (a === null){ buf += c; }
       else { flush(); segs.push({t:kind, s:a}); }
+      continue;
+    }
+    if (c === "*"){
+      // v3.9 italic: *...* -> an {t:"italic"} segment (PPTX italic run).
+      // Same opener guard as mathHtml, so 2*3*4 stays literal.
+      var j = s.indexOf("*", i+1);
+      if (j > i+1 && (i === 0 || !/[A-Za-z0-9]/.test(s[i-1])) && (j+1 >= n || !/[A-Za-z0-9]/.test(s[j+1]))){
+        flush(); segs.push({t:"italic", s:s.slice(i+1, j)}); i = j+1;
+      } else { buf += "*"; i++; }
       continue;
     }
     if ((s.slice(i, i+4) === "sqrt" && s[i+4] === "(") || c === "\u221a"){
@@ -3348,7 +3370,7 @@ function vecNum(v){ return (Math.round(v*100)/100).toString(); }
 /* Draw shaped glyphs as filled vector paths. x0pt/basePt are in PDF API
    coords (pt, y-down from page top); fsPt is the font size in pt; lsPt is
    letter-spacing in pt (added after every glyph, like CSS). */
-function vecDrawGlyphs(doc, pageH, glyphs, x0pt, basePt, fsPt, rgb, lsPt){
+function vecDrawGlyphs(doc, pageH, glyphs, x0pt, basePt, fsPt, rgb, lsPt, shearK){
   var ops = [], cx = x0pt, s = fsPt/1000;
   for (var k=0;k<glyphs.length;k++){
     var gl = glyphs[k], segs = vecSegs(gl.f, gl.g);
@@ -3364,7 +3386,15 @@ function vecDrawGlyphs(doc, pageH, glyphs, x0pt, basePt, fsPt, rgb, lsPt){
   }
   if (!ops.length) return;
   doc.setFillColor(rgb[0], rgb[1], rgb[2]);
-  doc.internal.write(ops.join("\n")+"\nf\n");
+  if (shearK){
+    // v3.9: fake-oblique for italic words — shear the glyph outlines
+    // about the baseline (PDF y = pageH - basePt). Same size/weight/
+    // colour as the upright text; only the slant changes. 0.212 = tan 12 deg.
+    var _e = -shearK * (pageH - basePt);
+    doc.internal.write("q\n1 0 " + vecNum(shearK) + " 1 " + vecNum(_e) + " 0 cm\n" + ops.join("\n") + "\nf\nQ\n");
+  } else {
+    doc.internal.write(ops.join("\n")+"\nf\n");
+  }
 }
 function vecRgb(css){
   var m = String(css||"").match(/rgba?\(([^)]+)\)/);
@@ -3436,7 +3466,7 @@ function vecTextLines(el, slideRect){
       cur = { baseline:base, tokens:[] };
       lines.push(cur);
     }
-    cur.tokens.push({ text:w.text, x:r.left - slideRect.left, fs:fs, fw:st.fontWeight, fam:famName, color:vecRgb(st.color), ls:parseFloat(st.letterSpacing)||0 });
+    cur.tokens.push({ text:w.text, x:r.left - slideRect.left, fs:fs, fw:st.fontWeight, fam:famName, color:vecRgb(st.color), ls:parseFloat(st.letterSpacing)||0, it:(st.fontStyle === "italic" || st.fontStyle === "oblique") });
   });
   return lines;
 }
@@ -3578,7 +3608,7 @@ async function vecDrawSlide(doc, pageH, ox, oy, k, clone){
     lines.forEach(function(ln){
       ln.tokens.forEach(function(tk){
         var glyphs = vecShape(tk.text, vecFontFor(tk.fam, tk.fw));
-        vecDrawGlyphs(doc, pageH, glyphs, ox+tk.x*k, oy+ln.baseline*k, tk.fs*k, tk.color, (tk.ls||0)*k);
+        vecDrawGlyphs(doc, pageH, glyphs, ox+tk.x*k, oy+ln.baseline*k, tk.fs*k, tk.color, (tk.ls||0)*k, tk.it ? 0.212 : 0);
       });
     });
   });
@@ -4137,6 +4167,10 @@ $("btnPptx").addEventListener("click", async function(){
           else if (mode === "sub") ex.subscript = true;
           if (sg.t === "text"){
             pptxLangRuns(sg.s, bnFace, enFace, mergeOpt(_base, ex)).forEach(function(r){ target.push(r); });
+          } else if (sg.t === "italic"){
+            // v3.9: italic run — same face/size/colour/weight as the
+            // surrounding text, only slanted (book-style, like the board paper).
+            pptxLangRuns(sg.s, bnFace, enFace, mergeOpt(_base, mergeOpt(ex, {italic:true}))).forEach(function(r){ target.push(r); });
           } else if (sg.t === "sup" || sg.t === "sub"){
             addSegs(mathSegs(sg.s), scale*0.68, sg.t, target);
           } else if (sg.t === "sqrt"){
