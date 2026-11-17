@@ -892,7 +892,7 @@ body.app-dark .sw.on{border-color:#fff}
 /* App version — the ONE version string shown to the user (Home + Settings).
    The service worker cache is "qbanan-" + this version (same literal in
    sw.js) — bump both together on every release. */
-var APP_VERSION = "3.7";
+var APP_VERSION = "3.8";
 /* ---------- helpers ---------- */
 var BN = {"0":"০","1":"১","2":"২","3":"৩","4":"৪","5":"৫","6":"৬","7":"৭","8":"৮","9":"৯"};
 function bn(n){ return String(n).split("").map(function(c){ return BN[c] || c; }).join(""); }
@@ -2353,11 +2353,36 @@ function headerHTML(meta, pillText){
 function footerHTML(meta){
   return '<div class="foot"><span>'+langHtml(meta.teacher||"Khayrul Sir")+'</span><span>'+langHtml((meta.subject||"")+' • '+(meta.chapter||""))+'</span></div>';
 }
-function isBoard(q){ return /\[.*বো\.?\s*\d/.test(q); }
-/* The [নমুনা প্রশ্ন] tag is added only when the text doesn't already carry
-   it (TOM's formatted text often includes it inline — adding it again
-   would print it twice). */
-function tagHTML(q){ if (String(q||"").indexOf("নমুনা প্রশ্ন")>=0) return ""; return isBoard(q) ? "" : ' <span class="tag">[নমুনা প্রশ্ন]</span>'; }
+/* Board tag: a trailing [...] at the END of a question/stimulus, e.g.
+   [ঢা. বো. '২৪], [বরিশাল বোর্ড ২০২৩], [সকল বোর্ড ২০১৮],
+   [যশোর শিক্ষা বোর্ড] (no year), [ঢাকা বোর্ড ২০২০; রাজশাহী বোর্ড ২০২০; ...].
+   The old /বো\.?\s*\d/ test only matched the abbreviated form with ASCII
+   digits — the full form ("বোর্ড", Bengali digits ২০২৩) never matched, so
+   real board questions wrongly got [নমুনা প্রশ্ন]. The tag is EXTRACTED at
+   render time; the stored question text is never changed. A mid-question
+   bracket is never extracted (the $ anchor), and a question already
+   carrying [নমুনা প্রশ্ন] inline is left untouched. */
+var BOARD_TAG_RE = /\[([^\[\]]*(?:বোর্ড|বো\.?(?=[\s'’\d০-৯]))[^\[\]]*)\]\s*$/;
+function boardTag(q){
+  var s = String(q||"");
+  if (s.indexOf("নমুনা প্রশ্ন")>=0) return null;
+  var m = s.match(BOARD_TAG_RE);
+  return m ? "["+m[1]+"]" : null;
+}
+function stripBoardTag(q){
+  var t = boardTag(q);
+  return t ? String(q).replace(BOARD_TAG_RE, "").replace(/\s+$/, "") : String(q||"");
+}
+function isBoard(q){ return boardTag(q) !== null; }
+/* The tag shown after the question: the board tag when the question carries
+   one (moved out of the question text into the small .tag span), else
+   [নমুনা প্রশ্ন] — unless the text already carries [নমুনা প্রশ্ন] inline. */
+function tagHTML(q){
+  var t = boardTag(q);
+  if (t) return ' <span class="tag">'+esc(t)+'</span>';
+  if (String(q||"").indexOf("নমুনা প্রশ্ন")>=0) return "";
+  return ' <span class="tag">[নমুনা প্রশ্ন]</span>';
+}
 
 var LAYOUT_NAMES = ["বর্তমানটা","প্রশ্ন উপরে, ২×২ গ্রিড","মাঝখানে প্রশ্ন, পিল অপশন","বামে নম্বর রেল","উপরে হলুদ ব্যান্ড"];
 function layoutOf(){
@@ -2823,7 +2848,7 @@ function renderAll(){
           var r = slideEl("বহুনির্বাচনী", bn(it.num)+".");
           if (solIdx != null) r.slide.classList.add("sol");
           var opts = it.opts.map(function(o,idx){ return optHTML(o, idx, solIdx, optPhotoOf(it, idx)); }).join("");
-          r.body.innerHTML = '<div class="qwrap"><div class="q">'+(showNum?'<span class="arr">'+bn(it.num)+'.</span> ':'')+langHtml(it.q)+tagHTML(it.q)+'</div>'+figHTML(it.svg)+photoHTML(it.photo)+'</div>'+
+          r.body.innerHTML = '<div class="qwrap"><div class="q">'+(showNum?'<span class="arr">'+bn(it.num)+'.</span> ':'')+langHtml(stripBoardTag(it.q))+tagHTML(it.q)+'</div>'+figHTML(it.svg)+photoHTML(it.photo)+'</div>'+
             '<div class="opts">'+opts+'</div>';
           return r;
         }
@@ -2852,7 +2877,7 @@ function renderAll(){
         var body = r.body;
         body.style.flexDirection = "column";
         body.style.gap = "0";
-        body.innerHTML = '<div class="stim">'+(showNum?bn(cq.num)+'. ':'')+langHtml(cq.stimulus)+tagHTML(cq.stimulus)+'</div>'+figHTML(cq.svg)+photoHTML(cq.photo)+'<div class="cq"></div>';
+        body.innerHTML = '<div class="stim">'+(showNum?bn(cq.num)+'. ':'')+langHtml(stripBoardTag(cq.stimulus))+tagHTML(cq.stimulus)+'</div>'+figHTML(cq.svg)+photoHTML(cq.photo)+'<div class="cq"></div>';
         box.appendChild(r.slide); count++;
         fitFig(r.slide);
         fitPhoto(r.slide);
@@ -3981,7 +4006,16 @@ $("btnPptx").addEventListener("click", async function(){
       }
       return out;
     }
-    function tagTxt(q){ return String(q||"").indexOf("নমুনা প্রশ্ন")>=0 ? "" : (isBoard(q)?"":" [নমুনা প্রশ্ন]"); }
+    /* PPTX tag: the board tag itself (or [নমুনা প্রশ্ন]) as its own text —
+       the caller appends it as separate runs in the tag's colour/size, never
+       in the question colour. "" when the text already carries [নমুনা প্রশ্ন]. */
+    function tagTxt(q){ var t = boardTag(q); if (t) return t; return String(q||"").indexOf("নমুনা প্রশ্ন")>=0 ? "" : "[নমুনা প্রশ্ন]"; }
+    /* Tag runs for PPTX: the tag in the small .tag style — the plain text
+       colour (txt/csTx), ~0.85x the question size — not the question colour. */
+    function tagRuns(tag, fsPt, tagColor){
+      if (!tag) return [];
+      return pptxLangRuns(" "+tag, bnBodyFace, enBodyFace, {color: tagColor, fontSize: Math.round(fsPt*0.85*10)/10});
+    }
     /* ---------- math in PPTX (v3.2) ----------
        pptxMathRuns is a drop-in for pptxLangRuns with math support:
        powers/subscripts become real superscript/subscript runs (this
@@ -4366,7 +4400,8 @@ $("btnPptx").addEventListener("click", async function(){
         var it = e.item;
         var solIdx = (e.sol && it.sol != null) ? it.sol : -1;
         var s = pptx.addSlide(); addHeader(s, "বহুনির্বাচনী", bn(it.num)+".");
-        var qText = bn(it.num)+". "+it.q+tagTxt(it.q);
+        var qText = bn(it.num)+". "+stripBoardTag(it.q);
+        var qTag = tagTxt(it.q);
         var figH = 0;
         if (L===5){
           // Custom style: question + options exactly where the style puts them.
@@ -4375,7 +4410,7 @@ $("btnPptx").addEventListener("click", async function(){
           var qAlign = co.qPos === "center" ? "center" : (co.qPos === "top-center" ? "center" : "left");
           var qX = 0.6, qW = 12.13;
           if (co.optPos === "right") qW = 7.2;
-          s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fsq(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), csQ, {x:qX, y:qY, w:qW, h:2.6, valign:"top", align:qAlign}), { x:qX, y:qY, w:qW, h:2.6, fontSize:fsq(16), bold:true, color:csQ, valign:"top", align:qAlign, shrinkText:true });
+          s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fsq(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), csQ, {x:qX, y:qY, w:qW, h:2.6, valign:"top", align:qAlign}).concat(tagRuns(qTag, fsq(16), csTx)), { x:qX, y:qY, w:qW, h:2.6, fontSize:fsq(16), bold:true, color:csQ, valign:"top", align:qAlign, shrinkText:true });
           var yOpts5 = qY + 2.5;
           if (it.svg || it.photo){ figH = await addFigOrPhoto(s, it, qX+qW/2, qY+1.9, Math.min(qW,6), 1.1); yOpts5 = qY + 3.1; }
           if (co.optPos === "right"){
@@ -4404,7 +4439,7 @@ $("btnPptx").addEventListener("click", async function(){
             }
           }
         } else if (L===0){
-          s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fs(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), qCol, {x:0.6, y:1.5, w:7.2, h:2.6, valign:"top"}), { x:0.6, y:1.5, w:7.2, h:2.6, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
+          s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fs(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), qCol, {x:0.6, y:1.5, w:7.2, h:2.6, valign:"top"}).concat(tagRuns(qTag, fs(16), txt)), { x:0.6, y:1.5, w:7.2, h:2.6, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
           if (it.svg || it.photo) figH = await addFigOrPhoto(s, it, 0.6+3.6, 4.3, 5.5, 1.6);
           for (var oi=0; oi<it.opts.length; oi++){
             var o = it.opts[oi];
@@ -4412,7 +4447,7 @@ $("btnPptx").addEventListener("click", async function(){
             await optBox(s, 8.4, y, 4.3, 0.65, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o), optPhotoOf(it, oi));
           }
         } else if (L===1){
-          s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fs(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), qCol, {x:0.6, y:1.35, w:12.13, h:1.9, valign:"top"}), { x:0.6, y:1.35, w:12.13, h:1.9, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
+          s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fs(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), qCol, {x:0.6, y:1.35, w:12.13, h:1.9, valign:"top"}).concat(tagRuns(qTag, fs(16), txt)), { x:0.6, y:1.35, w:12.13, h:1.9, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
           var yOpts1 = 4.0;
           if (it.svg || it.photo){ figH = await addFigOrPhoto(s, it, 6.67, 3.35, 6, 1.1); yOpts1 = 4.6; }
           for (var oi=0; oi<it.opts.length; oi++){
@@ -4421,7 +4456,7 @@ $("btnPptx").addEventListener("click", async function(){
             await optBox(s, gx, gy, 5.88, 0.85, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o), optPhotoOf(it, oi));
           }
         } else if (L===2){
-          s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fs(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), qCol, {x:1.5, y:1.9, w:10.33, h:1.8, valign:"top", align:"center"}), { x:1.5, y:1.9, w:10.33, h:1.8, fontSize:fs(16), bold:true, color:qCol, valign:"top", align:"center", shrinkText:true });
+          s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fs(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), qCol, {x:1.5, y:1.9, w:10.33, h:1.8, valign:"top", align:"center"}).concat(tagRuns(qTag, fs(16), txt)), { x:1.5, y:1.9, w:10.33, h:1.8, fontSize:fs(16), bold:true, color:qCol, valign:"top", align:"center", shrinkText:true });
           var yOpts2 = 4.9;
           if (it.svg || it.photo){ figH = await addFigOrPhoto(s, it, 6.67, 3.8, 6, 1.1); yOpts2 = 5.3; }
           var pw = 2.9, gap = 0.25, totalW = pw*4 + gap*3, x0 = (13.33-totalW)/2;
@@ -4430,7 +4465,7 @@ $("btnPptx").addEventListener("click", async function(){
             await optBox(s, x0 + oi*(pw+gap), yOpts2, pw, 0.7, ["ক","খ","গ","ঘ"][oi], o, oi===solIdx, optSvgOf(o), optPhotoOf(it, oi));
           }
         } else if (L===3){
-          s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fs(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), qCol, {x:2.5, y:1.5, w:10.2, h:2.2, valign:"top"}), { x:2.5, y:1.5, w:10.2, h:2.2, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
+          s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fs(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), qCol, {x:2.5, y:1.5, w:10.2, h:2.2, valign:"top"}).concat(tagRuns(qTag, fs(16), txt)), { x:2.5, y:1.5, w:10.2, h:2.2, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
           var yOpts3 = 3.9, oH3 = 0.6, oGap3 = 0.75;
           if (it.svg || it.photo){ figH = await addFigOrPhoto(s, it, 2.5+5.1, 3.15, 6, 0.9); yOpts3 = 4.25; oGap3 = 0.7; }
           for (var oi=0; oi<it.opts.length; oi++){
@@ -4440,7 +4475,7 @@ $("btnPptx").addEventListener("click", async function(){
           }
         } else { // L4
           s.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:0.6, y:1.5, w:12.13, h:2.2, fill:{color:cardBg}, line:{color:cardBd} });
-          s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fs(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), qCol, {x:1.0, y:1.65, w:11.3, h:1.9, valign:"top"}), { x:1.0, y:1.65, w:11.3, h:1.9, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
+          s.addText(pptxMathRuns(qText, bnBodyFace, enBodyFace, null, fs(16), s, _pvSlide ? _pvSlide.querySelector(".q") : null, _pvRect(), qCol, {x:1.0, y:1.65, w:11.3, h:1.9, valign:"top"}).concat(tagRuns(qTag, fs(16), txt)), { x:1.0, y:1.65, w:11.3, h:1.9, fontSize:fs(16), bold:true, color:qCol, valign:"top", shrinkText:true });
           var yOpts4 = 4.1;
           if (it.svg || it.photo){ figH = await addFigOrPhoto(s, it, 6.67, 3.85, 6, 1.1); yOpts4 = 5.0; }
           for (var oi=0; oi<it.opts.length; oi++){
@@ -4455,13 +4490,13 @@ $("btnPptx").addEventListener("click", async function(){
         var sx = (L===3) ? 2.5 : 0.6, sw = (L===3) ? 10.2 : 12.13;
         var stimY = 1.5, subY = 3.2;
         if (L===5){
-          s2.addText(pptxMathRuns(bn(cq.num)+". "+cq.stimulus+tagTxt(cq.stimulus), bnBodyFace, enBodyFace, null, fsq(12), s2, _pvSlide ? _pvSlide.querySelector(".stim") : null, _pvRect(), csTx, {x:0.6, y:1.5, w:12.13, h:1.6, valign:"top"}), { x:0.6, y:1.5, w:12.13, h:1.6, fontSize:fsq(12), color:csTx, valign:"top", shrinkText:true });
+          s2.addText(pptxMathRuns(bn(cq.num)+". "+stripBoardTag(cq.stimulus), bnBodyFace, enBodyFace, null, fsq(12), s2, _pvSlide ? _pvSlide.querySelector(".stim") : null, _pvRect(), csTx, {x:0.6, y:1.5, w:12.13, h:1.6, valign:"top"}).concat(tagRuns(tagTxt(cq.stimulus), fsq(12), csTx)), { x:0.6, y:1.5, w:12.13, h:1.6, fontSize:fsq(12), color:csTx, valign:"top", shrinkText:true });
         } else if (L===4){
           s2.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x:0.6, y:1.5, w:12.13, h:1.8, fill:{color:cardBg}, line:{color:cardBd} });
-          s2.addText(pptxMathRuns(bn(cq.num)+". "+cq.stimulus+tagTxt(cq.stimulus), bnBodyFace, enBodyFace, null, fs(12), s2, _pvSlide ? _pvSlide.querySelector(".stim") : null, _pvRect(), txt, {x:1.0, y:1.65, w:11.3, h:1.5, valign:"top"}), { x:1.0, y:1.65, w:11.3, h:1.5, fontSize:fs(12), color:txt, valign:"top", shrinkText:true });
+          s2.addText(pptxMathRuns(bn(cq.num)+". "+stripBoardTag(cq.stimulus), bnBodyFace, enBodyFace, null, fs(12), s2, _pvSlide ? _pvSlide.querySelector(".stim") : null, _pvRect(), txt, {x:1.0, y:1.65, w:11.3, h:1.5, valign:"top"}).concat(tagRuns(tagTxt(cq.stimulus), fs(12), txt)), { x:1.0, y:1.65, w:11.3, h:1.5, fontSize:fs(12), color:txt, valign:"top", shrinkText:true });
           subY = 3.6;
         } else {
-          s2.addText(pptxMathRuns(bn(cq.num)+". "+cq.stimulus+tagTxt(cq.stimulus), bnBodyFace, enBodyFace, null, fs(12), s2, _pvSlide ? _pvSlide.querySelector(".stim") : null, _pvRect(), txt, {x:sx, y:stimY, w:sw, h:1.6, valign:"top"}), { x:sx, y:stimY, w:sw, h:1.6, fontSize:fs(12), color:txt, valign:"top", shrinkText:true });
+          s2.addText(pptxMathRuns(bn(cq.num)+". "+stripBoardTag(cq.stimulus), bnBodyFace, enBodyFace, null, fs(12), s2, _pvSlide ? _pvSlide.querySelector(".stim") : null, _pvRect(), txt, {x:sx, y:stimY, w:sw, h:1.6, valign:"top"}).concat(tagRuns(tagTxt(cq.stimulus), fs(12), txt)), { x:sx, y:stimY, w:sw, h:1.6, fontSize:fs(12), color:txt, valign:"top", shrinkText:true });
         }
         if (cq.svg || cq.photo){ await addFigOrPhoto(s2, cq, sx + sw/2, subY, 6, 1.3); subY += 1.45; }
         var subRuns = [];

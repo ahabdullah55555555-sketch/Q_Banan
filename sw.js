@@ -8,7 +8,7 @@
    JS bundles are CACHE-FIRST (they change rarely and are heavy on weak
    Wi-Fi), falling back to the network when missing. Offline still works
    from the cache. */
-var APP_VERSION = "3.7";
+var APP_VERSION = "3.8";
 var CACHE = "qbanan-" + APP_VERSION;
 var FILES = ["./", "index.html", "manifest.json", "pptxgen.bundle.js", "html2canvas.min.js", "jspdf.umd.min.js", "harfbuzz.js", "hb-wrapper.mjs", "hb-loader.mjs", "hb-wasm.js", "vec-fonts.js", "icon.svg"];
 
